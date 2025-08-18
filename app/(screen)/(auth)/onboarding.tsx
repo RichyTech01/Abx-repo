@@ -1,16 +1,23 @@
-import React, { useRef, useState } from "react";
+import  { useRef, useState,  } from "react";
 import {
   View,
-  Text,
   FlatList,
   StyleSheet,
   Image,
-  TouchableOpacity,
   Dimensions,
+  SafeAreaView
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import Onnboarding from "@/assets/svgs/OnboardingSvg";
+import Button from "@/common/Button";
+import { useRouter } from "expo-router";
 
+type Slide = {
+    id: string;
+    title: string;
+    description: string;
+    image: any;
+    color?: string;
+};
+  
 
 const { width } = Dimensions.get("window");
 
@@ -20,7 +27,7 @@ const slides = [
     title: "Excellence at all times is what we represent",
     description:
       "Our vendors are committed to making your favorite Nigerian food item readily available.",
-    image: require("@/assets/Images/Frame 1000008329.png"),
+    image: require("@/assets/Images/Frame 1000008335.png"),
     color: "#DAEEE5"
   },
   {
@@ -28,43 +35,31 @@ const slides = [
     title: "Fresh and Healthy",
     description:
       "Get access to organic Nigerian food items delivered to your doorstep.",
-    image: require("@/assets/Images/Frame 1000008329.png"),
+    image: require("@/assets/Images/onboarding2.png"),
   },
   {
     id: "3",
     title: "Fast & Reliable",
     description: "Enjoy seamless shopping with quick delivery.",
-    image: require("@/assets/Images/Frame 1000008329.png"),
+    image: require("@/assets/Images/onboarding3.png"),
   },
 ];
 
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const navigation = useNavigation();
   const flatListRef = useRef(null);
-
-  const handleNext = () => {
-    if (currentIndex < slides.length - 1) {
-      flatListRef.current.scrollToIndex({ index: currentIndex + 1 });
-    } else {
-      navigation.replace("/"); 
-    }
-  };
-
-  const handleSkip = () => {
-    navigation.replace("Login");
-  };
-
-  const renderItem = ({ item }) => (
+  const router = useRouter();
+  
+  const renderItem = ({ item }: { item: Slide }) => (
     <View style={styles.slide} >
-          <Onnboarding />
+          <Image source={item.image} alt="img" style={styles.image} />
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      {/* Slides */}
+    <SafeAreaView className="bg-white flex-1 ">
       <FlatList
+        maxToRenderPerBatch={1}
         data={slides}
         horizontal
         pagingEnabled
@@ -91,19 +86,19 @@ export default function OnboardingScreen() {
         ))}
       </View>
 
-      <View style={styles.buttonBox}>
-        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-          <Text style={styles.nextText}>
-            {currentIndex === slides.length - 1 ? "Get Started" : "Next"}
-          </Text>
-        </TouchableOpacity>
+      <View className="flex-col items-center justify-between mb-[15%] mx-[20px] ">
+        <View className="w-full ">
+             <Button title="Create Account" variant="solid" color="#0C513F" onPress={() => {}}/>
+        </View>
+        <View className="w-full mt-[24px]  ">
+             <Button title="Log into your account" variant="outline" color="#0C513F" onPress={() => router.push('/(screen)/(auth)/Login')}/>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
   slide: {
     width,
     justifyContent: "center",
@@ -112,38 +107,25 @@ const styles = StyleSheet.create({
   },
   
   image: {
-    width: width * 0.7,
+    width: width * 0.9,
     height: width * 1.2,
     resizeMode: "contain",
-    marginTop: "6%",
   },
   dots: {
     flexDirection: "row",
     justifyContent: "center",
-    marginVertical: 15,
+    marginVertical: 5,
+    bottom: "6%"
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#ccc",
+    backgroundColor: "#D7D7D7",
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: "#004d2b", // green
+    backgroundColor: "#0C513F", 
   },
-  buttonBox: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 30,
-    marginBottom: 30,
-  },
-  skip: { fontSize: 16, color: "#555" },
-  nextButton: {
-    backgroundColor: "#004d2b",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-  },
-  nextText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+ 
 });
