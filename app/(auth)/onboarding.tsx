@@ -97,7 +97,7 @@ export default function OnboardingScreen() {
           <Button
             title="Log into your account"
             variant="outline"
-            onPress={() => router.push("/(screen)/(auth)/Login")}
+            onPress={() => router.push("/Login")}
           />
         </View>
       </View>

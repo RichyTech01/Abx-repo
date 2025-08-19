@@ -1,15 +1,10 @@
 import "./global.css";
 import { useFonts, OrelegaOne_400Regular } from "@expo-google-fonts/orelega-one";
-import {
-  Urbanist_400Regular,
-  Urbanist_500Medium,
-  Urbanist_600SemiBold,
-  Urbanist_700Bold,
-} from "@expo-google-fonts/urbanist";
+import { Urbanist_400Regular, Urbanist_500Medium, Urbanist_600SemiBold, Urbanist_700Bold } from "@expo-google-fonts/urbanist";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,38 +17,20 @@ export default function RootLayout() {
     UrbanistBold: Urbanist_700Bold,
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
 
-  
-  useEffect(() => {
-    const checkUser = async () => {
-     
-      await new Promise((res) => setTimeout(res, 1000));
-      setIsLoggedIn(true); 
-    };
-    checkUser();
-  }, []);
-
-  if (!fontsLoaded || isLoggedIn === null) {
-    return null; 
+  if (!fontsLoaded) {
+    return null;
   }
 
   return (
     <>
       <StatusBar style="dark" backgroundColor="#fff" />
-      <Stack screenOptions={{ headerShown: false }}>
-        {isLoggedIn ? (
-          <Stack.Screen name="(tabs)" />
-        ) : (
-          <Stack.Screen name="(auth)" />
-        )}
-      </Stack>
+      <Stack screenOptions={{ headerShown: false }} />
     </>
   );
 }
