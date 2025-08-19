@@ -50,7 +50,7 @@ export default function Login() {
             </Pressable>
 
             <View className="mt-[8%]">
-              <Button title="Login" color="#0C513F" onPress={() => {}} />
+              <Button title="Login" onPress={() => router.push("/(tabs)")}/>
             </View>
           </View>
         </ScrollView>
