@@ -90,7 +90,6 @@ export default function OnboardingScreen() {
           <Button
             title="Create Account"
             variant="solid"
-            color="#0C513F"
             onPress={() => router.push("/createAccountSteps/CreateAccount")}
           />
         </View>
@@ -98,7 +97,6 @@ export default function OnboardingScreen() {
           <Button
             title="Log into your account"
             variant="outline"
-            color="#0C513F"
             onPress={() => router.push("/(screen)/(auth)/Login")}
           />
         </View>

@@ -1,21 +1,27 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, ViewStyle } from "react-native";
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import * as Haptics from "expo-haptics";
 
 type ButtonProps = {
   title: string;
   onPress: () => void;
   variant?: "solid" | "outline"; 
-  color?: string; 
+  backgroundColor?: string;
+  borderColor?: string;
+  textColor?: string;
   style?: ViewStyle;
+  textStyle?: TextStyle;
 };
 
 const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
   variant = "solid",
-  color = "#0C513F", 
+  backgroundColor = "#0C513F", // default solid bg
+  borderColor = "#0C513F",     // default border
+  textColor,                   // auto-computed if not passed
   style,
+  textStyle,
 }) => {
   const isSolid = variant === "solid";
 
@@ -26,19 +32,23 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <TouchableOpacity
-      onPress={handlePress} 
+      onPress={handlePress}
       style={[
         styles.base,
         {
-          backgroundColor: isSolid ? color : "transparent",
-          borderColor: color,
-          borderWidth: isSolid ? 0 : 1,
+          backgroundColor: isSolid ? backgroundColor : "transparent",
+          borderColor: borderColor,
+          borderWidth: isSolid ? 1 : 1,
         },
         style,
       ]}
     >
       <Text
-        style={{ color: isSolid ? "#fff" : color }}
+        style={[
+          styles.text,
+          { color: isSolid ? "#fff" : borderColor, ...(textColor ? { color: textColor } : {}) },
+          textStyle,
+        ]}
         className="font-urbanist-bold text-[14px]"
       >
         {title}

@@ -45,6 +45,8 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           placeholderTextColor={"#929292"}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          selectionColor="#0C513F"
+          className="font-urbanist"
           {...props}
         />
         {isPassword && (
