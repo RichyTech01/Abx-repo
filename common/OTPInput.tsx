@@ -1,10 +1,16 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { View, TextInput, StyleSheet, Dimensions } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const GAP = 10; 
 const INPUT_WIDTH = (SCREEN_WIDTH * 0.8 - GAP * 5) / 6; 
-const OTPInput = ({ length = 6 }) => {
+
+interface OTPInputProps {
+  length?: number;
+  onComplete?: (code: string) => void;
+}
+
+const OTPInput: React.FC<OTPInputProps> = ({ length = 6, onComplete }) => {
   const [values, setValues] = useState(Array(length).fill(""));
   const inputsRef = useRef<Array<TextInput | null>>([]);
 
@@ -13,7 +19,6 @@ const OTPInput = ({ length = 6 }) => {
     newValues[index] = text;
     setValues(newValues);
 
-   
     if (text && index < length - 1) {
       inputsRef.current[index + 1]?.focus();
     }
@@ -22,6 +27,12 @@ const OTPInput = ({ length = 6 }) => {
       inputsRef.current[index - 1]?.focus();
     }
   };
+
+  useEffect(() => {
+    if (values.every((val) => val !== "")) {
+      onComplete?.(values.join(""));
+    }
+  }, [values]);
 
   return (
     <View style={styles.container}>
@@ -36,7 +47,7 @@ const OTPInput = ({ length = 6 }) => {
           style={[
             styles.input,
             {
-              color: value === "" ? "#DC6C3C" : "#DC6C3C",
+              color: "#DC6C3C",
               marginRight: index === length - 1 ? 0 : GAP,
               width: INPUT_WIDTH,
             },
@@ -44,7 +55,7 @@ const OTPInput = ({ length = 6 }) => {
           placeholder="-"
           placeholderTextColor="#DC6C3C"
           textAlign="center"
-        selectionColor="#DC6C3C"
+          selectionColor="#DC6C3C"
         />
       ))}
     </View>

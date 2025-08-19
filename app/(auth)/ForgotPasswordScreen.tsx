@@ -30,7 +30,7 @@ export default function ForgotPasswordScreen() {
       await AuthApi.forgotPassword(email);
 
       Alert.alert("Success", "Reset code sent! Check your email.");
-      router.push("/EnterResetCode");
+      router.push(`/EnterResetCode?email=${email}`);
     } catch (err: any) {
       console.log("Forgot password error:", err);
       Alert.alert("Error", err.detail || "Something went wrong.");
