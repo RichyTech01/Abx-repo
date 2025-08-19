@@ -20,7 +20,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ visible, onClos
         onPress={onClose} 
       >
         <Pressable
-          className="w-[70%] bg-white py-[24px] px-[10px] rounded-[16px] border border-[#F1EAE7] items-center"
+          className="w-[75%] bg-white py-[24px] px-[10px] rounded-[16px] border border-[#F1EAE7] items-center"
           onPress={() => {}} 
         >
           <SuccesLog />

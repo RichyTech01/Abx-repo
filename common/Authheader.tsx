@@ -1,14 +1,35 @@
-import { View, Text, Pressable, Image } from 'react-native';
-import React from 'react';
-import AppIcon from '@/assets/svgs/AppIcon';
-import GoogleIcon from '@/assets/svgs/GoogleIcon';
+import { View, Text, Pressable, Image } from "react-native";
+import React from "react";
+import { useRouter } from "expo-router";
+import GoogleIcon from "@/assets/svgs/GoogleIcon";
 
-export default function Authheader({name = 'Create account', Subtext = "Don't have an account?", HeaderText = 'Welcome back to ABX!'}) {
-  const MianImg = require('../assets/Images/Main logo.png');
+type Props = {
+  name?: "Create account" | "Login";
+  Subtext?: string;
+  HeaderText?: string;
+};
+
+export default function Authheader({
+  name = "Create account",
+  Subtext = "Don't have an account?",
+  HeaderText = "Welcome back to ABX!",
+}: Props) {
+  const router = useRouter();
+  const MianImg = require("../assets/Images/Main logo.png");
+
+  const handlePress = () => {
+    if (name === "Create account") {
+      router.push("/createAccountSteps/CreateAccount" as never ); 
+    } else {
+      router.push("/Login" as never ); 
+    }
+  };
+
   return (
     <View>
       <View className="mx-auto items-center justify-center mt-[5%]">
-        <Image source={MianImg} alt='main-imgg'/>
+        <Image source={MianImg} />
+
         <Text className="text-[24px] leading-[32px] font-orelega text-[#2D2220] mt-[10px]">
           {HeaderText}
         </Text>
@@ -17,7 +38,8 @@ export default function Authheader({name = 'Create account', Subtext = "Don't ha
           <Text className="font-urbanist-semibold text-[16px] leading-[22px]">
             {Subtext}
           </Text>
-          <Pressable onPress={() => console.log('Create account pressed')}>
+
+          <Pressable onPress={handlePress}>
             <Text className="text-[#0C513F] text-[16px] font-urbanist-semibold ml-[4px]">
               {name}
             </Text>

@@ -40,16 +40,16 @@ export default function CreateAccount() {
               {/* Step indicator */}
               <View className="rounded-[16px] border border-[#F1EAE7] w-[53px] py-[4px] items-center justify-center flex-row">
                 <Text
-                  className="text-[16px] leading-[22px]"
+                  className="text-[16px] leading-[22px] font-urbanist-semibold"
                   style={{ color: step === 1 ? "#0C513F" : "#0C513F" }}
                 >
-                  1
+               {step === 1 ? 1:2}
                 </Text>
-                <Text className="text-[16px] leading-[22px]" style={{ color: "#0C513F" }}>
+                <Text className="text-[16px] leading-[22px] font-urbanist-semibold" style={{ color: "#0C513F" }}>
                   /
                 </Text>
                 <Text
-                  className="text-[16px] leading-[22px]"
+                  className="text-[16px] leading-[22px] font-urbanist-semibold"
                   style={{ color: step === 2 ? "#0C513F" : "#AEC5BF" }}
                 >
                   2
