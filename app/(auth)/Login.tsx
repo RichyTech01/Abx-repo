@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,47 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import Authheader from '@/common/Authheader';
 import CustomTextInput from '@/common/CustomTextInput';
 import Button from '@/common/Button';
 import { useRouter } from 'expo-router';
+import AuthApi from '@/api/AuthApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function Login() {
-
   const router = useRouter();
+
+  // State for inputs
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter email and password.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await AuthApi.signIn({ email, password });
+
+      const { access, refresh } = res; 
+      await AsyncStorage.setItem('accessToken', access);
+      await AsyncStorage.setItem('refreshToken', refresh);
+
+      // Navigate to tabs/home
+      router.replace('/(tabs)/Home');
+    } catch (err: any) {
+      console.log('Login error:', err);
+      Alert.alert('Login failed', err.detail || 'Check your credentials');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -32,7 +64,9 @@ export default function Login() {
           <View className="mx-[20px] mt-[8%] justify-center">
             <CustomTextInput
               label="Email Address"
-              placeholder="Type your last name"
+              placeholder="Type your email"
+              value={email}
+              onChangeText={setEmail}
             />
 
             <View className="mt-[24px]">
@@ -40,17 +74,22 @@ export default function Login() {
                 label="Password"
                 isPassword
                 placeholder="Use a minimum of 7 characters"
+                value={password}
+                onChangeText={setPassword}
               />
             </View>
 
-            <Pressable className="mt-[16px]" onPress={() => router.push('/ForgotPasswordScreen')}>
-              <Text className="text-[#0C513F] font-urbanist-semibold text-[14px] leading-[20px]  ">
+            <Pressable
+              className="mt-[16px]"
+              onPress={() => router.push('/ForgotPasswordScreen')}
+            >
+              <Text className="text-[#0C513F] font-urbanist-semibold text-[14px] leading-[20px]">
                 Forgot password?
               </Text>
             </Pressable>
 
             <View className="mt-[8%]">
-              <Button title="Login" onPress={() => router.push("/(tabs)")}/>
+              <Button title={loading ? 'Logging in...' : 'Login'} onPress={handleLogin} />
             </View>
           </View>
         </ScrollView>

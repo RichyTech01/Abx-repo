@@ -1,19 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   SafeAreaView,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import CustomTextInput from "@/common/CustomTextInput";
 import Button from "@/common/Button";
 import Resetpassheader from "@/common/Resetpassheader";
 import { useRouter } from "expo-router";
+import AuthApi from "@/api/AuthApi";
+
 
 export default function ForgotPasswordScreen() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const router = useRouter();
+  const handleSendResetCode = async () => {
+    if (!email) {
+      Alert.alert("Error", "Please enter your email.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await AuthApi.forgotPassword(email);
+
+      Alert.alert("Success", "Reset code sent! Check your email.");
+      router.push("/EnterResetCode");
+    } catch (err: any) {
+      console.log("Forgot password error:", err);
+      Alert.alert("Error", err.detail || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -37,11 +61,16 @@ export default function ForgotPasswordScreen() {
             <CustomTextInput
               label="Email Address"
               placeholder="Type your email"
+              value={email}
+              onChangeText={setEmail}
             />
           </View>
 
           <View className="w-full mt-[11%]">
-            <Button title="Send reset code" onPress={() => router.push("/EnterResetCode")} />
+            <Button
+              title={loading ? "Sending..." : "Send reset code"}
+              onPress={handleSendResetCode}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

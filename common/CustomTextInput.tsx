@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 12,
-    color: "#929292",
+    color: "black",
   },
   iconWrapper: {
     marginLeft: 8,

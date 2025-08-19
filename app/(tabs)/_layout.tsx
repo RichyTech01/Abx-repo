@@ -100,11 +100,11 @@ const BottomTabNavigation: React.FC<BottomTabNavigationProps> = ({
                   isActive && styles.activeIconContainer,
                 ]}
               >
-                <Ionicons
+                {/* <Ionicons
                   name={isActive ? tab.activeIcon : tab.icon}
                   size={24}
                   color={isActive ? "#2E7D32" : "#9E9E9E"}
-                />
+                /> */}
               </View>
               <Text
                 style={[styles.tabLabel, isActive && styles.activeTabLabel]}
