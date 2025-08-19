@@ -1,5 +1,6 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, ViewStyle } from "react-native";
+import * as Haptics from "expo-haptics";
 
 type ButtonProps = {
   title: string;
@@ -18,9 +19,14 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   const isSolid = variant === "solid";
 
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress();
+  };
+
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress} 
       style={[
         styles.base,
         {
@@ -30,11 +36,10 @@ const Button: React.FC<ButtonProps> = ({
         },
         style,
       ]}
-     
     >
       <Text
         style={{ color: isSolid ? "#fff" : color }}
-         className="font-urbanist-bold text-[14px]  "
+        className="font-urbanist-bold text-[14px]"
       >
         {title}
       </Text>
