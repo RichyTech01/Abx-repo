@@ -15,6 +15,7 @@ import Button from '@/common/Button';
 import { useRouter } from 'expo-router';
 import AuthApi from '@/api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import showToast from '@/utils/showToast';
 
 
 export default function Login() {
@@ -27,7 +28,7 @@ export default function Login() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password.');
+      showToast('error', 'Please enter email and password.');
       return;
     }
 
@@ -43,7 +44,7 @@ export default function Login() {
       router.replace('/(tabs)/Home');
     } catch (err: any) {
       console.log('Login error:', err);
-      Alert.alert('Login failed', err.detail || 'Check your credentials');
+      showToast('error', err.detail || 'Check your credentials');
     } finally {
       setLoading(false);
     }

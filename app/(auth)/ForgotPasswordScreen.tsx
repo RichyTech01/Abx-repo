@@ -12,6 +12,7 @@ import Button from "@/common/Button";
 import Resetpassheader from "@/common/Resetpassheader";
 import { useRouter } from "expo-router";
 import AuthApi from "@/api/AuthApi";
+import showToast from "@/utils/showToast";
 
 
 export default function ForgotPasswordScreen() {
@@ -21,7 +22,7 @@ export default function ForgotPasswordScreen() {
 
   const handleSendResetCode = async () => {
     if (!email) {
-      Alert.alert("Error", "Please enter your email.");
+      showToast("error", "Please enter your email.");
       return;
     }
 
@@ -29,11 +30,11 @@ export default function ForgotPasswordScreen() {
       setLoading(true);
       await AuthApi.forgotPassword(email);
 
-      Alert.alert("Success", "Reset code sent! Check your email.");
+      showToast("success", "Reset code sent! Check your email.");
       router.push(`/EnterResetCode?email=${email}`);
     } catch (err: any) {
       console.log("Forgot password error:", err);
-      Alert.alert("Error", err.detail || "Something went wrong.");
+      showToast("error", err.detail || "Something went wrong.");
     } finally {
       setLoading(false);
     }

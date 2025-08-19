@@ -13,6 +13,7 @@ import Resetpassheader from "@/common/Resetpassheader";
 import OTPInput from "@/common/OTPInput";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import AuthApi from "@/api/AuthApi";
+import showToast from "@/utils/showToast";
 
 export default function EnterResetCode() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function EnterResetCode() {
 
 const handleOtpComplete = async (code: string) => {
   if (!email) {
-    Alert.alert("Error", "Email not found.");
+    showToast("error", "Email not found.");
     return;
   }
 
@@ -35,7 +36,7 @@ const handleOtpComplete = async (code: string) => {
     );
   } catch (err: any) {
     console.log("OTP verification error:", err);
-    Alert.alert("Error", err.detail || "Invalid code");
+    showToast("error", err.detail || "Invalid code");
   }
 };
 
@@ -81,10 +82,10 @@ const handleOtpComplete = async (code: string) => {
                 if (!email) return;
                 try {
                   await AuthApi.resendOtp(email as string);
-                  Alert.alert("Success", "OTP resent successfully!");
+                  showToast("success", "OTP resent successfully!");
                 } catch (err: any) {
                   console.log("Resend OTP error:", err);
-                  Alert.alert("Error", err.detail || "Could not resend OTP");
+                  showToast("error", err.detail || "Could not resend OTP");
                 }
               }}
             >

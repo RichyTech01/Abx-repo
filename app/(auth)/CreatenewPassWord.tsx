@@ -12,6 +12,7 @@ import CustomTextInput from "@/common/CustomTextInput";
 import Button from "@/common/Button";
 import ResetPasswordModal from "@/Modals/AuthModals/ResetPasswordModal";
 import { useLocalSearchParams } from "expo-router";
+import showToast from "@/utils/showToast";
 import AuthApi from "@/api/AuthApi";
 
 export default function CreateNewPassword() {
@@ -25,12 +26,12 @@ export default function CreateNewPassword() {
 
   const handleResetPassword = async () => {
     if (!email || !token) {
-      Alert.alert("Error", "Email or token is missing.");
+      showToast("error", "Email or token is missing.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match.");
+      showToast("error", "Passwords do not match.");
       return;
     }
 
@@ -44,7 +45,7 @@ export default function CreateNewPassword() {
       setModalVisible(true);
     } catch (err: any) {
       console.log("Reset password error:", err);
-      Alert.alert("Error", err.detail || "Could not reset password");
+      showToast("error", err.detail || "Could not reset password");
     }
   };
 
