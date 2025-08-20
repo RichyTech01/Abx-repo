@@ -21,7 +21,7 @@ export default function CreateAccount() {
   return (
     <SafeAreaView className="bg-white flex-1">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -43,9 +43,12 @@ export default function CreateAccount() {
                   className="text-[16px] leading-[22px] font-urbanist-semibold"
                   style={{ color: step === 1 ? "#0C513F" : "#0C513F" }}
                 >
-               {step === 1 ? 1:2}
+                  {step === 1 ? 1 : 2}
                 </Text>
-                <Text className="text-[16px] leading-[22px] font-urbanist-semibold" style={{ color: "#0C513F" }}>
+                <Text
+                  className="text-[16px] leading-[22px] font-urbanist-semibold"
+                  style={{ color: "#0C513F" }}
+                >
                   /
                 </Text>
                 <Text

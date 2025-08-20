@@ -4,6 +4,7 @@ import CustomTextInput from "@/common/CustomTextInput";
 import CustomDropdown from "@/common/CustomDropdown";
 import Button from "@/common/Button";
 import { useRouter } from "expo-router";
+import AuthApi from "@/api/AuthApi";
 
 export default function StepTwo() {
   const [region, setRegion] = useState<string | null>(null);
