@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,28 +7,25 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
-} from 'react-native';
-import Authheader from '@/common/Authheader';
-import CustomTextInput from '@/common/CustomTextInput';
-import Button from '@/common/Button';
-import { useRouter } from 'expo-router';
-import AuthApi from '@/api/AuthApi';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import showToast from '@/utils/showToast';
-
+} from "react-native";
+import Authheader from "@/common/Authheader";
+import CustomTextInput from "@/common/CustomTextInput";
+import Button from "@/common/Button";
+import { useRouter } from "expo-router";
+import AuthApi from "@/api/AuthApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import showToast from "@/utils/showToast";
 
 export default function Login() {
   const router = useRouter();
 
-  // State for inputs
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      showToast('error', 'Please enter email and password.');
+      showToast("error", "Please enter email and password.");
       return;
     }
 
@@ -36,15 +33,17 @@ export default function Login() {
       setLoading(true);
       const res = await AuthApi.signIn({ email, password });
 
-      const { access, refresh } = res; 
-      await AsyncStorage.setItem('accessToken', access);
-      await AsyncStorage.setItem('refreshToken', refresh);
-
-      // Navigate to tabs/home
-      router.replace('/(tabs)/Home');
+      const { access, refresh } = res;
+      await AsyncStorage.setItem("accessToken", access);
+      await AsyncStorage.setItem("refreshToken", refresh);
+      console.log("Login successful:", res);
+      router.push({
+        pathname: "/(tabs)/Home",
+        params: { reset: "true" },
+      });
     } catch (err: any) {
-      console.log('Login error:', err);
-      showToast('error', err.detail || 'Check your credentials');
+      console.log("Login error:", err);
+      showToast("error", err.detail || "Check your credentials");
     } finally {
       setLoading(false);
     }
@@ -53,7 +52,7 @@ export default function Login() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -82,7 +81,7 @@ export default function Login() {
 
             <Pressable
               className="mt-[16px]"
-              onPress={() => router.push('/ForgotPasswordScreen')}
+              onPress={() => router.push("/ForgotPasswordScreen")}
             >
               <Text className="text-[#0C513F] font-urbanist-semibold text-[14px] leading-[20px]">
                 Forgot password?
@@ -90,7 +89,7 @@ export default function Login() {
             </Pressable>
 
             <View className="mt-[8%]">
-              <Button title={loading ? 'Logging in...' : 'Login'} onPress={handleLogin} />
+              <Button title={"Login"} loading={loading} onPress={handleLogin} />
             </View>
           </View>
         </ScrollView>

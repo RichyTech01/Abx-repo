@@ -7,12 +7,14 @@ type Props = {
   name?: "Create account" | "Login";
   Subtext?: string;
   HeaderText?: string;
+  googleSignName?: string;
 };
 
 export default function Authheader({
   name = "Create account",
   Subtext = "Don't have an account?",
   HeaderText = "Welcome back to ABX!",
+  googleSignName = "Sign in",
 }: Props) {
   const router = useRouter();
   const MianImg = require("../assets/Images/Main logo.png");
@@ -50,7 +52,7 @@ export default function Authheader({
       <Pressable className="border border-[#F1EAE7] rounded-[8px] h-[42px] mx-auto flex-row items-center justify-between px-[10px] mt-[32px]">
         <GoogleIcon />
         <Text className="text-[#344054] text-[16px] leading-[22px] font-urbanist ml-[8px]">
-          Log in with Google
+         {googleSignName} with Google
         </Text>
       </Pressable>
     </View>

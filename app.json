@@ -8,6 +8,9 @@
     "scheme": "abxmobileapplication",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+     "extra": {
+      "GET_ADDRESS_API_KEY": "LmRcb8Qk50mEojODY5sv3w46906"
+    },
     "ios": {
       "supportsTablet": true
     },
@@ -18,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true
     },
-    "web": {
+    "web": {  
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"

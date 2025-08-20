@@ -1,5 +1,12 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+  ActivityIndicator,
+} from "react-native";
 import * as Haptics from "expo-haptics";
 
 type ButtonProps = {
@@ -11,21 +18,24 @@ type ButtonProps = {
   textColor?: string;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  loading?: boolean; 
 };
 
 const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
   variant = "solid",
-  backgroundColor = "#0C513F", // default solid bg
-  borderColor = "#0C513F",     // default border
-  textColor,                   // auto-computed if not passed
+  backgroundColor = "#0C513F",
+  borderColor = "#0C513F",
+  textColor,
   style,
   textStyle,
+  loading = false,
 }) => {
   const isSolid = variant === "solid";
 
   const handlePress = () => {
+    if (loading) return; 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress();
   };
@@ -38,21 +48,28 @@ const Button: React.FC<ButtonProps> = ({
         {
           backgroundColor: isSolid ? backgroundColor : "transparent",
           borderColor: borderColor,
-          borderWidth: isSolid ? 1 : 1,
+          borderWidth: 1,
+          opacity: loading ? 0.7 : 1, 
         },
         style,
       ]}
+      activeOpacity={0.8}
+      disabled={loading} 
     >
-      <Text
-        style={[
-          styles.text,
-          { color: isSolid ? "#fff" : borderColor, ...(textColor ? { color: textColor } : {}) },
-          textStyle,
-        ]}
-        className="font-urbanist-bold text-[14px]"
-      >
-        {title}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={textColor || (isSolid ? "#fff" : borderColor)} />
+      ) : (
+        <Text
+          style={[
+            styles.text,
+            { color: isSolid ? "#fff" : borderColor, ...(textColor ? { color: textColor } : {}) },
+            textStyle,
+          ]}
+          className="font-urbanist-bold text-[14px]"
+        >
+          {title}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };

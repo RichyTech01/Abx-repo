@@ -1,11 +1,35 @@
 import ApiService from "./apiService";
+import Constants from "expo-constants";
+import axios from "axios";
+
+const { GET_ADDRESS_API_KEY } = Constants.expoConfig?.extra || {};
+const ADDRESS_BASE_URL = "https://api.getAddress.io";
+
+console.log("API Key:", GET_ADDRESS_API_KEY);
 
 class AuthApi {
   private client = ApiService.getClient();
 
   // Sign up
-  public async signUp(data: any) {
+  public async signUp(data: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    user_address: {
+      addr: string;
+      post_code: string;
+      city: string;
+    };
+    password: string;
+  }) {
     const res = await this.client.post("/auth/sign-up", data);
+    return res.data;
+  }
+
+  // Verify email using OTP
+  public async verifyEmail(data: { otp: string }) {
+    const res = await this.client.post("/auth/verify-email", data);
     return res.data;
   }
 
@@ -91,6 +115,13 @@ class AuthApi {
   public async updatePhoneNumber(data: { phone_number: string }) {
     const res = await this.client.patch("/auth/update-user-phone_number", data);
     return res.data;
+  }
+
+  public async autocomplete(term: string) {
+    const res = await axios.get(
+      `${ADDRESS_BASE_URL}/autocomplete/${term}?api-key=${GET_ADDRESS_API_KEY}`
+    );
+    return res.data.suggestions;
   }
 }
 

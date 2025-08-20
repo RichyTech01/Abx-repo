@@ -6,23 +6,45 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState } from "react";
 import Resetpassheader from "@/common/Resetpassheader";
 import OTPInput from "@/common/OTPInput";
 import { useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import VerificationSuccessModal from "@/Modals/AuthModals/VerificationSuccessModal";
+import AuthApi from "@/api/AuthApi";
+import showToast from "@/utils/showToast";
 
 export default function VerifyAccountScreen() {
   const router = useRouter();
+  const { email } = useLocalSearchParams();
+
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleOtpComplete = async (otp: string) => {
+    setLoading(true);
+    try {
+      const res = await AuthApi.verifyEmail({ otp });
+      console.log("Verification success:", res);
+      showToast("success", "Your email has been verified!");
+      setShowModal(true);
+    } catch (err: any) {
+      console.log("Verification error:", err?.response?.data || err.message);
+      showToast("error", "Invalid OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView className="bg-white flex-1">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={80} // adjust if header overlaps input
+        keyboardVerticalOffset={80}
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
@@ -35,13 +57,19 @@ export default function VerifyAccountScreen() {
               SubHeaderText="Please enter the 6 digit code sent to"
             />
 
-            <Text className="text-[#0C513F] text-[16px] leading-[25px] font-urbanist text-center ">
-              angelaisstriving@gmail.com
+            <Text className="text-[#0C513F] text-[16px] leading-[25px] font-urbanist text-center">
+              {email}
             </Text>
 
             <View className="mt-[20px]">
-              <OTPInput />
+              <OTPInput onComplete={handleOtpComplete} />
             </View>
+
+            {loading && (
+              <View className="mt-[20px] items-center">
+                <ActivityIndicator size="small" color="#0C513F" />
+              </View>
+            )}
 
             <View className="flex-row items-center justify-center mt-[32px] flex-wrap">
               <Text className="text-[14px] leading-[20px] font-urbanist text-[#4A3223] flex-shrink">
@@ -70,7 +98,10 @@ export default function VerifyAccountScreen() {
 
       {showModal && (
         <VerificationSuccessModal
-          onClose={() => setShowModal((prev) => !prev)}
+          onClose={() => {
+            setShowModal(false);
+            router.replace("/(tabs)/Home");
+          }}
           visible={showModal}
         />
       )}
