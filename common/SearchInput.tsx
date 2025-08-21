@@ -1,9 +1,52 @@
-import { View, Text, TextInput } from "react-native";
+import React from "react";
+import { View, TextInput, StyleSheet } from "react-native";
+import Seacrchicon from "@/assets/svgs/SearchIcon.svg"
 
-export default function SearchInput() {
+interface SearchInputProps {
+  placeholder?: string;
+  value: string;
+  onChangeText: (text: string) => void;
+}
+
+export default function SearchInput({
+  placeholder = "Search...",
+  value,
+  onChangeText,
+}: SearchInputProps) {
   return (
-    <View>
-      <Text>SearchInput</Text>
+    <View style={styles.container} className="border border-[#D7D7D7] ">
+      <View className="mr-[8px]  ">
+        <Seacrchicon />
+      </View>
+      
+      <TextInput
+        style={styles.input}
+        placeholder={placeholder}
+        placeholderTextColor="#656565"
+        value={value}
+        onChangeText={onChangeText}
+      />
     </View>
   );
 }
+
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f2f2f2",
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    height: 45,
+  },
+  icon: {
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    fontSize: 14,
+    color: "#000",
+    fontFamily:"UrbanistRegular"
+  },
+});

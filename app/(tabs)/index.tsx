@@ -1,40 +1,77 @@
-import { View, Text, SafeAreaView, Platform } from "react-native";
+import { View, Text, SafeAreaView, Platform, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import NotificationIcon from "@/assets/svgs/NotificationIcon";
-import React from "react";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";
 import Welcomebanner from "@/assets/svgs/Welcomebanner";
-
+import SearchInput from "@/common/SearchInput";
+import Categories from "@/components/HomeComps/Categories";
+import TopratedShops from "@/components/HomeComps/TopratedShops";
+import ClosestShops from "@/components/HomeComps/ClosestShops";
+import NewProducts from "@/components/HomeComps/NewProducts";
+import BestSelling from "@/components/HomeComps/BestSelling";
+import RescueAndSave from "@/components/HomeComps/RescueAndSave";
+import SpendingLimit from "@/components/HomeComps/SpendingLimit";
 
 export default function Home() {
   const router = useRouter();
+  const [query, setQuery] = useState("");
+
   return (
-    <SafeAreaView className={`${Platform.OS === "android"? "pt-16":"pt-6"} bg-[#FFF6F2] flex-1 `}>
-      <View className="mx-[20px]  flex-row items-center justify-between  ">
-        <Text className="text-[20px] tetx-[#2D2220] leading-[28px] font-orelega  ">
+    <SafeAreaView className="bg-[#FFF6F2] flex-1">
+      {/* Header */}
+      <View
+        className={`mx-[20px] flex-row items-center justify-between ${
+          Platform.OS === "android" ? "pt-16" : "mt-3"
+        }`}
+      >
+        <Text className="text-[20px] text-[#2D2220] leading-[28px] font-orelega">
           Welcome, Bankole!
         </Text>
         <View className="flex-row items-center gap-[20px]">
-          <View className="relative ">
-            {/* <View className="bg-[#F04438] w-[20px] h-[20px] items-center justify-center  rounded-full absolute top-0 right-0 ml-10 z-10 ">
-              <Text className="text-[#F1D3D1]  font-urbanist-bold text-[10px] leading-[14px]">
-                3
-              </Text>
-            </View> */}
-            <NotificationIcon />
-          </View>
-          <View className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center   ">
-             <MaincartIcon/>
+          <NotificationIcon />
+          <View className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center">
+            <MaincartIcon />
           </View>
         </View>
-
-        
       </View>
 
-      <View className="flex-row items-center mt-[32px] ">
-         <Welcomebanner/> 
-         <Welcomebanner/> 
+      {/* Search input */}
+      <View className="mx-[20px] mt-[24px]">
+        <SearchInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Ask ABX AI or search for food items of your choice"
+        />
       </View>
+
+      {/* Scrollable content */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        {/* Welcome banners */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mt-[32px] pl-[20px]"
+          contentContainerStyle={{ gap: 12 }}
+        >
+          <Welcomebanner />
+          <Welcomebanner />
+        </ScrollView>
+
+        {/* Sections */}
+        <View className="mt-[24px] gap-[24px] ">
+          <Categories />
+          <TopratedShops />
+          <ClosestShops />
+          <NewProducts />
+          <BestSelling />
+          <RescueAndSave />
+          <SpendingLimit />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
