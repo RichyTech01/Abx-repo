@@ -12,9 +12,9 @@ export default function Index() {
       try {
         const loggedIn = false; 
         if (loggedIn) {
-          router.replace("/(tabs)");
+          router.push("/(tabs)");
         } else {
-          router.replace("/onboarding");
+          router.replace("/(tabs)");
         }
       } catch (error) {
         console.error("Auth check failed:", error);

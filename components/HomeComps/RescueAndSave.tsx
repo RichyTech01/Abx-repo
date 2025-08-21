@@ -1,10 +1,11 @@
 import { View, Text } from 'react-native'
 import React from 'react'
+import SectionHeader from '@/common/SectionHeader'
 
 export default function RescueAndSave() {
   return (
     <View>
-      <Text>RescueAndSave</Text>
+      <SectionHeader title='Rescue and save'/>
     </View>
   )
 }

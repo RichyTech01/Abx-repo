@@ -3,7 +3,7 @@ import React from "react";
 import SectionHeader from "@/common/SectionHeader";
 import Succesicon from "@/assets/svgs/VeriModalIcon.svg";
 import CategoryCard from "@/common/Categorycard";
-
+import { useRouter } from "expo-router";
 const categories = [
   {
     id: 1,
@@ -40,9 +40,12 @@ const categories = [
 ];
 
 export default function Categories() {
+
+    const router =  useRouter()  
+
   return (
     <View>
-      <SectionHeader title="Categories" onPress={() => {}} />
+      <SectionHeader title="Categories" onPress={() => router.push("/")} />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
