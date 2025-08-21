@@ -47,7 +47,9 @@
     "react-native-svg-transformer": "^1.5.1",
     "react-native-toast-message": "^2.3.3",
     "react-native-web": "~0.20.0",
-    "react-native-webview": "13.13.5"
+    "react-native-webview": "13.13.5",
+    "expo-auth-session": "~6.2.1",
+    "undefined": "expo-auth-session/providers/google"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

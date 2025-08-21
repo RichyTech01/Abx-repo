@@ -34,13 +34,16 @@ export default function Login() {
       const res = await AuthApi.signIn({ email, password });
 
       const { access, refresh } = res;
+
       await AsyncStorage.setItem("accessToken", access);
       await AsyncStorage.setItem("refreshToken", refresh);
+
+      await AsyncStorage.setItem("isLoggedIn", "true");
+
       console.log("Login successful:", res);
-      router.push({
-        pathname: "/(tabs)/Home",
-        params: { reset: "true" },
-      });
+      showToast("success", "Login successful! Welcome back.");
+
+      router.replace("/(tabs)/Home");
     } catch (err: any) {
       console.log("Login error:", err);
       showToast("error", err.detail || "Check your credentials");

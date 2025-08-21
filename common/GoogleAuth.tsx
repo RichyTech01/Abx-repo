@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Pressable, Text, View } from "react-native";
-// import * as Google from "expo-auth-session/providers/google";
+import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import AuthApi from "@/api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -17,12 +17,10 @@ interface Props {
 const GoogleAuth: React.FC<Props> = ({ buttonText = "Continue with Google" }) => {
   const router = useRouter();
 
-  // Configure Google login
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: "<YOUR_GOOGLE_CLIENT_ID>", // Replace with your actual client ID
+    clientId: "<YOUR_GOOGLE_CLIENT_ID>", 
   });
 
-  // Handle Google login response
   useEffect(() => {
     if (response?.type === "success") {
       const { id_token } = response.params;

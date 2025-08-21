@@ -10,7 +10,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import Toast from "react-native-toast-message";  // 👈 import it here
+import Toast from "react-native-toast-message";  
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,9 +36,7 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="dark" backgroundColor="#fff" />
-      <Stack screenOptions={{ headerShown: false }} />
-
-      {/* 👇 This ensures Toast is always mounted */}
+      <Stack screenOptions={{ headerShown: false, }}  />
       <Toast />
     </>
   );

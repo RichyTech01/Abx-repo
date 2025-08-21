@@ -1,30 +1,26 @@
 import { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
-import Toast from "react-native-toast-message";
-
+import { View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 
 export default function Index() {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const checkUser = async () => {
       try {
-        await SplashScreen.preventAutoHideAsync();
-
-        await new Promise((res) => setTimeout(res, 1000));
         const loggedIn = false; 
-        setIsLoggedIn(loggedIn);
-
         if (loggedIn) {
-          router.replace("/(tabs)/Home");
+          router.replace("/(tabs)");
         } else {
-          router.replace("/onboarding");
+          router.replace("/(tabs)");
         }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        router.replace("/(tabs)");
       } finally {
-        // Hide splash after navigation
+        setIsCheckingAuth(false);
         await SplashScreen.hideAsync();
       }
     };
@@ -32,8 +28,19 @@ export default function Index() {
     checkUser();
   }, []);
 
-  if (isLoggedIn === null) {
-    return null;
+  if (isCheckingAuth) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "black",
+        }}
+      >
+        <ActivityIndicator size="large" />
+      </View>
+    );
   }
 
   return null;

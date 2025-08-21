@@ -1,209 +1,129 @@
-import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
-import {
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import Account from "./Account";
-import Carts from "./Carts";
-import Home from "./Home";
-import Orders from "./Orders";
-import Support from "./Support";
+import { Tabs } from "expo-router";
+import { Platform, View } from "react-native";
+import OrderTabIcon from "@/assets/svgs/OrderTabIcon";
+import SupportTabIcon from "@/assets/svgs/SupportTabIcon";
+import HometabIcon from "@/assets/svgs/HometabIcon";
+import CartTabIcon from "@/assets/svgs/CartTabIcon";
+import AccounTabBarIcon from "@/assets/svgs/AccounTabBarIcon";
+import ActiveHomeTabBar from "@/assets/svgs/ActiveHomeTabBar";
+import ActiveOrderTab from "@/assets/svgs/ActiveOrderTab";
+import ActiveSupporticon from "@/assets/svgs/ActiveSupporticon";
 
-type TabId = "Home" | "MyCart" | "Orders" | "Support" | "Account";
+// Wrapper to show top border when focused
+type TabIconWithBorderProps = {
+  children: React.ReactNode;
+  focused: boolean;
+};
 
-interface Tab {
-  id: TabId;
-  label: string;
-  icon: string;
-  activeIcon: string;
-}
-
-interface BottomTabNavigationProps {
-  activeTab?: TabId;
-  onTabPress?: (tabId: TabId) => void;
-}
-
-const tabs: Tab[] = [
-  {
-    id: "Home",
-    label: "Home",
-    icon: "home",
-    activeIcon: "home",
-  },
-  {
-    id: "MyCart",
-    label: "My cart",
-    icon: "cart-outline",
-    activeIcon: "cart",
-  },
-  {
-    id: "Orders",
-    label: "Orders",
-    icon: "receipt-outline",
-    activeIcon: "receipt",
-  },
-  {
-    id: "Support",
-    label: "Support",
-    icon: "headset-outline",
-    activeIcon: "headset",
-  },
-  {
-    id: "Account",
-    label: "Account",
-    icon: "person-outline",
-    activeIcon: "person",
-  },
-];
-
-const BottomTabNavigation: React.FC<BottomTabNavigationProps> = ({
-  activeTab = "Home",
-  onTabPress,
-}) => {
-  const handleTabPress = (tabId: TabId) => {
-    if (onTabPress) {
-      onTabPress(tabId);
-    }
-  };
-
+const TabIconWithBorder = ({ children, focused }: TabIconWithBorderProps) => {
   return (
-    <View style={styles.container}>
-      {/* Active tab indicator line */}
-      <View style={styles.indicatorContainer}>
+    <View style={{ alignItems: "center" }}>
+      {focused && (
         <View
-          style={[
-            styles.indicator,
-            { left: `${tabs.findIndex((tab) => tab.id === activeTab) * 20}%` },
-          ]}
+          style={{
+            position: "absolute",
+            top: -12,
+            left: "50%",
+            marginLeft: -29,
+            width: 50,
+            height: 3,
+            backgroundColor: "#0C513F",
+            borderRadius: 1.5,
+          }}
         />
-      </View>
-
-      {/* Tab items */}
-      <View style={styles.tabContainer}>
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <TouchableOpacity
-              key={tab.id}
-              style={styles.tabItem}
-              onPress={() => handleTabPress(tab.id)}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.iconContainer,
-                  isActive && styles.activeIconContainer,
-                ]}
-              >
-                {/* <Ionicons
-                  name={isActive ? tab.activeIcon : tab.icon}
-                  size={24}
-                  color={isActive ? "#2E7D32" : "#9E9E9E"}
-                /> */}
-              </View>
-              <Text
-                style={[styles.tabLabel, isActive && styles.activeTabLabel]}
-              >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      )}
+      {children}
     </View>
   );
 };
 
-// Main App Component
-const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabId>("Home");
-
-  const renderScreen = () => {
-    switch (activeTab) {
-      case "Home":
-        return <Home />;
-      case "MyCart":
-        return <Carts />;
-      case "Orders":
-        return <Orders />;
-      case "Support":
-        return <Support />;
-      case "Account":
-        return <Account />;
-      default:
-        return <Home />;
-    }
-  };
-
+export default function TabLayout() {
   return (
-    <SafeAreaView style={styles.appContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      {/* Main content area */}
-      <View style={styles.content}>{renderScreen()}</View>
-
-      {/* Bottom navigation */}
-      <BottomTabNavigation activeTab={activeTab} onTabPress={setActiveTab} />
-    </SafeAreaView>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: "#0C513F",
+        tabBarInactiveTintColor: "#0C513F",
+        tabBarStyle: {
+          backgroundColor: "#FFFFFF",
+          borderTopWidth: 1,
+          borderTopColor: "#E5E7EB",
+          paddingTop: Platform.OS === "ios" ? 8 : 4,
+          paddingBottom: Platform.OS === "ios" ? 25 : 8,
+          height: Platform.OS === "ios" ? 85 : 65,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontFamily: "UrbanistMedium",
+          fontWeight: "500",
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginBottom: 2,
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Home",
+          tabBarIcon: ({ focused }) => (
+            <TabIconWithBorder focused={focused}>
+              {!focused ? <HometabIcon /> : <ActiveHomeTabBar />}
+            </TabIconWithBorder>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Carts"
+        options={{
+          title: "My cart",
+          tabBarIcon: ({ focused }) => (
+            <TabIconWithBorder focused={focused}>
+              <CartTabIcon
+                fill={focused ? "#0C513F" : "none"}
+                stroke={focused ? "none" : "#0C513F"}
+              />
+            </TabIconWithBorder>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Orders"
+        options={{
+          title: "Orders",
+          tabBarIcon: ({ focused }) => (
+            <TabIconWithBorder focused={focused}>
+              {focused ? <ActiveOrderTab /> : <OrderTabIcon />}
+            </TabIconWithBorder>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Support"
+        options={{
+          title: "Support",
+          tabBarIcon: ({ focused }) => (
+            <TabIconWithBorder focused={focused}>
+              {focused ? <ActiveSupporticon /> : <SupportTabIcon />}
+            </TabIconWithBorder>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Account"
+        options={{
+          title: "Account",
+          tabBarIcon: ({ focused }) => (
+            <TabIconWithBorder focused={focused}>
+              <AccounTabBarIcon
+                fill={focused ? "#0C513F" : "none"}
+                stroke={focused ? "none" : "#0C513F"}
+              />
+            </TabIconWithBorder>
+          ),
+        }}
+      />
+    </Tabs>
   );
-};
-
-const styles = StyleSheet.create({
-  appContainer: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  content: {
-    flex: 1,
-  },
-  container: {
-    backgroundColor: "#FFFFFF",
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-    paddingHorizontal: 10,
-  },
-  indicatorContainer: {
-    height: 3,
-    position: "relative",
-    marginBottom: 8,
-  },
-  indicator: {
-    position: "absolute",
-    top: 0,
-    width: "20%",
-    height: 3,
-    backgroundColor: "#2E7D32",
-    borderRadius: 2,
-  },
-  tabContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  iconContainer: {
-    marginBottom: 4,
-  },
-  activeIconContainer: {},
-  tabLabel: {
-    fontSize: 12,
-    color: "#9E9E9E",
-    fontWeight: "400",
-  },
-  activeTabLabel: {
-    color: "#2E7D32",
-    fontWeight: "500",
-  },
-});
-
-export default App;
+}
