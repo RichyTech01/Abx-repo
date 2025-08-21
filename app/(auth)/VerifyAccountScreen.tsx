@@ -98,10 +98,10 @@ export default function VerifyAccountScreen() {
 
       {showModal && (
         <VerificationSuccessModal
-          onClose={() => {
-            setShowModal(false);
-            router.replace("/(tabs)/Home");
-          }}
+          onClose={() => 
+            setShowModal(false)
+          
+          }
           visible={showModal}
         />
       )}

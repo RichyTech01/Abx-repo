@@ -11,6 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import Toast from "react-native-toast-message";  
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,10 +35,10 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="dark" backgroundColor="#fff" />
       <Stack screenOptions={{ headerShown: false, }}  />
       <Toast />
-    </>
+    </SafeAreaProvider>
   );
 }

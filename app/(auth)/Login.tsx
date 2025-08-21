@@ -43,7 +43,7 @@ export default function Login() {
       console.log("Login successful:", res);
       showToast("success", "Login successful! Welcome back.");
 
-      router.replace("/(tabs)/Home");
+      router.replace("/(tabs)");
     } catch (err: any) {
       console.log("Login error:", err);
       showToast("error", err.detail || "Check your credentials");

@@ -4,12 +4,12 @@ import OrderTabIcon from "@/assets/svgs/OrderTabIcon";
 import SupportTabIcon from "@/assets/svgs/SupportTabIcon";
 import HometabIcon from "@/assets/svgs/HometabIcon";
 import CartTabIcon from "@/assets/svgs/CartTabIcon";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AccounTabBarIcon from "@/assets/svgs/AccounTabBarIcon";
 import ActiveHomeTabBar from "@/assets/svgs/ActiveHomeTabBar";
 import ActiveOrderTab from "@/assets/svgs/ActiveOrderTab";
 import ActiveSupporticon from "@/assets/svgs/ActiveSupporticon";
 
-// Wrapper to show top border when focused
 type TabIconWithBorderProps = {
   children: React.ReactNode;
   focused: boolean;
@@ -38,22 +38,23 @@ const TabIconWithBorder = ({ children, focused }: TabIconWithBorderProps) => {
 };
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets(); 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#0C513F",
-        tabBarInactiveTintColor: "#0C513F",
-        tabBarStyle: {
+        tabBarInactiveTintColor: "#929292",
+         tabBarStyle: {
           backgroundColor: "#FFFFFF",
           borderTopWidth: 1,
           borderTopColor: "#E5E7EB",
-          paddingTop: Platform.OS === "ios" ? 8 : 4,
-          paddingBottom: Platform.OS === "ios" ? 25 : 8,
-          height: Platform.OS === "ios" ? 85 : 65,
+          paddingTop: Platform.OS === "ios" ? 8 : 14,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+          height: 65 + insets.bottom,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 14,
           fontFamily: "UrbanistMedium",
           fontWeight: "500",
           marginTop: 4,

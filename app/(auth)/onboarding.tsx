@@ -6,16 +6,14 @@ import {
   Image,
   Dimensions,
   SafeAreaView,
+  Platform
 } from "react-native";
 import Button from "@/common/Button";
 import { useRouter } from "expo-router";
 
 type Slide = {
   id: string;
-  title: string;
-  description: string;
   image: any;
-  color?: string;
 };
 
 const { width } = Dimensions.get("window");
@@ -23,23 +21,14 @@ const { width } = Dimensions.get("window");
 const slides = [
   {
     id: "1",
-    title: "Excellence at all times is what we represent",
-    description:
-      "Our vendors are committed to making your favorite Nigerian food item readily available.",
     image: require("@/assets/Images/Frame 1000008335.png"),
-    color: "#DAEEE5",
   },
   {
     id: "2",
-    title: "Fresh and Healthy",
-    description:
-      "Get access to organic Nigerian food items delivered to your doorstep.",
     image: require("@/assets/Images/onboarding2.png"),
   },
   {
     id: "3",
-    title: "Fast & Reliable",
-    description: "Enjoy seamless shopping with quick delivery.",
     image: require("@/assets/Images/onboarding3.png"),
   },
 ];
@@ -122,7 +111,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginVertical: 5,
-    bottom: "6%",
+    bottom:Platform.OS === "android"?"10%": "6%",
   },
   dot: {
     width: 8,

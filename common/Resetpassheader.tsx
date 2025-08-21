@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Image } from "react-native";
+import { View, Text, Pressable, Image, Platform } from "react-native";
 import React from "react";
 
 export default function Resetpassheader({
@@ -8,13 +8,13 @@ export default function Resetpassheader({
   const MianImg = require("../assets/Images/Main logo.png");
   return (
     <View>
-      <View className="mx-auto items-center justify-center mt-[5%]">
+      <View className={`mx-auto items-center justify-center ${Platform.OS === "android"?"mt-[20%]":"mt-[5%]"}  `}>
         <Image source={MianImg} alt="main-imgg" />
         <Text className='text-[24px] leading-[32px] font-orelega text-center mt-[10px] text-[#2D2220]  '>
           {HeaderText}
         </Text>
 
-        <Text className='text-[16px] leading-[25px] font-urbanist text-center  mt-[8px]  text-[#2D2220]  '>
+        <Text className='text-[16px] leading-[25px] font-urbanist text-center  mt-[32px]  text-[#2D2220]  '>
           {SubHeaderText}
         </Text>
       </View>

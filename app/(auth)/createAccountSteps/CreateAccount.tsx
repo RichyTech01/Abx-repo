@@ -93,7 +93,7 @@ export default function CreateAccount() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View>
+          <View className="">
             <Authheader
               name="Login"
               Subtext="Already have an account?"

@@ -46,7 +46,7 @@ const CustomPhoneInput: React.FC<Props> = ({
               withCallingCode
               withFilter
               withEmoji
-              visible={false} // Hide default picker
+              visible={false} 
             />
           </View>
           <Text className="text-[#929292] text-[12px] font-urbanist leading-[16px] mx-[4px]">
