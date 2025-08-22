@@ -5,6 +5,8 @@ import NotificationIcon from "@/assets/svgs/NotificationIcon";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";
 import Welcomebanner from "@/assets/svgs/Welcomebanner";
 import SearchInput from "@/common/SearchInput";
+
+
 import Categories from "@/components/HomeComps/Categories";
 import TopratedShops from "@/components/HomeComps/TopratedShops";
 import ClosestShops from "@/components/HomeComps/ClosestShops";
@@ -13,7 +15,6 @@ import BestSelling from "@/components/HomeComps/BestSelling";
 import SpendingLimit from "@/components/HomeComps/SpendingLimit";
 import RescueAndSave from "@/components/HomeComps/RescueAndSave";
 import RecueAndSaveProduct from "@/components/HomeComps/RecueAndSaveProduct";
-
 
 export default function Home() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function Home() {
         <SearchInput
           value={query}
           onChangeText={setQuery}
-          placeholder="Ask ABX AI or search for food items of your choice" 
+          placeholder="Ask ABX AI or search for food items of your choice"
         />
       </View>
 
@@ -72,7 +73,7 @@ export default function Home() {
           <NewProducts />
           <BestSelling />
           <SpendingLimit />
-          <RecueAndSaveProduct/>
+          <RecueAndSaveProduct />
         </View>
       </ScrollView>
     </SafeAreaView>

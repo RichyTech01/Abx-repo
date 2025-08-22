@@ -45,7 +45,7 @@ export default function Categories() {
 
   return (
     <View>
-      <SectionHeader title="Categories" onPress={() => router.push("/")} />
+      <SectionHeader title="Categories" onPress={() => router.push("/Screens/AllcateGories")} />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

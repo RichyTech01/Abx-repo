@@ -6,7 +6,7 @@ import {
   ViewStyle,
   TextStyle,
   ActivityIndicator,
-  View
+  View,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 
@@ -16,13 +16,14 @@ type ButtonProps = {
   variant?: "solid" | "outline";
   backgroundColor?: string;
   borderColor?: string;
-  borderWidth?: number; 
-  textColor?: string;
+  borderWidth?: number;
+  textColor?: string; // 👈 color for text
   style?: ViewStyle;
   textStyle?: TextStyle;
   loading?: boolean;
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
+  fontClassName?: string; // 👈 font override
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -31,13 +32,14 @@ const Button: React.FC<ButtonProps> = ({
   variant = "solid",
   backgroundColor = "#0C513F",
   borderColor = "#0C513F",
-  borderWidth = 1, 
+  borderWidth = 1,
   textColor,
   style,
   textStyle,
   loading = false,
   icon,
   iconPosition = "right",
+  fontClassName,
 }) => {
   const isSolid = variant === "solid";
 
@@ -46,6 +48,10 @@ const Button: React.FC<ButtonProps> = ({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress();
   };
+
+  // ✅ Determine text color
+  const resolvedTextColor =
+    textColor || (isSolid ? "#fff" : borderColor || "#000");
 
   return (
     <TouchableOpacity
@@ -67,21 +73,21 @@ const Button: React.FC<ButtonProps> = ({
       disabled={loading}
     >
       {loading ? (
-        <ActivityIndicator color={textColor || (isSolid ? "#fff" : borderColor)} />
+        <ActivityIndicator color={resolvedTextColor} />
       ) : (
         <>
-          {icon && iconPosition === "left" && <View style={{ marginRight: 6 }}>{icon}</View>}
+          {icon && iconPosition === "left" && (
+            <View style={{ marginRight: 6 }}>{icon}</View>
+          )}
           <Text
-            style={[
-              styles.text,
-              { color: isSolid ? "#fff" : borderColor, ...(textColor ? { color: textColor } : {}) },
-              textStyle,
-            ]}
-            className="font-urbanist-bold text-[14px]"
+            style={[styles.text, { color: resolvedTextColor }, textStyle]}
+            className={fontClassName || "font-urbanist-bold text-[14px]"}
           >
             {title}
           </Text>
-          {icon && iconPosition === "right" && <View style={{ marginLeft: 6 }}>{icon}</View>}
+          {icon && iconPosition === "right" && (
+            <View style={{ marginLeft: 6 }}>{icon}</View>
+          )}
         </>
       )}
     </TouchableOpacity>

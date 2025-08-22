@@ -4,8 +4,8 @@ import Seacrchicon from "@/assets/svgs/SearchIcon.svg"
 
 interface SearchInputProps {
   placeholder?: string;
-  value: string;
-  onChangeText: (text: string) => void;
+  value?: string;
+  onChangeText?: (text: string) => void;
 }
 
 export default function SearchInput({

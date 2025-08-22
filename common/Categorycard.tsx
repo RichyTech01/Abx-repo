@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable} from "react-native";
+import { useRouter } from "expo-router";
 
 interface CategoryCardProps {
   bgColor: string;        
@@ -7,6 +8,8 @@ interface CategoryCardProps {
   Icon: React.ReactNode;  
   title: string;         
   subtitle: string;    
+  width?: number;        
+  paddingY?: number;     
 }
 
 export default function CategoryCard({
@@ -15,11 +18,16 @@ export default function CategoryCard({
   Icon,
   title,
   subtitle,
+  width = 176,   
+  paddingY = 20
 }: CategoryCardProps) {
+
+  const router = useRouter()
+  
   return (
-    <View
-      className="rounded-[16px] px-[10px] py-[20px] items-center justify-between w-[176px]"
-      style={{ backgroundColor: bgColor }}
+    <Pressable
+      className="rounded-[16px] px-[10px] items-center"
+      style={{ backgroundColor: bgColor, width, paddingVertical: paddingY }}
     >
       <View
         className="border-dashed rounded-full bg-transparent p-[5px]"
@@ -28,7 +36,7 @@ export default function CategoryCard({
         {Icon}
       </View>
 
-      <View className="mt-[8px items-center">
+      <View className="mt-[8px] items-center">
         <Text className="text-[#2C2C2C] text-[14px] font-urbanist-semibold leading-[20px]">
           {title}
         </Text>
@@ -36,6 +44,6 @@ export default function CategoryCard({
           {subtitle}
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 }

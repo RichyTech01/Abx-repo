@@ -55,7 +55,7 @@ export default function ProductCard({
       </View>
 
       {/* Product Image */}
-      <Pressable className="mx-auto pt-[18px] pb-[13px]">
+      <Pressable className="mx-auto pt-[18px] pb-[13px]" onPress={() => router.push("/Screens/ProductDetails")}>
         <Product />
       </Pressable>
 
