@@ -38,20 +38,24 @@ const TabIconWithBorder = ({ children, focused }: TabIconWithBorderProps) => {
 };
 
 export default function TabLayout() {
-  const insets = useSafeAreaInsets(); 
+  const insets = useSafeAreaInsets();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#0C513F",
         tabBarInactiveTintColor: "#929292",
-         tabBarStyle: {
+        tabBarStyle: {
           backgroundColor: "#FFFFFF",
-          borderTopWidth: 1,
-          borderTopColor: "#E5E7EB",
-          paddingTop: Platform.OS === "ios" ? 8 : 14,
+          position: "absolute", 
+          borderTopWidth: 0, 
+          paddingTop: Platform.OS === "ios" ? 18 : 14,
           paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-          height: 65 + insets.bottom,
+          height: 75 + insets.bottom,
+          borderTopRightRadius: 16,
+          borderTopLeftRadius: 16,
+          overflow: "hidden", 
+          elevation: 5, 
         },
         tabBarLabelStyle: {
           fontSize: 14,
@@ -59,9 +63,7 @@ export default function TabLayout() {
           fontWeight: "500",
           marginTop: 4,
         },
-        tabBarIconStyle: {
-          marginBottom: 2,
-        },
+       
       }}
     >
       <Tabs.Screen

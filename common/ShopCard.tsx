@@ -31,9 +31,9 @@ const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavor
         <FontAwesome
           key={i}
           name={i <= rating ? "star" : "star-o"}
-          size={14}
-          color="#FFD700"
-          style={{ marginRight: 2 }}
+          size={12}
+          color="#FF8A00"
+          style={{ marginRight: 2,}}
         />
       );
     }
@@ -73,7 +73,7 @@ const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavor
           <Text className="text-[14px] leading-[20px] font-urbanist text-[#4D4D4D]">
             {shop.name}
           </Text>
-          <Text className="text-[12px] leading-[16px] font-urbanist-medium text-[#2D2220] mt-[4px]">
+          <Text className="text-[12px] leading-[16px] font-urbanist-medium text-[#2D2220] my-[4px] ">
             {shop.distance}
           </Text>
           {renderStars()}

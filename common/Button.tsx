@@ -6,19 +6,23 @@ import {
   ViewStyle,
   TextStyle,
   ActivityIndicator,
+  View
 } from "react-native";
 import * as Haptics from "expo-haptics";
 
 type ButtonProps = {
   title: string;
   onPress: () => void;
-  variant?: "solid" | "outline"; 
+  variant?: "solid" | "outline";
   backgroundColor?: string;
   borderColor?: string;
+  borderWidth?: number; 
   textColor?: string;
   style?: ViewStyle;
   textStyle?: TextStyle;
-  loading?: boolean; 
+  loading?: boolean;
+  icon?: React.ReactNode;
+  iconPosition?: "left" | "right";
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -27,15 +31,18 @@ const Button: React.FC<ButtonProps> = ({
   variant = "solid",
   backgroundColor = "#0C513F",
   borderColor = "#0C513F",
+  borderWidth = 1, 
   textColor,
   style,
   textStyle,
   loading = false,
+  icon,
+  iconPosition = "right",
 }) => {
   const isSolid = variant === "solid";
 
   const handlePress = () => {
-    if (loading) return; 
+    if (loading) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress();
   };
@@ -47,28 +54,35 @@ const Button: React.FC<ButtonProps> = ({
         styles.base,
         {
           backgroundColor: isSolid ? backgroundColor : "transparent",
-          borderColor: borderColor,
-          borderWidth: 1,
-          opacity: loading ? 0.7 : 1, 
+          borderColor,
+          borderWidth,
+          opacity: loading ? 0.7 : 1,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
         },
         style,
       ]}
       activeOpacity={0.8}
-      disabled={loading} 
+      disabled={loading}
     >
       {loading ? (
         <ActivityIndicator color={textColor || (isSolid ? "#fff" : borderColor)} />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            { color: isSolid ? "#fff" : borderColor, ...(textColor ? { color: textColor } : {}) },
-            textStyle,
-          ]}
-          className="font-urbanist-bold text-[14px]"
-        >
-          {title}
-        </Text>
+        <>
+          {icon && iconPosition === "left" && <View style={{ marginRight: 6 }}>{icon}</View>}
+          <Text
+            style={[
+              styles.text,
+              { color: isSolid ? "#fff" : borderColor, ...(textColor ? { color: textColor } : {}) },
+              textStyle,
+            ]}
+            className="font-urbanist-bold text-[14px]"
+          >
+            {title}
+          </Text>
+          {icon && iconPosition === "right" && <View style={{ marginLeft: 6 }}>{icon}</View>}
+        </>
       )}
     </TouchableOpacity>
   );
@@ -76,7 +90,7 @@ const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    height: 44,
+    paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: "center",
