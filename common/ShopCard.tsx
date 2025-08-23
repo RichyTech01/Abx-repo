@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, Pressable } from "react-native";
 import LoveLogo from "@/assets/svgs/LoveLogo.svg";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";
 import { FontAwesome } from "@expo/vector-icons";
+import StarRating from "./StarRating";
 
 export interface Shop {
   id: string;
@@ -76,7 +77,7 @@ const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavor
           <Text className="text-[12px] leading-[16px] font-urbanist-medium text-[#2D2220] my-[4px] ">
             {shop.distance}
           </Text>
-          {renderStars()}
+         <StarRating rating={shop.rating ?? 0} />
         </View>
 
         <Pressable

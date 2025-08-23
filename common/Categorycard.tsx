@@ -23,11 +23,12 @@ export default function CategoryCard({
 }: CategoryCardProps) {
 
   const router = useRouter()
-  
+
   return (
     <Pressable
       className="rounded-[16px] px-[10px] items-center"
       style={{ backgroundColor: bgColor, width, paddingVertical: paddingY }}
+      onPress={() => router.push("/Screens/CategoryDetails")}
     >
       <View
         className="border-dashed rounded-full bg-transparent p-[5px]"
