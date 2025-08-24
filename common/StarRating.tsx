@@ -3,10 +3,10 @@ import { View } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 
 interface StarRatingProps {
-  rating: number;       // current rating value (e.g. 3.5, 4)
-  max?: number;         // total stars (default 5)
-  size?: number;        // star size
-  color?: string;       // star color
+  rating: number;       
+  max?: number;         
+  size?: number;      
+  color?: string;    
 }
 
 const StarRating: React.FC<StarRatingProps> = ({

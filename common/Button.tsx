@@ -49,7 +49,6 @@ const Button: React.FC<ButtonProps> = ({
     onPress();
   };
 
-  // ✅ Determine text color
   const resolvedTextColor =
     textColor || (isSolid ? "#fff" : borderColor || "#000");
 
@@ -89,7 +88,7 @@ const Button: React.FC<ButtonProps> = ({
             <View style={{ marginLeft: 6 }}>{icon}</View>
           )}
         </>
-      )}
+      )} 
     </TouchableOpacity>
   );
 };
