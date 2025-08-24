@@ -1,7 +1,6 @@
-import { View, ScrollView } from 'react-native';
-import React from 'react';
-import SectionHeader from '@/common/SectionHeader';
-import { useRouter } from 'expo-router';
+import { View, SafeAreaView, Platform, ScrollView } from "react-native";
+import React from "react";
+import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from '@/common/ShopCard';
 
 const sampleShops = [
@@ -38,20 +37,24 @@ const sampleShops = [
 ];
 
 
-export default function TopratedShops() {
-  const router = useRouter()
 
-  const handleShopPress = (shop: Shop) => console.log('Shop pressed:', shop.name);
-  const handleCartPress = (shop: Shop) => console.log('Cart pressed:', shop.name);
-  const handleFavoritePress = (shop: Shop) => console.log('Favorite toggled:', shop.name);
+export default function AllClosestShops() {
+
+      const handleShopPress = (shop: Shop) => console.log('Shop pressed:', shop.name);
+      const handleCartPress = (shop: Shop) => console.log('Cart pressed:', shop.name);
+      const handleFavoritePress = (shop: Shop) => console.log('Favorite toggled:', shop.name);
 
   return (
-    <View className=" ">
-      <SectionHeader title="Top Rated Shops" onPress={() => router.push("/Screens/AllTopRatedStores")} />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 24, paddingVertical: 8}}
+    <SafeAreaView className="bg-[#FFF6F2] flex-1">
+      <View
+        className={`${Platform.OS === "android" ? "mt-[45px] " : ""} pb-[15px] `}
+      >
+        <HeaderWithSearchInput label="Closest shops" />
+      </View>
+
+       <ScrollView
+        contentContainerStyle={{ paddingBottom: 20, marginHorizontal: 20, paddingTop: 15, gap:24 }}
+        showsVerticalScrollIndicator={false}
       >
         {sampleShops.map((shop) => (
           <ShopCard
@@ -60,10 +63,10 @@ export default function TopratedShops() {
             onPress={handleShopPress}
             onCartPress={handleCartPress}
             onFavoritePress={handleFavoritePress}
-             width={254}
           />
         ))}
       </ScrollView>
-    </View>
+
+    </SafeAreaView>
   );
 }

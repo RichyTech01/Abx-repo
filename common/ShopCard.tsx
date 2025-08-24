@@ -4,6 +4,8 @@ import LoveLogo from "@/assets/svgs/LoveLogo.svg";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";
 import { FontAwesome } from "@expo/vector-icons";
 import StarRating from "./StarRating";
+import { useRouter } from "expo-router";
+
 
 export interface Shop {
   id: string;
@@ -20,9 +22,13 @@ interface ShopCardProps {
   onPress?: (shop: Shop) => void;
   onCartPress?: (shop: Shop) => void;
   onFavoritePress?: (shop: Shop) => void;
+  width?: number 
 }
 
-const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavoritePress }) => {
+const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavoritePress, width }) => {
+
+  const router = useRouter()
+
   const renderStars = () => {
     const stars = [];
     const rating = shop.rating ?? 0;
@@ -44,8 +50,9 @@ const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavor
 
   return (
     <TouchableOpacity
-      onPress={() => onPress?.(shop)}
-      className="bg-white shadow w-[254px] rounded-[8px] shadow-[#624C3917]/10 p-[10px]"
+      onPress={() => router.push("/Screens/ShopDetails")}
+      className="bg-white shadow rounded-[8px] shadow-[#624C3917]/10 p-[10px] "
+      style={{width: width || "100%"}}
     >
       <View className="relative h-[158px]">
         <Image
@@ -74,7 +81,7 @@ const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavor
           <Text className="text-[14px] leading-[20px] font-urbanist text-[#4D4D4D]">
             {shop.name}
           </Text>
-          <Text className="text-[12px] leading-[16px] font-urbanist-medium text-[#2D2220] my-[4px] ">
+          <Text className="text-[12px] leading-[16px] font-urbanist-semibold text-[#2D2220] my-[4px] ">
             {shop.distance}
           </Text>
          <StarRating rating={shop.rating ?? 0} />

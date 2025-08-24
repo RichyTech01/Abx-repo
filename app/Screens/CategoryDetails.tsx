@@ -1,6 +1,5 @@
-// CategoryDetails.tsx
 import React from "react";
-import { SafeAreaView, FlatList, View } from "react-native";
+import { SafeAreaView, FlatList, View, Platform } from "react-native";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import CategoryProduct from "@/common/CategoryProduct";
 import CategoryImg from "@/assets/svgs/CategoryProduct.svg";
@@ -90,26 +89,37 @@ export default function CategoryDetails() {
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FFF6F2]">
-      <HeaderWithSearchInput
-        label="Fresh produce"
-        placeholder="Ask ABX AI or search for food items of your choice"
-      />
+    <SafeAreaView className="flex-1 bg-[#FFF6F2]  ">
+      <View className={`${Platform.OS === "android" ? "mt-[40px]" : ""}`}>
+        <HeaderWithSearchInput
+          label="Fresh produce"
+          placeholder="Ask ABX AI or search for food items of your choice"
+        />
+      </View>
 
       <FlatList
         data={products}
         keyExtractor={(item) => item.id}
-        numColumns={2} 
-        columnWrapperStyle={{ justifyContent: "space-between", marginBottom: 15 }}
+        numColumns={2}
+        columnWrapperStyle={{
+          marginBottom: 16, 
+        }}
         contentContainerStyle={{ padding: 16 }}
-        renderItem={({ item }) => (
-          <CategoryProduct
-            image={item.image}
-            name={item.name}
-            price={item.price}
-            rating={item.rating}
-            sizes={item.sizes}
-          />
+        renderItem={({ item, index }) => (
+          <View
+            style={{
+              flex: 1,
+              marginRight: index % 2 === 0 ? 16 : 0, 
+            }}
+          >
+            <CategoryProduct
+              image={item.image}
+              name={item.name}
+              price={item.price}
+              rating={item.rating}
+              sizes={item.sizes}
+            />
+          </View>
         )}
       />
     </SafeAreaView>

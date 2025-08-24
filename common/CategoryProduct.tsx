@@ -21,7 +21,7 @@ export default function CategoryProduct({
   sizes,
 }: CategoryProductProps) {
   return (
-    <View className="bg-white border border-[#E6E6E6] rounded-[8px] p-[10px] w-[187px] ">
+    <View className="bg-white border border-[#E6E6E6] rounded-[8px] p-[10px] w-full">
       {image}
 
       <View className="mt-[8px]">

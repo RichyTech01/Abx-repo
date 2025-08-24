@@ -1,6 +1,7 @@
 import { View, Text, ScrollView } from "react-native";
 import React from "react";
 import SectionHeader from "@/common/SectionHeader";
+import { useRouter } from "expo-router";
 import ShopCard, { Shop } from "@/common/ShopCard";
 
 const sampleShops = [
@@ -37,6 +38,8 @@ const sampleShops = [
 ];
 
 export default function ClosestShops() {
+  const router = useRouter()
+
   const handleShopPress = (shop: Shop) =>
     console.log("Shop pressed:", shop.name);
   const handleCartPress = (shop: Shop) =>
@@ -46,7 +49,7 @@ export default function ClosestShops() {
 
   return (
     <View className="  ">
-      <SectionHeader title="Closest shops" />
+      <SectionHeader title="Closest shops" onPress={() => router.push('/Screens/AllClosestShops')} />
 
       <ScrollView
         horizontal
@@ -64,6 +67,7 @@ export default function ClosestShops() {
             onPress={handleShopPress}
             onCartPress={handleCartPress}
             onFavoritePress={handleFavoritePress}
+            width={254}
           />
         ))}
       </ScrollView>

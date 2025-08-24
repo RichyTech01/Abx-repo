@@ -1,7 +1,8 @@
-import { View, SafeAreaView, FlatList } from "react-native";
+import { View, SafeAreaView, FlatList, Platform } from "react-native";
 import Header from "@/common/Header";
 import CategoryCard from "@/common/Categorycard";
 import Succesicon from "@/assets/svgs/VeriModalIcon.svg";
+import { useRouter } from "expo-router";
 
 const categories = [
   {
@@ -79,9 +80,13 @@ const categories = [
 ];
 
 export default function AllCategories() {
+   const router = useRouter()
+   
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1">
-      <Header title="All categories" />
+      <View className={`${Platform.OS === "android"?"mt-[45px] ":""}`}>
+         <Header title="All categories" />
+      </View>
 
       <FlatList
         data={categories}
@@ -93,8 +98,8 @@ export default function AllCategories() {
           paddingBottom: 20,
         }}
         columnWrapperStyle={{
-          justifyContent: "space-between",
-          marginBottom: 24,
+          justifyContent: "space-between",  
+          marginBottom: Platform.OS === "android"? 40:25,
         }}
         renderItem={({ item, index }) => {
           const isLast = index === categories.length - 1;

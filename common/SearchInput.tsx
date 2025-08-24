@@ -9,7 +9,7 @@ interface SearchInputProps {
 }
 
 export default function SearchInput({
-  placeholder = "Search...",
+  placeholder = "Ask ABX AI or search for food items of your choice",
   value,
   onChangeText,
 }: SearchInputProps) {

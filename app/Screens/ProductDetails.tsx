@@ -4,6 +4,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  Platform,
 } from "react-native";
 import React from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
@@ -18,13 +19,15 @@ import VendorIcon from "@/assets/svgs/VendorIcon.svg";
 export default function ProductDetails() {
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1 ">
-      <HeaderWithSearchInput
-        label="Product detail"
-        placeholder="Ask ABX AI or search for food items of your choice"
-      />
+      <View className={`${Platform.OS === "android"?"mt-[45px] ":""}`}>
+        <HeaderWithSearchInput
+          label="Product detail"
+          placeholder="Ask ABX AI or search for food items of your choice"
+        />
+      </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 45 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="mx-[20px] bg-white border border-[#E6E6E6] rounded-[8px] mt-[26px]  px-[7px] py-[15px] ">
