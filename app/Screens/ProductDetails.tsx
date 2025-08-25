@@ -5,7 +5,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
+  Image
 } from "react-native";
+import { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ProductDetailImg from "@/assets/svgs/ProductDetailsImg.svg";
@@ -14,12 +17,22 @@ import Carticon from "@/assets/svgs/Carticon";
 import DropDownIcon from "@/assets/svgs/DropDownArrow";
 import UrbanistText from "@/common/UrbanistText";
 import OreAppText from "@/common/OreApptext";
+import { isStoreOpen } from "@/utils/storeStatus";
 import VendorIcon from "@/assets/svgs/VendorIcon.svg";
+import AddtoCartModal from "@/Modals/AddtoCartModal";
 
 export default function ProductDetails() {
+  const { product } = useLocalSearchParams<{ product: string }>();
+  const productData = product ? JSON.parse(product) : null;
+  const [showModal, setShowModal] = useState(false);
+  console.log(productData);
+  const isOpen = isStoreOpen(
+    productData.store.open_time,
+    productData.store.close_time
+  );
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1 ">
-      <View className={`${Platform.OS === "android"?"mt-[45px] ":""}`}>
+      <View className={`${Platform.OS === "android" ? "mt-[45px] " : ""}`}>
         <HeaderWithSearchInput
           label="Product detail"
           placeholder="Ask ABX AI or search for food items of your choice"
@@ -31,8 +44,8 @@ export default function ProductDetails() {
         showsVerticalScrollIndicator={false}
       >
         <View className="mx-[20px] bg-white border border-[#E6E6E6] rounded-[8px] mt-[26px]  px-[7px] py-[15px] ">
-          <View>
-            <ProductDetailImg />
+          <View className="px-[9px]">
+             <Image source={{uri: productData.prod_image_url}} className="h-[180px] w-full rounded-[4px]  "/> 
           </View>
 
           <View className="mt-[18px] gap-[20px] mx-[7px]">
@@ -45,7 +58,7 @@ export default function ProductDetails() {
 
             <Button
               fontClassName="font-urbanist-medium"
-              onPress={() => {}}
+              onPress={() => setShowModal(!showModal)}
               icon={<Carticon stroke={"#FFFFFF"} />}
               title="Add to cart"
               iconPosition="left"
@@ -60,19 +73,10 @@ export default function ProductDetails() {
               className="text-[16px] text-[#424242] leading-[22px] mt-[8px]"
               style={{ fontFamily: "UrbanistSemiBold" }}
             >
-              Egusi (Mellon seed)
+              {productData.item_name}
             </UrbanistText>
             <UrbanistText className="text-[#808080] text-[16px] leading-[22px] mt-[18px]  ">
-              Egusi is a versatile ingredient that can be used in soups, stews,
-              and even as a thickener for sauces. Whether you're enjoying a warm
-              bowl of Egusi soup with pounded yam or incorporating it into other
-              meals, you're not just indulging in rich flavors but also
-              nourishing your body with essential nutrients.{"\n"} Egusi is a
-              versatile ingredient that can be used in soups, stews, and even as
-              a thickener for sauces. Whether you're enjoying a warm bowl of
-              Egusi soup with pounded yam or incorporating it into other meals,
-              you're not just indulging in rich flavors but also nourishing your
-              body with essential nutrients.
+              {productData.item_description}
             </UrbanistText>
 
             <View className="mt-[8px] ">
@@ -82,7 +86,7 @@ export default function ProductDetails() {
                   className="text-[#424242] text-[16px] leading-[22px]"
                   style={{ fontFamily: "UrbanistSemiBold" }}
                 >
-                  - €14.99-€19.99
+                  - €{productData.min_price}-€{productData.max_price}
                 </UrbanistText>{" "}
               </UrbanistText>
 
@@ -92,7 +96,7 @@ export default function ProductDetails() {
                   className="text-[#424242] text-[16px] leading-[22px]"
                   style={{ fontFamily: "UrbanistSemiBold" }}
                 >
-                  -15th June 2025
+                  - {productData.expiration_date}
                 </UrbanistText>{" "}
               </UrbanistText>
             </View>
@@ -107,12 +111,16 @@ export default function ProductDetails() {
               <View className="flex-row items-center ">
                 <VendorIcon />
                 <UrbanistText className="text-[#424242] text-[14px] leading-[20px] ml-[8px]   ">
-                  ABX09836278
+                  {productData.store.store_code}
                 </UrbanistText>
               </View>
-              <View className="bg-[#05A85A] py-[3px] px-[8px]  rounded-[4px]  ">
-                <UrbanistText className="text-[12px] leading-[16px] text-white   ">
-                  Store is open
+              <View
+                className={`py-[3px] px-[8px] rounded-[4px] ${
+                  isOpen ? "bg-[#05A85A]" : "bg-[#F04438]"
+                }`}
+              >
+                <UrbanistText className="text-[12px] leading-[16px] text-white">
+                  {isOpen ? "Store is open" : "Store is closed"}
                 </UrbanistText>
               </View>
             </View>
@@ -129,6 +137,7 @@ export default function ProductDetails() {
           </View>
         </View>
       </ScrollView>
+      <AddtoCartModal value={showModal} setValue={setShowModal} />
     </SafeAreaView>
   );
 }

@@ -17,13 +17,15 @@ type ButtonProps = {
   backgroundColor?: string;
   borderColor?: string;
   borderWidth?: number;
-  textColor?: string; // 👈 color for text
+  textColor?: string;
   style?: ViewStyle;
   textStyle?: TextStyle;
   loading?: boolean;
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
-  fontClassName?: string; // 👈 font override
+  fontClassName?: string;
+  paddingVertical?: number;   // 👈 added
+  paddingHorizontal?: number; // optional for flexibility
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -40,6 +42,8 @@ const Button: React.FC<ButtonProps> = ({
   icon,
   iconPosition = "right",
   fontClassName,
+  paddingVertical = 12,   // 👈 default
+  paddingHorizontal = 20, // 👈 default
 }) => {
   const isSolid = variant === "solid";
 
@@ -65,6 +69,8 @@ const Button: React.FC<ButtonProps> = ({
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
+          paddingVertical,    // 👈 applied
+          paddingHorizontal,  // 👈 applied
         },
         style,
       ]}
@@ -88,15 +94,13 @@ const Button: React.FC<ButtonProps> = ({
             <View style={{ marginLeft: 6 }}>{icon}</View>
           )}
         </>
-      )} 
+      )}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   base: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",

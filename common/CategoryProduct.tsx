@@ -1,4 +1,9 @@
-import { View } from "react-native";
+import {
+  View,
+  ImageSourcePropType,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import UrbanistText from "./UrbanistText";
 import DropDownArrow from "@/assets/svgs/DropDownArrow";
 import Carticon from "@/assets/svgs/Carticon";
@@ -6,11 +11,12 @@ import Button from "./Button";
 import StarRating from "./StarRating";
 
 interface CategoryProductProps {
-  image: React.ReactNode;      
-  name: string;                 
-  price: string;               
-  rating?: number;              
-  sizes?: number;               
+  image: ImageSourcePropType;
+  name: string;
+  price: string;
+  rating?: number;
+  sizes?: number;
+   onPress?: () => void;
 }
 
 export default function CategoryProduct({
@@ -19,10 +25,15 @@ export default function CategoryProduct({
   price,
   rating = 0,
   sizes,
+  onPress
 }: CategoryProductProps) {
   return (
-    <View className="bg-white border border-[#E6E6E6] rounded-[8px] p-[10px] w-full">
-      {image}
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      className="bg-white border border-[#E6E6E6] rounded-[8px] p-[10px] w-full"
+    >
+      <Image source={image} className="h-[94px] w-full rounded-[4px]   " />
 
       <View className="mt-[8px]">
         <UrbanistText
@@ -59,9 +70,10 @@ export default function CategoryProduct({
             icon={<Carticon stroke="#FFFFFF" />}
             title="Add to cart"
             iconPosition="left"
+            paddingVertical={9}
           />
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }

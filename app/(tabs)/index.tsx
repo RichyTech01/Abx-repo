@@ -16,6 +16,7 @@ import SpendingLimit from "@/components/HomeComps/SpendingLimit";
 import RescueAndSave from "@/components/HomeComps/RescueAndSave";
 import RecueAndSaveProduct from "@/components/HomeComps/RecueAndSaveProduct";
 
+
 export default function Home() {
   const router = useRouter();
   const [query, setQuery] = useState("");

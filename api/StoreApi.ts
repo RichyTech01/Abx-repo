@@ -65,7 +65,7 @@ class StoreApi {
     published?: boolean;
     search?: string;
   }): Promise<PaginatedProductList> {
-    const res = await this.client.get<PaginatedProductList>("/api/store/all-products", {
+    const res = await this.client.get<PaginatedProductList>("/store/all-products", {
       params: filters,
     });
     return res.data;

@@ -1,91 +1,66 @@
-import { View, SafeAreaView, FlatList, Platform } from "react-native";
+import {
+  View,
+  SafeAreaView,
+  FlatList,
+  Platform,
+  ActivityIndicator,
+} from "react-native";
 import Header from "@/common/Header";
+import { useState, useEffect } from "react";
 import CategoryCard from "@/common/Categorycard";
-import Succesicon from "@/assets/svgs/VeriModalIcon.svg";
 import { useRouter } from "expo-router";
-
-const categories = [
-  {
-    id: 1,
-    title: "Fresh produce",
-    subtitle: "Tomatoes, Onion, Pepper, etc.",
-    bgColor: "#ECF1F0",
-    borderColor: "#5D8B7F",
-    Icon: <Succesicon />,
-  },
-  {
-    id: 2,
-    title: "Bakery",
-    subtitle: "Bread, Cakes, Pastries",
-    bgColor: "#DDE5FF",
-    borderColor: "#E6A14A",
-    Icon: <Succesicon />,
-  },
-  {
-    id: 3,
-    title: "Beverages",
-    subtitle: "Juice, Soda, Water",
-    bgColor: "#E6F2FF",
-    borderColor: "#4A90E2",
-    Icon: <Succesicon />,
-  },
-  {
-    id: 4,
-    title: "Snacks",
-    subtitle: "Chips, Biscuits, Chocolates",
-    bgColor: "#FDE6F2",
-    borderColor: "#D14A78",
-    Icon: <Succesicon />,
-  },
-  {
-    id: 5,
-    title: "Frozen",
-    subtitle: "Meat, Ice cream, etc.",
-    bgColor: "#E8F8F5",
-    borderColor: "#48C9B0",
-    Icon: <Succesicon />,
-  },
-  {
-    id: 6,
-    title: "Dairy",
-    subtitle: "Milk, Cheese, Yogurt",
-    bgColor: "#FDF0DC",
-    borderColor: "#F4D03F",
-    Icon: <Succesicon />,
-  },
-  {
-    id: 7,
-    title: "Household",
-    subtitle: "Detergent, Cleaners",
-    bgColor: "#FDF0DC",
-    borderColor: "#8E44AD",
-    Icon: <Succesicon />,
-  },
-  {
-    id: 8,
-    title: "Canned Goods",
-    subtitle: "Beans, Soups, Corn",
-    bgColor: "#FDEDEC",
-    borderColor: "#C0392B",
-    Icon: <Succesicon />,
-  },
-  {
-    id: 9,
-    title: "Personal Care",
-    subtitle: "Soap, Shampoo, etc.",
-    bgColor: "#EBF5FB",
-    borderColor: "#2980B9",
-    Icon: <Succesicon />,
-  },
-];
+import AdminApi from "@/api/AdminApi";
 
 export default function AllCategories() {
-   const router = useRouter()
-   
+  const router = useRouter();
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const CATEGORY_COLORS: Record<
+    number,
+    { bgColor: string; borderColor: string }
+  > = {
+    1: { bgColor: "#ECF1F0", borderColor: "#5D8B7F" },
+    3: { bgColor: "#FDF0DC", borderColor: "#F4B551" },
+    4: { bgColor: "#EBFFDF", borderColor: "#05A85A" },
+    5: { bgColor: "#DCE7FD", borderColor: "#89AFFD" },
+    6: { bgColor: "#FDE6F2", borderColor: "#D14A78" },
+    7: { bgColor: "#FDF0DC", borderColor: "#B29870" },
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await AdminApi.getCategories(1);
+        const withColors = (data.results || []).map((cat: any) => ({
+          ...cat,
+          ...CATEGORY_COLORS[cat.id],
+        }));
+        setCategories(withColors);
+        console.log("category data", withColors);
+      } catch (error) {
+        console.error("Failed to fetch categories", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-[#FFF6F2]">
+        <ActivityIndicator size="large" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1">
-      <View className={`${Platform.OS === "android"?"mt-[45px] ":""}`}>
-         <Header title="All categories" />
+      <View className={`${Platform.OS === "android" ? "mt-[45px] " : ""}`}>
+        <Header title="All categories" />
       </View>
 
       <FlatList
@@ -98,26 +73,34 @@ export default function AllCategories() {
           paddingBottom: 20,
         }}
         columnWrapperStyle={{
-          justifyContent: "space-between",  
-          marginBottom: Platform.OS === "android"? 40:25,
+          justifyContent: "space-between",
+          marginBottom: Platform.OS === "android" ? 40 : 25,
         }}
         renderItem={({ item, index }) => {
-          const isLast = index === categories.length - 1;
+          const isOddLast =
+            categories.length % 2 !== 0 && index === categories.length - 1;
+
           return (
             <View
               style={{
-                width: isLast ? "100%" : "48%",
-                alignItems: isLast ? "center" : "flex-start",
+                width: isOddLast ? "100%" : "48%",
+                alignItems: isOddLast ? "center" : "flex-start",
               }}
             >
               <CategoryCard
                 bgColor={item.bgColor}
                 borderColor={item.borderColor}
-                Icon={item.Icon}
-                title={item.title}
-                subtitle={item.subtitle}
+                image={{ uri: item.img }}
+                title={item.name}
+                subtitle={item.description}
                 width={180}
                 paddingY={10}
+                onPress={() =>
+                  router.push({
+                    pathname: "/Screens/CategoryDetails",
+                    params: { category: item.name },
+                  })
+                }
               />
             </View>
           );
