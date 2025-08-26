@@ -24,8 +24,9 @@ type ButtonProps = {
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
   fontClassName?: string;
-  paddingVertical?: number;   // 👈 added
-  paddingHorizontal?: number; // optional for flexibility
+  paddingVertical?: number;
+  paddingHorizontal?: number;
+  borderRadius?: number;   // 👈 added
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -42,8 +43,9 @@ const Button: React.FC<ButtonProps> = ({
   icon,
   iconPosition = "right",
   fontClassName,
-  paddingVertical = 12,   // 👈 default
-  paddingHorizontal = 20, // 👈 default
+  paddingVertical = 12,
+  paddingHorizontal = 20,
+  borderRadius = 8,   // 👈 default
 }) => {
   const isSolid = variant === "solid";
 
@@ -69,8 +71,9 @@ const Button: React.FC<ButtonProps> = ({
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
-          paddingVertical,    // 👈 applied
-          paddingHorizontal,  // 👈 applied
+          paddingVertical,
+          paddingHorizontal,
+          borderRadius,   // 👈 applied
         },
         style,
       ]}
@@ -101,7 +104,6 @@ const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },

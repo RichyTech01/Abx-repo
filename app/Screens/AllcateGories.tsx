@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
 import AdminApi from "@/api/AdminApi";
+import OreAppText from "@/common/OreApptext";
 
 export default function AllCategories() {
   const router = useRouter();
@@ -49,64 +50,65 @@ export default function AllCategories() {
     fetchCategories();
   }, []);
 
-  if (loading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-[#FFF6F2]">
-        <ActivityIndicator size="large" />
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1">
       <View className={`${Platform.OS === "android" ? "mt-[45px] " : ""}`}>
         <Header title="All categories" />
       </View>
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      ) : categories.length === 0 ? (
+        <View className="flex-1 items-center justify-center  ">
+          <OreAppText>No categories found.</OreAppText>
+        </View>
+      ) : (
+        <FlatList
+          data={categories}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={2}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingTop: 42,
+            paddingBottom: 20,
+          }}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+            marginBottom: Platform.OS === "android" ? 40 : 25,
+          }}
+          renderItem={({ item, index }) => {
+            const isOddLast =
+              categories.length % 2 !== 0 && index === categories.length - 1;
 
-      <FlatList
-        data={categories}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingTop: 42,
-          paddingBottom: 20,
-        }}
-        columnWrapperStyle={{
-          justifyContent: "space-between",
-          marginBottom: Platform.OS === "android" ? 40 : 25,
-        }}
-        renderItem={({ item, index }) => {
-          const isOddLast =
-            categories.length % 2 !== 0 && index === categories.length - 1;
-
-          return (
-            <View
-              style={{
-                width: isOddLast ? "100%" : "48%",
-                alignItems: isOddLast ? "center" : "flex-start",
-              }}
-            >
-              <CategoryCard
-                bgColor={item.bgColor}
-                borderColor={item.borderColor}
-                image={{ uri: item.img }}
-                title={item.name}
-                subtitle={item.description}
-                width={180}
-                paddingY={10}
-                onPress={() =>
-                  router.push({
-                    pathname: "/Screens/CategoryDetails",
-                    params: { category: item.name },
-                  })
-                }
-              />
-            </View>
-          );
-        }}
-        showsVerticalScrollIndicator={false}
-      />
+            return (
+              <View
+                style={{
+                  width: isOddLast ? "100%" : "48%",
+                  alignItems: isOddLast ? "center" : "flex-start",
+                }}
+              >
+                <CategoryCard
+                  bgColor={item.bgColor}
+                  borderColor={item.borderColor}
+                  image={{ uri: item.img }}
+                  title={item.name}
+                  subtitle={item.description}
+                  width={180}
+                  paddingY={10}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/Screens/CategoryDetails",
+                      params: { category: item.name },
+                    })
+                  }
+                />
+              </View>
+            );
+          }}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   );
 }

@@ -109,7 +109,7 @@ class StoreApi {
 
   //  Nearest stores (based on lat & lon)
   public async getNearestStores(lat: number, lon: number): Promise<any> {
-    const res = await this.client.get("/api/store/nearest", { params: { lat, lon } });
+    const res = await this.client.get("/store/nearest", { params: { lat, lon } });
     return res.data;
   }
 

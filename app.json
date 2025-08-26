@@ -12,9 +12,13 @@
       "GET_ADDRESS_API_KEY": "LmRcb8Qk50mEojODY5sv3w46906"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+       "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to show nearby stores."
+      }
     },
     "android": {
+        "permissions": ["ACCESS_FINE_LOCATION"],
       "adaptiveIcon": {
         "foregroundImage": "",
         "backgroundColor": "#ffffff"

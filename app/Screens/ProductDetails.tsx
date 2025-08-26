@@ -29,6 +29,7 @@ export default function ProductDetails() {
     productData.store.open_time,
     productData.store.close_time
   );
+  
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1 ">
       <View className={`${Platform.OS === "android" ? "mt-[45px] " : ""}`}>

@@ -1,72 +1,73 @@
-import { View, SafeAreaView, Platform, ScrollView } from "react-native";
+import {
+  View,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  ActivityIndicator,
+} from "react-native";
 import React from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
-import ShopCard, { Shop } from '@/common/ShopCard';
-
-const sampleShops = [
-  {
-    id: '1',
-    name: "Iya Bukola's shop",
-    image: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
-    distance: '5Km away',
-    rating: 4,
-    status: "Open",
-    isFavorite: false,
-    category: 'Spices & Herbs',
-  },
-  {
-    id: '2',
-    name: "Mama Kemi's Store",
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-    distance: '2.5Km away',
-    rating: 4.5,
-    status: "Closed",
-    isFavorite: true,
-    category: 'Fresh Produce',
-  },
-  {
-    id: '3',
-    name: "Alhaji's Bulk Shop",
-    image: 'https://images.unsplash.com/photo-1583258292688-d0213dc5bcec?w=400',
-    distance: '8Km away',
-    rating: 3.5,
-    status: 'Closed',
-    isFavorite: false,
-    category: 'Grains & Cereals',
-  },
-];
-
-
+import { useRouter } from "expo-router";
+import ShopCard from "@/common/ShopCard";
+import { useClosestStores } from "@/hooks/useClosestStores";
 
 export default function AllClosestShops() {
+  const router = useRouter();
+  const {
+    data: shops,
+    isLoading,
+    isError,
+    locationStatus,
+    locationError,
+  } = useClosestStores();
 
-      const handleShopPress = (shop: Shop) => console.log('Shop pressed:', shop.name);
-      const handleCartPress = (shop: Shop) => console.log('Cart pressed:', shop.name);
-      const handleFavoritePress = (shop: Shop) => console.log('Favorite toggled:', shop.name);
-
-  return (
-    <SafeAreaView className="bg-[#FFF6F2] flex-1">
-      <View
-        className={`${Platform.OS === "android" ? "mt-[45px] " : ""} pb-[15px] `}
-      >
-        <HeaderWithSearchInput label="Closest shops" />
-      </View>
-
-       <ScrollView
-        contentContainerStyle={{ paddingBottom: 20, marginHorizontal: 20, paddingTop: 15, gap:24 }}
+  let content;
+  if (locationStatus === "pending" || isLoading) {
+    content = <ActivityIndicator size="large" color="#000" />;
+  } else if (locationStatus === "error") {
+    content = <Text>{locationError || "Location permission denied."}</Text>;
+  } else if (isError) {
+    content = (
+      <Text className="mx-auto py-8 text-[14px] text-[#F04438] ">
+        Failed to fetch nearest stores.
+      </Text>
+    );
+  } else if (!shops || shops.length === 0) {
+    content = <Text>No nearby stores found.</Text>;
+  } else {
+    content = (
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: 20,
+          marginHorizontal: 20,
+          paddingTop: 15,
+          gap: 24,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        {sampleShops.map((shop) => (
+        {shops.map((shop: any) => (
           <ShopCard
-            key={shop.id}
-            shop={shop}
-            onPress={handleShopPress}
-            onCartPress={handleCartPress}
-            onFavoritePress={handleFavoritePress}
+            key={shop.id.toString()}
+            shop={{
+              id: shop.id.toString(),
+              name: shop.business_name,
+              image: shop.store_img,
+              distance: shop.distance_km ? `${shop.distance_km}Km away` : "N/A",
+              rating: shop.rating,
+              isFavorite: shop.is_favorited,
+              store_open: shop.open_time,
+              store_close: shop.close_time,
+            }}
           />
         ))}
       </ScrollView>
+    );
+  }
 
+  return (
+    <SafeAreaView className="bg-[#FFF6F2] flex-1">
+      <HeaderWithSearchInput label="Closest shops" />
+      {content}
     </SafeAreaView>
   );
 }

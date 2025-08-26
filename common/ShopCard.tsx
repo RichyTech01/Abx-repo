@@ -2,60 +2,41 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity, Pressable } from "react-native";
 import LoveLogo from "@/assets/svgs/LoveLogo.svg";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";
-import { FontAwesome } from "@expo/vector-icons";
 import StarRating from "./StarRating";
 import { useRouter } from "expo-router";
+import { isStoreOpen } from "@/utils/storeStatus";
+import LoveIcon from "@/assets/svgs/LoveIcon.svg"
 
 export interface Shop {
   id: string;
   name: string;
   image: string;
-  status?: string;
   distance?: string;
   rating?: number;
   category?: string;
   isFavorite?: boolean;
+  store_open?: string;
+  store_close?: string;
 }
 
 interface ShopCardProps {
   shop: Shop;
-  onPress?: (shop: Shop) => void;
-  onCartPress?: (shop: Shop) => void;
-  onFavoritePress?: (shop: Shop) => void;
   width?: number;
 }
 
-const ShopCard: React.FC<ShopCardProps> = ({
-  shop,
-  onPress,
-  onCartPress,
-  onFavoritePress,
-  width,
-}) => {
+const ShopCard: React.FC<ShopCardProps> = ({ shop, width }) => {
   const router = useRouter();
-  console.log(shop);
-  const renderStars = () => {
-    const stars = [];
-    const rating = shop.rating ?? 0;
 
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <FontAwesome
-          key={i}
-          name={i <= rating ? "star" : "star-o"}
-          size={12}
-          color="#FF8A00"
-          style={{ marginRight: 2 }}
-        />
-      );
-    }
-
-    return <View style={{ flexDirection: "row", marginTop: 4 }}>{stars}</View>;
-  };
+  const isOpen = isStoreOpen(shop.store_open, shop.store_close);
 
   return (
     <TouchableOpacity
-      onPress={() => router.push("/")}
+      onPress={() =>
+        router.push({
+          pathname: "/Screens/ShopDetails",
+          params: { shop },
+        })
+      }
       className="bg-white shadow rounded-[8px] shadow-[#624C3917]/10 p-[10px] "
       style={{ width: width || "100%" }}
     >
@@ -64,20 +45,25 @@ const ShopCard: React.FC<ShopCardProps> = ({
           source={{ uri: shop.image }}
           className="w-full h-full rounded-[8px]"
         />
-        {shop.status && (
+        {
           <View
             className={`absolute top-[23px] left-[13px] px-2 py-[3px] rounded-[4px] ${
-              shop.status === "Open" ? "bg-[#05A85A]" : "bg-[#F04438]"
+              isOpen ? "bg-[#05A85A]" : "bg-[#F04438]"
             }`}
           >
             <Text className="text-white text-xs font-urbanist">
-              {shop.status}
+              {isOpen ? "Open" : "Closed"}
             </Text>
           </View>
-        )}
-        {shop.isFavorite && (
+        }
+
+        {shop.isFavorite?  (
           <Pressable className="absolute top-[18px] right-3 w-8 h-8 bg-[#F6F6F6] rounded-full items-center justify-center ">
             <LoveLogo />
+          </Pressable>
+        ): (
+          <Pressable className="absolute top-[18px] right-3 w-8 h-8 bg-[#F6F6F6] rounded-full items-center justify-center ">
+            <LoveIcon />
           </Pressable>
         )}
       </View>

@@ -1,4 +1,6 @@
-export function isStoreOpen(openTime: string, closeTime: string): boolean {
+export function isStoreOpen(openTime?: string, closeTime?: string): boolean {
+  if (!openTime || !closeTime) return false; // fallback
+
   const now = new Date();
 
   const [oH, oM] = openTime.split(":").map(Number);
@@ -9,6 +11,12 @@ export function isStoreOpen(openTime: string, closeTime: string): boolean {
 
   const close = new Date();
   close.setHours(cH, cM, 0, 0);
+
+  if (close <= open) {
+    // Overnight case
+    if (now >= open) return true;
+    return now <= close;
+  }
 
   return now >= open && now <= close;
 }

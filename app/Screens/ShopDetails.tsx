@@ -1,4 +1,5 @@
 import { View, SafeAreaView, Platform, Image, ScrollView } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import { useState } from "react";
 import TabSwitcher from "@/common/TabSwitcher";
@@ -10,6 +11,7 @@ const ShopBanner = require("../../assets/Images/Frame 1000008001.png");
 
 export default function ShopDetails() {
   const [activeTab, setActiveTab] = useState<string>("About store");
+   const { shop } = useLocalSearchParams ();
 
   return (
     <SafeAreaView className="flex-1 bg-[#FFF6F2]">
