@@ -5,13 +5,12 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
-  Image
+  Image,
 } from "react-native";
 import { useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
-import ProductDetailImg from "@/assets/svgs/ProductDetailsImg.svg";
 import Button from "@/common/Button";
 import Carticon from "@/assets/svgs/Carticon";
 import DropDownIcon from "@/assets/svgs/DropDownArrow";
@@ -44,8 +43,11 @@ export default function ProductDetails() {
         showsVerticalScrollIndicator={false}
       >
         <View className="mx-[20px] bg-white border border-[#E6E6E6] rounded-[8px] mt-[26px]  px-[7px] py-[15px] ">
-          <View className="px-[9px]">
-             <Image source={{uri: productData.prod_image_url}} className="h-[180px] w-full rounded-[4px]  "/> 
+          <View className="px-[]">
+            <Image
+              source={{ uri: productData.prod_image_url }}
+              className="h-[180px] w-full rounded-[4px]  "
+            />
           </View>
 
           <View className="mt-[18px] gap-[20px] mx-[7px]">

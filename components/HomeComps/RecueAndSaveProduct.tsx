@@ -1,10 +1,10 @@
-import { View, Text, ScrollView} from "react-native";
+import { View, Text, ScrollView, Platform} from "react-native";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 
 export default function RecueAndSaveProduct() {
   return (
-    <View>
+    <View className={`${Platform.OS === "ios"? "mb-16":"mb-20"} mb-16`}>
       <SectionHeader title="Rescue and save" onPress={() => {}} />
         <Text className="mx-[20px] text-[#2D2220] text-[10px] leading-[14px] font-urbanist ">(These are products that are near their expiration date but still edible)</Text>
 

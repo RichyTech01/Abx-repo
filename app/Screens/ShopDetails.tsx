@@ -1,10 +1,4 @@
-import {
-  View,
-  SafeAreaView,
-  Platform,
-  Image,
-  ScrollView,
-} from "react-native";
+import { View, SafeAreaView, Platform, Image, ScrollView } from "react-native";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import { useState } from "react";
 import TabSwitcher from "@/common/TabSwitcher";

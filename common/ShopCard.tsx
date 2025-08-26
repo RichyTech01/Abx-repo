@@ -6,15 +6,15 @@ import { FontAwesome } from "@expo/vector-icons";
 import StarRating from "./StarRating";
 import { useRouter } from "expo-router";
 
-
 export interface Shop {
   id: string;
   name: string;
   image: string;
   status?: string;
   distance?: string;
-  rating?: number; 
+  rating?: number;
   category?: string;
+  isFavorite?: boolean;
 }
 
 interface ShopCardProps {
@@ -22,13 +22,18 @@ interface ShopCardProps {
   onPress?: (shop: Shop) => void;
   onCartPress?: (shop: Shop) => void;
   onFavoritePress?: (shop: Shop) => void;
-  width?: number 
+  width?: number;
 }
 
-const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavoritePress, width }) => {
-
-  const router = useRouter()
-
+const ShopCard: React.FC<ShopCardProps> = ({
+  shop,
+  onPress,
+  onCartPress,
+  onFavoritePress,
+  width,
+}) => {
+  const router = useRouter();
+  console.log(shop);
   const renderStars = () => {
     const stars = [];
     const rating = shop.rating ?? 0;
@@ -40,7 +45,7 @@ const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavor
           name={i <= rating ? "star" : "star-o"}
           size={12}
           color="#FF8A00"
-          style={{ marginRight: 2,}}
+          style={{ marginRight: 2 }}
         />
       );
     }
@@ -50,9 +55,9 @@ const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavor
 
   return (
     <TouchableOpacity
-      onPress={() => router.push("/Screens/ShopDetails")}
+      onPress={() => router.push("/")}
       className="bg-white shadow rounded-[8px] shadow-[#624C3917]/10 p-[10px] "
-      style={{width: width || "100%"}}
+      style={{ width: width || "100%" }}
     >
       <View className="relative h-[158px]">
         <Image
@@ -65,15 +70,16 @@ const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavor
               shop.status === "Open" ? "bg-[#05A85A]" : "bg-[#F04438]"
             }`}
           >
-            <Text className="text-white text-xs font-urbanist">{shop.status}</Text>
+            <Text className="text-white text-xs font-urbanist">
+              {shop.status}
+            </Text>
           </View>
         )}
-        <Pressable
-          className="absolute top-[18px] right-3 w-8 h-8 bg-[#F6F6F6] rounded-full items-center justify-center"
-          onPress={() => onFavoritePress?.(shop)}
-        >
-          <LoveLogo />
-        </Pressable>
+        {shop.isFavorite && (
+          <Pressable className="absolute top-[18px] right-3 w-8 h-8 bg-[#F6F6F6] rounded-full items-center justify-center ">
+            <LoveLogo />
+          </Pressable>
+        )}
       </View>
 
       <View className="flex-row items-center justify-between mt-[16px]">
@@ -84,12 +90,12 @@ const ShopCard: React.FC<ShopCardProps> = ({ shop, onPress, onCartPress, onFavor
           <Text className="text-[12px] leading-[16px] font-urbanist-semibold text-[#2D2220] my-[4px] ">
             {shop.distance}
           </Text>
-         <StarRating rating={shop.rating ?? 0} />
+          <StarRating rating={shop.rating ?? 0} />
         </View>
 
         <Pressable
           className="bg-[#F2F2F2] h-[32px] w-[32px] rounded-full items-center justify-center"
-          onPress={() => onCartPress?.(shop)}
+          // onPress={() => onCartPress?.(shop)}
         >
           <MaincartIcon />
         </Pressable>

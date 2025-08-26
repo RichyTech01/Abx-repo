@@ -14,7 +14,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import StoreApi from "@/api/StoreApi";
 
 export default function CategoryDetails() {
-  const router = useRouter()
+  const router = useRouter();
   const { category } = useLocalSearchParams<{ category: string }>();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,13 +34,6 @@ export default function CategoryDetails() {
     if (category) fetchProducts();
   }, [category]);
 
-  if (loading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-[#FFF6F2]">
-        <ActivityIndicator size="large" />
-      </SafeAreaView>
-    );
-  }
   const SCREEN_PADDING = 20;
   const GAP = 16;
   const ITEM_WIDTH =
@@ -55,7 +48,12 @@ export default function CategoryDetails() {
         />
       </View>
 
-      {products.length === 0 ? (
+      {/* 🔹 Loading under header */}
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      ) : products.length === 0 ? (
         <View className="flex-1 items-center justify-center">
           <Text>No products found.</Text>
         </View>
@@ -83,7 +81,7 @@ export default function CategoryDetails() {
                 onPress={() =>
                   router.push({
                     pathname: "/Screens/ProductDetails",
-                    params: { product: JSON.stringify(item) }, 
+                    params: { product: JSON.stringify(item) },
                   })
                 }
               />

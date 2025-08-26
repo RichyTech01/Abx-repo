@@ -49,7 +49,7 @@ class StoreApi {
 
   // Get all approved stores
   public async getAllStores(page?: number): Promise<PaginatedStoreList> {
-    const res = await this.client.get<PaginatedStoreList>("/api/store/all", {
+    const res = await this.client.get<PaginatedStoreList>("/store/all", {
       params: { page },
     });
     return res.data;
