@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
+import FlagIcon from "@/assets/svgs/UkFlag.svg";
 
 type Props = {
   label?: string;
@@ -12,7 +13,7 @@ const CustomPhoneInput: React.FC<Props> = ({
   value,
   onChange,
 }) => {
-  const callingCode = "44"; 
+  const callingCode = "44";
 
   return (
     <View>
@@ -21,7 +22,11 @@ const CustomPhoneInput: React.FC<Props> = ({
       </Text>
 
       <View style={styles.container}>
-        <Text className="text-[#929292] text-[12px] font-urbanist leading-[16px] mx-[4px]">
+        <View className=" ">
+          <FlagIcon />
+        </View>
+
+        <Text className="text-[#929292] text-[12px] font-urbanist leading-[16px] mr-[4px] ml-[6px]">
           +{callingCode}
         </Text>
 
