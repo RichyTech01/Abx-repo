@@ -31,12 +31,12 @@ const ShopCard: React.FC<ShopCardProps> = ({ shop, width }) => {
 
   return (
     <TouchableOpacity
-      onPress={() =>
-        router.push({
-          pathname: "/Screens/ShopDetails",
-          params: { shop },
-        })
-      }
+      // onPress={() =>
+      //   router.push({
+      //     pathname: "/Screens/ShopDetails",
+      //     params: { shop },
+      //   })
+      // }
       className="bg-white shadow rounded-[8px] shadow-[#624C3917]/10 p-[10px] "
       style={{ width: width || "100%" }}
     >

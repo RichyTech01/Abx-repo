@@ -6,7 +6,6 @@ import MaincartIcon from "@/assets/svgs/MaincartIcon";
 import Welcomebanner from "@/assets/svgs/Welcomebanner";
 import SearchInput from "@/common/SearchInput";
 
-
 import Categories from "@/components/HomeComps/Categories";
 import TopratedShops from "@/components/HomeComps/TopratedShops";
 import ClosestShops from "@/components/HomeComps/ClosestShops";

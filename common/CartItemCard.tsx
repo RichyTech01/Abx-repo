@@ -29,7 +29,7 @@ export default function CartItemCard({
     <View className="px-[12px] py-[8px] bg-white rounded-[8px]">
       <View className="flex-row items-center p-[8px]">
         <View className="w-[148px] h-[118px] items-center justify-center">
-          <View className="bg-[#F6C16E] h-[24px] w-[24px] rounded-full absolute z-10 items-center justify-center right-0 top-0">
+          <View className="bg-[#F6C16E] h-[24px] w-[24px] rounded-full absolute z-10 items-center justify-center right-0 top-0  ">
             <UrbanistText className="text-[13px] leading-[22px] text-[#000]">
               {quantity}
             </UrbanistText>
@@ -54,7 +54,7 @@ export default function CartItemCard({
             {price}
           </UrbanistText>
           {unit && (
-            <View className="p-[4px] bg-[#FDF0DC] rounded-[8px] items-center justify-center mt-[8px]">
+            <View className="p-[4px] bg-[#FDF0DC] rounded-[8px] items-center justify-center mt-[8px]  self-start">
               <UrbanistText className="text-[#424242] text-[12px] leading-[16px]">
                 {unit}
               </UrbanistText>

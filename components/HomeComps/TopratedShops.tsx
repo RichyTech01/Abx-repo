@@ -66,9 +66,6 @@ export default function TopratedShops() {
           <ShopCard
             key={shop.id}
             shop={shop}
-            onPress={handleShopPress}
-            onCartPress={handleCartPress}
-            onFavoritePress={handleFavoritePress}
             width={254}
           />
         ))}

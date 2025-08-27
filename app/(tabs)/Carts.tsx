@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import Header from "@/common/Header";
 import UrbanistText from "@/common/UrbanistText";
 import CartItemCard from "@/common/CartItemCard";
+import Button from "@/common/Button";
+import { useRouter } from "expo-router";
 
 const CartImg = require("@/assets/Images/Frame 1000008001.png");
 
@@ -31,6 +33,8 @@ const dummyCartData = [
 ];
 
 export default function Carts() {
+  const router = useRouter()
+
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({
     "1": 1,
     "2": 1,
@@ -99,10 +103,35 @@ export default function Carts() {
               Cart summary
             </UrbanistText>
             <View className="flex-row items-center justify-between  ">
-               <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold ">Total</UrbanistText>
-               <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold ">€300.00 </UrbanistText>
+              <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold ">
+                Total
+              </UrbanistText>
+              <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold ">
+                €300.00{" "}
+              </UrbanistText>
             </View>
-               <UrbanistText className="text-[#7D7D7D] text-[14px] leading-[20px] font-urbanist ">Delivery fees not included yet</UrbanistText>
+            <UrbanistText className="text-[#7D7D7D] text-[14px] leading-[20px] font-urbanist ">
+              Delivery fees not included yet
+            </UrbanistText>
+          </View>
+
+          <View className="gap-[8px] mt-[8px] ">
+            <Button
+              title="Continue"
+              textColor="#0C513F"
+              variant="outline"
+              borderColor="#0C513F"
+              fontClassName="urbanist-medium"
+              onPress={() => router.push("/Screens/Carts/CheckOut")}
+            />
+
+             <Button
+              title="Keep shopping"
+              borderColor="#0C513F"
+              paddingVertical={14.5}
+              fontClassName="urbanist-medium"
+              onPress={() => {}}
+            />
           </View>
         </View>
       </View>
