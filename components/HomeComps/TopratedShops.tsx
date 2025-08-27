@@ -12,7 +12,6 @@ export default function TopratedShops() {
 
   const queryClient = useQueryClient();
 
-  // Fetch top rated stores
   const { data: shops = [], isLoading } = useQuery<Shop[]>({
     queryKey: ["topRatedStores"],
     queryFn: async () => {
@@ -20,10 +19,13 @@ export default function TopratedShops() {
       return res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
-        image: store.store_img || "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
+        image:
+          store.store_img ||
+          "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
         store_open: store.open_time,
         store_close: store.close_time,
         isFavorite: store.is_favorited ?? false,
+        distance: store.distance_km ? `${store.distance_km} km` : "N/A",
       }));
     },
   });

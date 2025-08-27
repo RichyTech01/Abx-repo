@@ -68,7 +68,7 @@ export default function ClosestShops() {
               image:
                 shop.store_img ||
                 "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
-              distance: shop.distance_km ? `${shop.distance_km}Km away` : "N/A",
+              distance: shop.distance_km ? `${shop.distance_km}Km` : "N/A",
               rating: shop.rating || 0,
               isFavorite: shop.isFavorite || false,
               category: shop.category || "General",

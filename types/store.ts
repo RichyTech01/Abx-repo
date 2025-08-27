@@ -12,7 +12,27 @@ export type Product = {
     business_name: string;
   };
 };
-  
+
+export interface Address {
+  id: number;
+  addr: string;
+  city: string;
+  post_code: string;
+  default_addr: boolean;
+  location: [number, number]; 
+}
+
+export interface User {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  is_vendor: boolean;
+  is_verified: boolean;
+  address: Address[];
+}
+
 
 
 // --- Store ---

@@ -6,6 +6,7 @@ import MaincartIcon from "@/assets/svgs/MaincartIcon";
 import StarRating from "./StarRating";
 import { useRouter } from "expo-router";
 import { isStoreOpen } from "@/utils/storeStatus";
+import * as Haptics from "expo-haptics";
 
 export interface Shop {
   id: string;
@@ -18,7 +19,6 @@ export interface Shop {
   store_open?: string;
   store_close?: string;
   status?: string;
-  
 }
 
 interface ShopCardProps {
@@ -58,7 +58,10 @@ const ShopCard: React.FC<ShopCardProps> = ({
 
         <Pressable
           className="absolute top-[18px] right-3 w-8 h-8 bg-[#F6F6F6] rounded-full items-center justify-center"
-          onPress={onFavoritePress}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            onFavoritePress?.();
+          }}
         >
           {shop.isFavorite ? <LoveLogo /> : <LoveIcon />}
         </Pressable>

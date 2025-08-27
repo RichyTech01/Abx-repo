@@ -14,32 +14,9 @@ export default function StepOne({
   formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
 }) {
-  const [callingCode, setCallingCode] = useState("44");
-  const [rawPhoneNumber, setRawPhoneNumber] = useState("");
-
-  // Extract phone number parts if coming back from step 2
-  useEffect(() => {
-    if (formData.phone_number && formData.phone_number.startsWith('+')) {
-      // Extract the calling code and raw number from existing formatted number
-      const fullNumber = formData.phone_number.substring(1); // Remove +
-      
-      // Try to match common country codes
-      if (fullNumber.startsWith('234')) {
-        setCallingCode('234');
-        setRawPhoneNumber(fullNumber.substring(3));
-      } else if (fullNumber.startsWith('44')) {
-        setCallingCode('44');
-        setRawPhoneNumber(fullNumber.substring(2));
-      } else if (fullNumber.startsWith('1')) {
-        setCallingCode('1');
-        setRawPhoneNumber(fullNumber.substring(1));
-      } else {
-        // Default case
-        setCallingCode('44');
-        setRawPhoneNumber(fullNumber.substring(2));
-      }
-    }
-  }, [formData.phone_number]);
+  const [rawPhoneNumber, setRawPhoneNumber] = useState(
+    formData.phone_number?.replace("+44", "") || ""
+  );
 
   const handleNext = () => {
     if (
@@ -51,14 +28,11 @@ export default function StepOne({
       showToast("error", "Please fill in all the fields before continuing.");
       return;
     }
-    
-    // Create the full phone number with country code for the API
-    const fullPhoneNumber = `+${callingCode}${rawPhoneNumber}`;
-    
-    // Set the phone_number field with the country code as the API expects
-    setFormData({ 
-      ...formData, 
-      phone_number: fullPhoneNumber
+
+    const fullPhoneNumber = `+44${rawPhoneNumber}`;
+    setFormData({
+      ...formData,
+      phone_number: fullPhoneNumber,
     });
     nextStep();
   };
@@ -91,9 +65,7 @@ export default function StepOne({
 
         <CustomPhoneInput
           value={rawPhoneNumber}
-          callingCode={callingCode}
           onChange={(phone) => setRawPhoneNumber(phone)}
-          onCallingCodeChange={(code) => setCallingCode(code)}
         />
 
         <Button

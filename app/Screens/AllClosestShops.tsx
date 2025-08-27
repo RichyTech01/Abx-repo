@@ -13,6 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import * as Haptics from "expo-haptics";
 
+
 export default function AllClosestShops() {
   const queryClient = useQueryClient();
 
@@ -81,10 +82,10 @@ export default function AllClosestShops() {
                 shop={{
                   id: shop.id.toString(),
                   name: shop.business_name,
-                  image: shop.store_img || "https://via.placeholder.com/150",
-                  distance: shop.distance_km
-                    ? `${shop.distance_km}Km away`
-                    : "N/A",
+                  image:
+                    shop.store_img ||
+                    "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
+                  distance: shop.distance_km ? `${shop.distance_km}Km` : "N/A",
                   rating: shop.rating || 0,
                   isFavorite: shop.is_favorited || false,
                   store_open: shop.open_time,

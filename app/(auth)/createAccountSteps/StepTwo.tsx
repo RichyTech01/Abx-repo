@@ -31,7 +31,6 @@ export default function StepTwo({
     }
   };
 
-  // Function to extract UK postcode from address string
   const extractPostcode = (address: string) => {
     const postcodeRegex = /\b([A-Z]{1,2}[0-9][A-Z0-9]?\s?[0-9][A-Z]{2})\b/i;
     const match = address.match(postcodeRegex);
