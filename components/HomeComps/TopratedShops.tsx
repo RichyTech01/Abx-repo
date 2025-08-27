@@ -45,8 +45,7 @@ export default function TopratedShops() {
 
       {isLoading ? (
         <ActivityIndicator
-          size="large"
-          color="#000"
+          size="small" color={"black"}
           style={{ marginTop: 16 }}
         />
       ) : shops.length === 0 ? (

@@ -20,7 +20,7 @@ export default function NewProducts() {
       <SectionHeader title="New products" onPress={() => {}} />
 
       {isLoading ? (
-        <ActivityIndicator size="small" style={{ marginTop: 16 }} />
+        <ActivityIndicator size="small" color={"black"} style={{ marginTop: 16 }} />
       ) : error ? (
         <Text style={{ marginTop: 16, color: "red" }}>
           Failed to load new products

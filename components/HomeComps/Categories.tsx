@@ -48,7 +48,7 @@ export default function Categories() {
       />
 
       {loading ? (
-        <ActivityIndicator size="small" style={{ marginVertical: 10 }} />
+        <ActivityIndicator size="small" color={"black"} style={{ marginVertical: 10 }} />
       ) : (
         <ScrollView
           horizontal

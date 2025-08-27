@@ -14,7 +14,7 @@ export default function Index() {
         if (loggedIn) {
           router.push("/(tabs)");
         } else {
-          router.replace("/(tabs)");
+          router.replace("/onboarding");
         }
       } catch (error) {
         console.error("Auth check failed:", error);
