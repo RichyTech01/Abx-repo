@@ -24,7 +24,6 @@ export default function CategoryDetails() {
       try {
         const data = await StoreApi.getAllProducts({ category, page: 1 });
         setProducts(data.results || []);
-        console.log(data);
       } catch (err) {
         console.error("Failed to fetch products", err);
       } finally {
@@ -48,7 +47,6 @@ export default function CategoryDetails() {
         />
       </View>
 
-      {/* 🔹 Loading under header */}
       {loading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#000" />
@@ -81,7 +79,7 @@ export default function CategoryDetails() {
                 onPress={() =>
                   router.push({
                     pathname: "/Screens/ProductDetails",
-                    params: { product: JSON.stringify(item) },
+                    params: { id: item.id },
                   })
                 }
               />

@@ -1,51 +1,38 @@
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, ActivityIndicator, Platform } from "react-native";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import StoreApi from "@/api/StoreApi";
 import React from "react";
 import SectionHeader from "@/common/SectionHeader";
 import { useRouter } from "expo-router";
 import ShopCard, { Shop } from "@/common/ShopCard";
-
-const sampleShops = [
-  {
-    id: "1",
-    name: "Iya Bukola's shop",
-    image: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400",
-    distance: "5Km away",
-    rating: 4,
-    status: "Open",
-    isFavorite: false,
-    category: "Spices & Herbs",
-  },
-  {
-    id: "2",
-    name: "Mama Kemi's Store",
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
-    distance: "2.5Km away",
-    rating: 4.5,
-    status: "Closed",
-    isFavorite: true,
-    category: "Fresh Produce",
-  },
-  {
-    id: "3",
-    name: "Alhaji's Bulk Shop",
-    image: "https://images.unsplash.com/photo-1583258292688-d0213dc5bcec?w=400",
-    distance: "8Km away",
-    rating: 3.5,
-    status: "Closed",
-    isFavorite: false,
-    category: "Grains & Cereals",
-  },
-];
+import OreAppText from "@/common/OreApptext";
 
 export default function TopratedShops() {
   const router = useRouter();
 
-  const handleShopPress = (shop: Shop) =>
-    console.log("Shop pressed:", shop.name);
-  const handleCartPress = (shop: Shop) =>
-    console.log("Cart pressed:", shop.name);
-  const handleFavoritePress = (shop: Shop) =>
-    console.log("Favorite toggled:", shop.name);
+  const queryClient = useQueryClient();
+
+  // Fetch top rated stores
+  const { data: shops = [], isLoading } = useQuery<Shop[]>({
+    queryKey: ["topRatedStores"],
+    queryFn: async () => {
+      const res = await StoreApi.getAllStores(1);
+      return res.results.map((store: any) => ({
+        id: store.id.toString(),
+        name: store.business_name,
+        image: store.store_img || "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
+        store_open: store.open_time,
+        store_close: store.close_time,
+        isFavorite: store.is_favorited ?? false,
+      }));
+    },
+  });
+
+  const favoriteMutation = useMutation({
+    mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["topRatedStores"] }),
+  });
 
   return (
     <View className=" ">
@@ -53,23 +40,44 @@ export default function TopratedShops() {
         title="Top Rated Shops"
         onPress={() => router.push("/Screens/AllTopRatedStores")}
       />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 20,
-          gap: 24,
-          paddingVertical: 8,
-        }}
-      >
-        {sampleShops.map((shop) => (
-          <ShopCard
-            key={shop.id}
-            shop={shop}
-            width={254}
-          />
-        ))}
-      </ScrollView>
+
+      {isLoading ? (
+        <ActivityIndicator
+          size="large"
+          color="#000"
+          style={{ marginTop: 16 }}
+        />
+      ) : shops.length === 0 ? (
+        <OreAppText
+          style={{
+            textAlign: "center",
+            marginTop: 16,
+            color: "#666",
+            fontSize: 14,
+          }}
+        >
+          No top rated stores available at the moment.
+        </OreAppText>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            gap: 24,
+            paddingVertical: 8,
+          }}
+        >
+          {shops.map((shop) => (
+            <ShopCard
+              key={shop.id}
+              shop={shop}
+              width={254}
+              onFavoritePress={() => favoriteMutation.mutate(shop.id)}
+            />
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }

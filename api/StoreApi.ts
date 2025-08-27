@@ -20,7 +20,7 @@ class StoreApi {
 
   //  Favorite / Unfavorite a store
   public async toggleFavorite(storeId: number): Promise<void> {
-    await this.client.post(`/api/store/${storeId}/favorite-a-store`);
+    await this.client.post(`/store/${storeId}/favorite-a-store`);
   }
 
   //  Get all favorite stores of the current user
@@ -73,7 +73,7 @@ class StoreApi {
 
   //  Get single product by ID
   public async getProduct(id: number): Promise<Product> {
-    const res = await this.client.get<Product>(`/api/store/products/${id}`);
+    const res = await this.client.get<Product>(`/store/products/${id}`);
     return res.data;
   }
 
@@ -87,7 +87,7 @@ class StoreApi {
     published?: boolean;
     search?: string;
   }): Promise<PaginatedProductList> {
-    const res = await this.client.get<PaginatedProductList>("/api/store/products", {
+    const res = await this.client.get<PaginatedProductList>("/store/products", {
       params: filters,
     });
     return res.data;
@@ -95,7 +95,7 @@ class StoreApi {
 
   //  Product categories with counts
   public async getProductCategories(page?: number): Promise<PaginatedProductCategoryList> {
-    const res = await this.client.get<PaginatedProductCategoryList>("/api/store/product-category-count", {
+    const res = await this.client.get<PaginatedProductCategoryList>("/store/product-category-count", {
       params: { page },
     });
     return res.data;
@@ -114,10 +114,11 @@ class StoreApi {
   }
 
   //  Popular products
-  public async getPopularProducts(): Promise<Product> {
-    const res = await this.client.get<Product>("/api/store/popular-products");
-    return res.data;
-  }
+ public async getPopularProducts(): Promise<Product[]> {
+  const res = await this.client.get<Product[]>("/store/popular-products");
+  return res.data;
+}
+
 }
 
 export default new StoreApi();

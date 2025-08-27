@@ -1,61 +1,65 @@
-import { useEffect, useState } from "react";
-import { View, SafeAreaView, Platform, ScrollView, ActivityIndicator } from "react-native";
+import {
+  SafeAreaView,
+  View,
+  ScrollView,
+  ActivityIndicator,
+  Text,
+  Platform,
+} from "react-native";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
-import StoreApi from "@/api/StoreApi"; 
-import axios from "axios";
+import StoreApi from "@/api/StoreApi";
 
 export default function AllTopRatedStores() {
-  const [shops, setShops] = useState<Shop[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchStores = async () => {
-      try {
-        const data = await StoreApi.getAllStores(1);
-        const mapped = data.results.map((store: any) => {
-          const now = new Date();
-          const currentHour = now.getHours();
-          const openHour = parseInt(store.open_time.split(":")[0], 10);
-          const closeHour = parseInt(store.close_time.split(":")[0], 10);
-          const isOpen = currentHour >= openHour && currentHour < closeHour;
+  const { data: shops = [], isLoading } = useQuery<Shop[]>({
+    queryKey: ["topRatedStores"],
+    queryFn: async () => {
+      const res = await StoreApi.getAllStores(1);
+      return res.results.map((store: any) => ({
+        id: store.id.toString(),
+        name: store.business_name,
+        image: store.store_img || "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
+        store_open: store.open_time,
+        store_close: store.close_time,
+        isFavorite: store.is_favorited ?? false,
+      }));
+    },
+  });
 
-          return {
-            id: store.id.toString(),
-            name: store.business_name,
-            image: store.store_img || "https://via.placeholder.com/150",
-            distance: store.distance_km ? `${store.distance_km} km` : "N/A",
-            rating: store.store_rating || 0,
-            status: isOpen ? "Open" : "Closed",
-            isFavorite: store.is_favorited ?? false,
-            category: store.address?.city || "General",
-          };
-        });
-
-        setShops(mapped);
-      } catch (err) {
-        console.error("Failed to fetch stores", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStores();
-  }, []);
-
-
-
-  const handleShopPress = (shop: Shop) => console.log("Shop pressed:", shop.name);
-  const handleCartPress = (shop: Shop) => console.log("Cart pressed:", shop.name);
-  const handleFavoritePress = (shop: Shop) => console.log("Favorite toggled:", shop.name);
+  const favoriteMutation = useMutation({
+    mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["topRatedStores"] }),
+  });
 
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1">
-      <View className={`${Platform.OS === "android" ? "mt-[45px]" : ""} pb-[15px]`}>
+      <View
+        className={`${Platform.OS === "android" ? "mt-[45px]" : ""} pb-[15px]`}
+      >
         <HeaderWithSearchInput label="Top rated stores" />
       </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#05A85A" style={{ marginTop: 50 }} />
+      {isLoading ? (
+        <ActivityIndicator
+          size="large"
+          color="#05A85A"
+          style={{ marginTop: 16 }}
+        />
+      ) : shops.length === 0 ? (
+        <Text
+          style={{
+            textAlign: "center",
+            marginTop: 16,
+            color: "#666",
+            fontSize: 14,
+          }}
+        >
+          No top rated stores available at the moment.
+        </Text>
       ) : (
         <ScrollView
           contentContainerStyle={{
@@ -70,9 +74,7 @@ export default function AllTopRatedStores() {
             <ShopCard
               key={shop.id}
               shop={shop}
-              onPress={handleShopPress}
-              onCartPress={handleCartPress}
-              onFavoritePress={handleFavoritePress}
+              onFavoritePress={() => favoriteMutation.mutate(shop.id)}
             />
           ))}
         </ScrollView>

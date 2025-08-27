@@ -1,4 +1,10 @@
-import { View, SafeAreaView, ScrollView } from "react-native";
+import {
+  View,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  Platform,
+} from "react-native";
 import { useState } from "react";
 import Header from "@/common/Header";
 import OreAppText from "@/common/OreApptext";
@@ -12,7 +18,13 @@ export default function CheckOut() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#FFF6F2]">
-      <Header title="Check out" />
+      <View
+        style={{
+          paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+        }}
+      >
+        <Header title="Check out" />
+      </View>
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: 24 }}

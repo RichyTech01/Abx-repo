@@ -1,16 +1,19 @@
 // --- Product ---
-export interface Product {
+export type Product = {
   id: number;
-  name: string;
-  description: string;
-  price: number;
-  discounted_price?: number;
-  images: string[];
-  category?: string;
-  is_published: boolean;
-  created_at: string;
-  updated_at: string;
-}
+  item_name: string;
+  min_price: string;
+  max_price: string;
+  prod_image_url: string;
+  variations?: { stock: number }[];
+  store: {
+    open_time: string;
+    close_time: string;
+    business_name: string;
+  };
+};
+  
+
 
 // --- Store ---
 export interface Store {

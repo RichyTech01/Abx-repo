@@ -6,8 +6,10 @@ import {
   ScrollView,
   Platform,
   Image,
+  ActivityIndicator,
+  StatusBar,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
@@ -19,127 +21,165 @@ import OreAppText from "@/common/OreApptext";
 import { isStoreOpen } from "@/utils/storeStatus";
 import VendorIcon from "@/assets/svgs/VendorIcon.svg";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
+import StoreApi from "@/api/StoreApi";
+import showToast from "@/utils/showToast";
 
 export default function ProductDetails() {
-  const { product } = useLocalSearchParams<{ product: string }>();
-  const productData = product ? JSON.parse(product) : null;
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [productData, setProductData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  console.log(productData);
-  const isOpen = isStoreOpen(
-    productData.store.open_time,
-    productData.store.close_time
-  );
-  
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        if (!id) return;
+        const numericId = Number(id);
+        const res = await StoreApi.getProduct(numericId);
+        setProductData(res);
+      } catch (err: any) {
+        console.error("Failed to fetch product", err);
+        showToast("error", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1 ">
-      <View className={`${Platform.OS === "android" ? "mt-[45px] " : ""}`}>
+      <View
+        style={{
+          marginTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+        }}
+      >
         <HeaderWithSearchInput
           label="Product detail"
           placeholder="Ask ABX AI or search for food items of your choice"
         />
       </View>
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 45 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="mx-[20px] bg-white border border-[#E6E6E6] rounded-[8px] mt-[26px]  px-[7px] py-[15px] ">
-          <View className="px-[]">
-            <Image
-              source={{ uri: productData.prod_image_url }}
-              className="h-[180px] w-full rounded-[4px]  "
-            />
-          </View>
-
-          <View className="mt-[18px] gap-[20px] mx-[7px]">
-            <TouchableOpacity className="flex-row items-center gap-[8.5px] bg-[#F2F2F2] rounded-[8px] p-[11px] justify-center">
-              <UrbanistText className="text-[#424242] ">
-                Select size: 4
-              </UrbanistText>
-              <DropDownIcon />
-            </TouchableOpacity>
-
-            <Button
-              fontClassName="font-urbanist-medium"
-              onPress={() => setShowModal(!showModal)}
-              icon={<Carticon stroke={"#FFFFFF"} />}
-              title="Add to cart"
-              iconPosition="left"
-            />
-          </View>
-
-          <View className="px-[16px] mt-[13px]">
-            <OreAppText className="text-[#424242] text-[20px] leading-[28px]">
-              Product description
-            </OreAppText>
-            <UrbanistText
-              className="text-[16px] text-[#424242] leading-[22px] mt-[8px]"
-              style={{ fontFamily: "UrbanistSemiBold" }}
-            >
-              {productData.item_name}
-            </UrbanistText>
-            <UrbanistText className="text-[#808080] text-[16px] leading-[22px] mt-[18px]  ">
-              {productData.item_description}
-            </UrbanistText>
-
-            <View className="mt-[8px] ">
-              <UrbanistText className="text-[#424242] text-[16px] leading-[22px]   ">
-                Price range{" "}
-                <UrbanistText
-                  className="text-[#424242] text-[16px] leading-[22px]"
-                  style={{ fontFamily: "UrbanistSemiBold" }}
-                >
-                  - €{productData.min_price}-€{productData.max_price}
-                </UrbanistText>{" "}
-              </UrbanistText>
-
-              <UrbanistText className="text-[#424242] text-[16px] leading-[22px]  mt-[12px] ">
-                Expiration date{" "}
-                <UrbanistText
-                  className="text-[#424242] text-[16px] leading-[22px]"
-                  style={{ fontFamily: "UrbanistSemiBold" }}
-                >
-                  - {productData.expiration_date}
-                </UrbanistText>{" "}
-              </UrbanistText>
-            </View>
-          </View>
-
-          <View className="py-[4px] px-[16px] mt-[18px] border-t border-[#F1EAE7] ">
-            <OreAppText className="text-[20px]  leading-[28px] text-[#424242]     ">
-              Vendor details
-            </OreAppText>
-
-            <View className="flex-row items-center justify-between mt-[12px] ">
-              <View className="flex-row items-center ">
-                <VendorIcon />
-                <UrbanistText className="text-[#424242] text-[14px] leading-[20px] ml-[8px]   ">
-                  {productData.store.store_code}
-                </UrbanistText>
-              </View>
-              <View
-                className={`py-[3px] px-[8px] rounded-[4px] ${
-                  isOpen ? "bg-[#05A85A]" : "bg-[#F04438]"
-                }`}
-              >
-                <UrbanistText className="text-[12px] leading-[16px] text-white">
-                  {isOpen ? "Store is open" : "Store is closed"}
-                </UrbanistText>
-              </View>
-            </View>
-          </View>
-
-          <View className="mt-[18px]  ">
-            <Button
-              title="More information about this product"
-              variant="outline"
-              borderColor="#D7D7D7"
-              textColor="More information about this product"
-              onPress={() => {}}
-            />
-          </View>
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#000" />
         </View>
-      </ScrollView>
+      ) : !productData ? (
+        <View className="flex-1 items-center justify-center">
+          <Text>Product not found</Text>
+        </View>
+      ) : (
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 45 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {(() => {
+            const isOpen = isStoreOpen(
+              productData.store.open_time,
+              productData.store.close_time
+            );
+            return (
+              <View className="mx-[20px] bg-white border border-[#E6E6E6] rounded-[8px] mt-[26px]  px-[7px] py-[15px] ">
+                <View className="px-[]">
+                  <Image
+                    source={{ uri: productData.prod_image_url }}
+                    className="h-[180px] w-full rounded-[4px]  "
+                  />
+                </View>
+
+                <View className="mt-[18px] gap-[20px] mx-[7px]">
+                  <TouchableOpacity className="flex-row items-center gap-[8.5px] bg-[#F2F2F2] rounded-[8px] p-[11px] justify-center">
+                    <UrbanistText className="text-[#424242] ">
+                      Select size: 4
+                    </UrbanistText>
+                    <DropDownIcon />
+                  </TouchableOpacity>
+
+                  <Button
+                    fontClassName="font-urbanist-medium"
+                    onPress={() => setShowModal(!showModal)}
+                    icon={<Carticon stroke={"#FFFFFF"} />}
+                    title="Add to cart"
+                    iconPosition="left"
+                  />
+                </View>
+
+                <View className="px-[16px] mt-[13px]">
+                  <OreAppText className="text-[#424242] text-[20px] leading-[28px]">
+                    Product description
+                  </OreAppText>
+                  <UrbanistText
+                    className="text-[16px] text-[#424242] leading-[22px] mt-[8px]"
+                    style={{ fontFamily: "UrbanistSemiBold" }}
+                  >
+                    {productData.item_name}
+                  </UrbanistText>
+                  <UrbanistText className="text-[#808080] text-[16px] leading-[22px] mt-[18px]  ">
+                    {productData.item_description}
+                  </UrbanistText>
+
+                  <View className="mt-[8px] ">
+                    <UrbanistText className="text-[#424242] text-[16px] leading-[22px]   ">
+                      Price range{" "}
+                      <UrbanistText
+                        className="text-[#424242] text-[16px] leading-[22px]"
+                        style={{ fontFamily: "UrbanistSemiBold" }}
+                      >
+                        - €{productData.min_price}-€{productData.max_price}
+                      </UrbanistText>{" "}
+                    </UrbanistText>
+
+                    <UrbanistText className="text-[#424242] text-[16px] leading-[22px]  mt-[12px] ">
+                      Expiration date{" "}
+                      <UrbanistText
+                        className="text-[#424242] text-[16px] leading-[22px]"
+                        style={{ fontFamily: "UrbanistSemiBold" }}
+                      >
+                        - {productData.expiration_date}
+                      </UrbanistText>{" "}
+                    </UrbanistText>
+                  </View>
+                </View>
+
+                <View className="py-[4px] px-[16px] mt-[18px] border-t border-[#F1EAE7] ">
+                  <OreAppText className="text-[20px]  leading-[28px] text-[#424242]     ">
+                    Vendor details
+                  </OreAppText>
+
+                  <View className="flex-row items-center justify-between mt-[12px] ">
+                    <View className="flex-row items-center ">
+                      <VendorIcon />
+                      <UrbanistText className="text-[#424242] text-[14px] leading-[20px] ml-[8px]   ">
+                        {productData.store.store_code}
+                      </UrbanistText>
+                    </View>
+                    <View
+                      className={`py-[3px] px-[8px] rounded-[4px] ${
+                        isOpen ? "bg-[#05A85A]" : "bg-[#F04438]"
+                      }`}
+                    >
+                      <UrbanistText className="text-[12px] leading-[16px] text-white">
+                        {isOpen ? "Store is open" : "Store is closed"}
+                      </UrbanistText>
+                    </View>
+                  </View>
+                </View>
+
+                <View className="mt-[18px]  ">
+                  <Button
+                    title="More information about this product"
+                    variant="outline"
+                    borderColor="#D7D7D7"
+                    textColor="More information about this product"
+                    onPress={() => {}}
+                  />
+                </View>
+              </View>
+            );
+          })()}
+        </ScrollView>
+      )}
       <AddtoCartModal value={showModal} setValue={setShowModal} />
     </SafeAreaView>
   );

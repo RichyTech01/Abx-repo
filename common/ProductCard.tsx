@@ -1,4 +1,10 @@
-import { View, Text, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  Image,
+  ImageSourcePropType,
+} from "react-native";
 import React from "react";
 import DropDownArrow from "@/assets/svgs/DropDownArrow";
 import Product from "@/assets/svgs/Product";
@@ -6,16 +12,21 @@ import StarIcon from "@/assets/svgs/StarIcon.svg";
 import Carticon from "@/assets/svgs/Carticon";
 import IconButton from "./IconButton";
 import { useRouter } from "expo-router";
+import { isStoreOpen } from "@/utils/storeStatus";
 
 type ProductCardProps = {
   productName: string;
   priceRange: string;
-  saleText?: string; 
+  saleText?: string;
   isOutOfStock?: boolean;
   isShopOpen?: boolean;
   rating?: number;
   sizes?: number;
+  ProductImg: ImageSourcePropType;
   onAddToCart: () => void;
+  store_open: string;
+  store_close?: string;
+  productId: string;
 };
 
 export default function ProductCard({
@@ -27,8 +38,13 @@ export default function ProductCard({
   rating = 0,
   sizes = 0,
   onAddToCart,
+  ProductImg,
+  store_open,
+  store_close,
+  productId,
 }: ProductCardProps) {
   const router = useRouter();
+  const isOpen = isStoreOpen(store_open, store_close);
 
   return (
     <View className="bg-white border border-[#E6E6E6] p-[10px] w-[254px] rounded-[8px]">
@@ -50,13 +66,19 @@ export default function ProductCard({
             color: isShopOpen ? "#05A85A" : "#F04438",
           }}
         >
-          {isShopOpen ? "Shop open" : "Shop closed"}
+          {isOpen ? "Shop open" : "Shop closed"}
         </Text>
       </View>
 
       {/* Product Image */}
-      <Pressable className="mx-auto pt-[18px] pb-[13px]" onPress={() => router.push("/Screens/ProductDetails")}>
-        <Product />
+      <Pressable
+        className="mx-auto pt-[18px] pb-[13px] w-full "
+        onPress={() => router.push(`/Screens/ProductDetails?id=${productId}`)}
+      >
+        <Image
+          source={ProductImg}
+          className="h-[130px] w-full rounded-[8px] "
+        />
       </Pressable>
 
       {/* Info Row */}

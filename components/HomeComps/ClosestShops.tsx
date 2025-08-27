@@ -4,9 +4,14 @@ import SectionHeader from "@/common/SectionHeader";
 import { useRouter } from "expo-router";
 import ShopCard from "@/common/ShopCard";
 import { useClosestStores } from "@/hooks/useClosestStores";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import StoreApi from "@/api/StoreApi";
+import * as Haptics from "expo-haptics";
 
 export default function ClosestShops() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+
   const {
     data: shops,
     isLoading,
@@ -15,13 +20,12 @@ export default function ClosestShops() {
     locationError,
   } = useClosestStores();
 
-  
-  const handleShopPress = (shop: any) =>
-    console.log("Shop pressed:", shop.name);
-  const handleCartPress = (shop: any) =>
-    console.log("Cart pressed:", shop.name);
-  const handleFavoritePress = (shop: any) =>
-    console.log("Favorite toggled:", shop.name);
+  const favoriteMutation = useMutation({
+    mutationFn: (storeId: string | number) =>
+      StoreApi.toggleFavorite(Number(storeId)),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["closestStores"] }),
+  });
 
   let content;
   if (locationStatus === "pending" || isLoading) {
@@ -55,21 +59,28 @@ export default function ClosestShops() {
           paddingVertical: 8,
         }}
       >
-        {shops?.map((shop: any) => (
+        {shops.map((shop: any) => (
           <ShopCard
             key={shop.id.toString()}
             shop={{
               id: shop.id.toString(),
               name: shop.business_name,
-              image: shop.store_img, 
+              image:
+                shop.store_img ||
+                "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
               distance: shop.distance_km ? `${shop.distance_km}Km away` : "N/A",
               rating: shop.rating || 0,
               isFavorite: shop.isFavorite || false,
               category: shop.category || "General",
               store_open: shop.open_time,
-              store_close: shop.close_time
+              store_close: shop.close_time,
             }}
             width={254}
+            onFavoritePress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              favoriteMutation.mutate(shop.id);
+              console.log("Toggled favorite for store:", shop.id);
+            }}
           />
         ))}
       </ScrollView>

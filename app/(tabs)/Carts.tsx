@@ -1,4 +1,10 @@
-import { View, SafeAreaView, FlatList, Platform } from "react-native";
+import {
+  View,
+  SafeAreaView,
+  FlatList,
+  Platform,
+  StatusBar,
+} from "react-native";
 import React, { useState } from "react";
 import Header from "@/common/Header";
 import UrbanistText from "@/common/UrbanistText";
@@ -33,7 +39,7 @@ const dummyCartData = [
 ];
 
 export default function Carts() {
-  const router = useRouter()
+  const router = useRouter();
 
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({
     "1": 1,
@@ -66,12 +72,18 @@ export default function Carts() {
 
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1">
-      <Header title="Carts" />
+      <View
+        style={{
+          paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+        }}
+      >
+        <Header title="Carts" />
+      </View>
 
       <View
         className={`${
-          Platform.OS === "ios" ? "mb-24" : "mb-32"
-        } mt-[16px] mx-[20px] flex-1  `}
+          Platform.OS === "ios" ? "mb-24 mt-[16px]" : "mb-32"
+        }  mx-[20px] flex-1  `}
       >
         <UrbanistText className="text-[#656565] text-[14px] leading-[20px] mx-auto">
           You have {cartItems.length} items in your cart
@@ -125,7 +137,7 @@ export default function Carts() {
               onPress={() => router.push("/Screens/Carts/CheckOut")}
             />
 
-             <Button
+            <Button
               title="Keep shopping"
               borderColor="#0C513F"
               paddingVertical={14.5}
