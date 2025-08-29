@@ -1,5 +1,5 @@
-import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios, { InternalAxiosRequestConfig } from "axios";
 
 class ApiService {
   private client = axios.create({
@@ -11,11 +11,16 @@ class ApiService {
   });
 
   public getClient() {
-    this.client.interceptors.request.use(async (config) => {
-      const token = await AsyncStorage.getItem("accessToken");
-      if (token) config.headers.Authorization = `Bearer ${token}`;
-      return config;
-    });
+    this.client.interceptors.request.use(
+      async (config: InternalAxiosRequestConfig) => {
+        const accessToken = await AsyncStorage.getItem("accessToken");
+        if (accessToken) {
+          config.headers.set("Authorization", `Bearer ${accessToken}`);
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
 
     return this.client;
   }

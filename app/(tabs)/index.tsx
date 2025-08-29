@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 
 import NotificationIcon from "@/assets/svgs/NotificationIcon";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";

@@ -4,23 +4,45 @@ import { useQuery } from "@tanstack/react-query";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 import StoreApi from "@/api/StoreApi";
-import { Product } from "@/types/store";
+import { Product, ProductVariation } from "@/types/store";
+import AddtoCartModal from "@/Modals/AddtoCartModal";
 
 export default function NewProducts() {
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [selectedProductId, setSelectedProductId] = React.useState<
+    number | null
+  >(null);
 
   const { data, isLoading, error } = useQuery<{ results: Product[] }>({
     queryKey: ["newProducts"],
     queryFn: () => StoreApi.getPublishedProducts(),
   });
 
+  const { data: productDetails, isLoading: productLoading } = useQuery<Product>(
+    {
+      queryKey: ["productDetails", selectedProductId],
+      queryFn: () => StoreApi.getProduct(selectedProductId as number),
+      enabled: !!selectedProductId,
+    }
+  );
+
   const products = data?.results.slice(0, 8) ?? [];
+
+  const handleAddToCart = (id: number) => {
+    setSelectedProductId(id);
+    setModalVisible(true);
+  };
 
   return (
     <View>
       <SectionHeader title="New products" onPress={() => {}} />
 
       {isLoading ? (
-        <ActivityIndicator size="small" color={"black"} style={{ marginTop: 16 }} />
+        <ActivityIndicator
+          size="small"
+          color={"black"}
+          style={{ marginTop: 16 }}
+        />
       ) : error ? (
         <Text style={{ marginTop: 16, color: "red" }}>
           Failed to load new products
@@ -53,7 +75,7 @@ export default function NewProducts() {
               isShopOpen={true}
               rating={4.9}
               sizes={product.variations?.length ?? 0}
-              onAddToCart={() => console.log("Added to cart", product.id)}
+              onAddToCart={() => handleAddToCart(product.id)}
               ProductImg={{ uri: product.prod_image_url }}
               store_open={product.store?.open_time}
               store_close={product.store?.close_time}
@@ -61,6 +83,13 @@ export default function NewProducts() {
           ))}
         </ScrollView>
       )}
+
+      <AddtoCartModal
+        value={modalVisible}
+        setValue={setModalVisible}
+        loading={productLoading}
+        data={(productDetails?.variations ?? []) as ProductVariation[]}
+      />
     </View>
   );
 }

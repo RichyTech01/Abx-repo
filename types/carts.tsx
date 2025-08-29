@@ -1,6 +1,4 @@
-// types/carts.ts
 
-// Backend API types
 export interface BackendCartItem {
   id: number;
   item: {
@@ -21,6 +19,10 @@ export interface BackendCartItem {
   total_item_price: number;
 }
 
+export interface GetCartResponse {
+  cart: BackendCart;
+  cart_id: string;
+} 
 export interface BackendCart {
   id: string;
   user: number;
@@ -38,6 +40,32 @@ export interface CartItem {
   quantity: number;
   total: number;
   image?: string;
+}
+export interface Product {
+  id: number;
+  item_name: string;
+  prod_image_url: string;
+}
+export interface Address {
+  id: number;
+  addr: string;
+  city: string;
+  post_code: string;
+  default_addr: boolean;
+  location?: any; // or a proper type for your coordinates
+} 
+export interface CartItemData {
+  id: number;
+  item: {
+    product: Product;
+    weight: string;
+    price: string;
+    display_price: string;
+    discount_price?: string | null;
+    stock: number;
+  };
+  quantity: number;
+  total_item_price: number;
 }
 
 export interface Cart {

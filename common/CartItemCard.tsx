@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Image, TouchableOpacity, ImageSourcePropType  } from "react-native";
+import { View, Image, TouchableOpacity, ImageSourcePropType } from "react-native";
 import UrbanistText from "@/common/UrbanistText";
 import Button from "@/common/Button";
 import BlackAddTocartIcon from "@/assets/svgs/BlackAddToCart.svg";
@@ -29,7 +29,7 @@ export default function CartItemCard({
     <View className="px-[12px] py-[8px] bg-white rounded-[8px]">
       <View className="flex-row items-center p-[8px]">
         <View className="w-[148px] h-[118px] items-center justify-center">
-          <View className="bg-[#F6C16E] h-[24px] w-[24px] rounded-full absolute z-10 items-center justify-center right-0 top-0  ">
+          <View className="bg-[#F6C16E] h-[24px] w-[24px] rounded-full absolute z-10 items-center justify-center right-0 top-0">
             <UrbanistText className="text-[13px] leading-[22px] text-[#000]">
               {quantity}
             </UrbanistText>
@@ -54,7 +54,7 @@ export default function CartItemCard({
             {price}
           </UrbanistText>
           {unit && (
-            <View className="p-[4px] bg-[#FDF0DC] rounded-[8px] items-center justify-center mt-[8px]  self-start">
+            <View className="p-[4px] bg-[#FDF0DC] rounded-[8px] items-center justify-center mt-[8px] self-start">
               <UrbanistText className="text-[#424242] text-[12px] leading-[16px]">
                 {unit}
               </UrbanistText>
@@ -67,9 +67,16 @@ export default function CartItemCard({
         <View className="border border-[#E6E6E6] px-[8px] py-[5.5px] rounded-[170px] mt-[16px] flex-row items-center justify-between">
           <TouchableOpacity
             onPress={onDecrease}
-            className="bg-[#F2F2F2] rounded-full h-[34px] w-[34px] items-center justify-center"
+            disabled={quantity <= 1} 
+            className={`rounded-full h-[34px] w-[34px] items-center justify-center ${
+              quantity <= 1 ? "bg-[#CCCCCC]" : "bg-[#F2F2F2]"
+            }`}
           >
-            <View className="bg-[#666666] h-[1.5px] w-[9.33px]" />
+            <View
+              className={`h-[1.5px] w-[9.33px] ${
+                quantity <= 1 ? "bg-[#999999]" : "bg-[#666666]"
+              }`}
+            />
           </TouchableOpacity>
 
           <UrbanistText className="text-[#2D2220] text-[16px] leading-[22px]">

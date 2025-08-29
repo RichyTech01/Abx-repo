@@ -39,7 +39,7 @@ const ShopCard: React.FC<ShopCardProps> = ({
     <TouchableOpacity
       className="bg-white shadow rounded-[8px] shadow-[#624C3917]/10 p-[10px]"
       style={{ width: width || "100%" }}
-      // onPress={() => router.push(`/Screens/ShopDetails?id=${shop.id}`)}
+      onPress={() => router.push(`/Screens/ShopDetails?id=${shop.id}`)}
     >
       <View className="relative h-[158px]">
         <Image

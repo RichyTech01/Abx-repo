@@ -13,7 +13,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import * as Haptics from "expo-haptics";
 
-
 export default function AllClosestShops() {
   const queryClient = useQueryClient();
 
@@ -91,11 +90,7 @@ export default function AllClosestShops() {
                   store_open: shop.open_time,
                   store_close: shop.close_time,
                 }}
-                onFavoritePress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  favoriteMutation.mutate(shop.id);
-                  console.log("Toggled favorite for store:", shop.id);
-                }}
+                onFavoritePress={() => favoriteMutation.mutate(shop.id)}
               />
             ))}
           </ScrollView>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Index() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -10,15 +11,18 @@ export default function Index() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const loggedIn = false; 
-        if (loggedIn) {
-          router.push("/(tabs)");
+        await SplashScreen.preventAutoHideAsync();
+
+        const accessToken = await AsyncStorage.getItem("accessToken");
+
+        if (accessToken) {
+          router.replace("/(tabs)"); // Logged in
         } else {
-          router.replace("/onboarding");
+          router.replace("/onboarding"); 
         }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        router.replace("/(tabs)");
+      } catch (err) {
+        console.error("Auth check failed:", err);
+        router.replace("/onboarding");
       } finally {
         setIsCheckingAuth(false);
         await SplashScreen.hideAsync();
@@ -38,7 +42,7 @@ export default function Index() {
           backgroundColor: "black",
         }}
       >
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#fff" />
       </View>
     );
   }

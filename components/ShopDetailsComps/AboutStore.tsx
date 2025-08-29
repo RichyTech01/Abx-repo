@@ -60,12 +60,12 @@ export default function AboutStore() {
           numColumns={2}
           columnWrapperStyle={{
             justifyContent: "space-between",
-            marginBottom: 16, 
+            marginBottom: 16,
           }}
           renderItem={({ item }) => (
             <View style={{ width: "48%" }}>
               <CategoryProduct
-                image={item.image}
+                // image={item.image}
                 name={item.name}
                 price={item.price}
                 rating={item.rating}
@@ -73,7 +73,7 @@ export default function AboutStore() {
               />
             </View>
           )}
-           scrollEnabled={false} 
+          scrollEnabled={false}
         />
       </View>
     </View>

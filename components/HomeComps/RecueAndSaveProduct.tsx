@@ -5,13 +5,21 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
+import React from "react";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
-import { Product } from "@/types/store";
+import { Product, ProductVariation } from "@/types/store";
+import AddtoCartModal from "@/Modals/AddtoCartModal";
+import showToast from "@/utils/showToast";
 
-export default function RecueAndSaveProduct() {
+export default function RescueAndSaveProduct() {
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [selectedProductId, setSelectedProductId] = React.useState<
+    number | null
+  >(null);
+
   const { data, isLoading, error } = useQuery<{ results: Product[] }>({
     queryKey: ["rescueAndSaveProducts"],
     queryFn: () =>
@@ -21,7 +29,22 @@ export default function RecueAndSaveProduct() {
       }),
   });
 
+  const { data: productDetails, isLoading: isProductLoading } =
+    useQuery<Product>({
+      queryKey: ["productDetails", selectedProductId],
+      queryFn: () => StoreApi.getProduct(selectedProductId as number),
+      enabled: !!selectedProductId,
+    });
+
+  if (error) {
+    showToast("error", (error as Error).message || "Failed to load product");
+  }
   const products = data?.results ?? [];
+
+  const handleAddToCart = (id: number) => {
+    setSelectedProductId(id);
+    setModalVisible(true);
+  };
 
   return (
     <View className={`${Platform.OS === "ios" ? "mb-16" : "mb-20"} mb-16`}>
@@ -55,7 +78,7 @@ export default function RecueAndSaveProduct() {
           {products.map((product) => (
             <ProductCard
               key={product.id}
-              productId={product.id.toString()} 
+              productId={product.id.toString()}
               productName={product.item_name}
               priceRange={`€${product.min_price} - €${product.max_price}`}
               isOutOfStock={
@@ -65,7 +88,7 @@ export default function RecueAndSaveProduct() {
               isShopOpen={true}
               rating={4.9}
               sizes={product.variations?.length ?? 0}
-              onAddToCart={() => console.log("Added to cart", product.id)}
+              onAddToCart={() => handleAddToCart(product.id)}
               ProductImg={{ uri: product.prod_image_url }}
               store_open={product.store?.open_time}
               store_close={product.store?.close_time}
@@ -73,6 +96,13 @@ export default function RecueAndSaveProduct() {
           ))}
         </ScrollView>
       )}
+
+      <AddtoCartModal
+        value={modalVisible}
+        setValue={setModalVisible}
+        data={(productDetails?.variations ?? []) as ProductVariation[]}
+        loading={isProductLoading}
+      />
     </View>
   );
 }

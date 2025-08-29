@@ -5,16 +5,29 @@ import {
   StatusBar,
   Platform,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/common/Header";
+import { useLocalSearchParams } from "expo-router";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
 import Button from "@/common/Button";
 import AddDeliveryAddressModal from "@/Modals/AddDeliveryAddressModal";
 import OrderSummaryCartItem from "@/common/OrderSummaryCartItem";
+import { useUserStore } from "@/store/useUserStore";
+import { Address } from "@/types/carts";
 
 export default function CheckOut() {
   const [showModal, setShowModal] = useState(false);
+  const { cartData } = useLocalSearchParams();
+  const cartString = Array.isArray(cartData) ? cartData[0] : cartData;
+
+  const { items, total } = cartString
+    ? JSON.parse(cartString)
+    : { items: [], total: 0 };
+  const { user, fetchUser } = useUserStore();
+  useEffect(() => {
+    if (!user) fetchUser();
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-[#FFF6F2]">
@@ -38,28 +51,44 @@ export default function CheckOut() {
             </OreAppText>
             <View className="gap-[4.68px] mt-[8px]">
               <UrbanistText className="text-[12px] leading-[16px] text-[#2C2C2C]">
-                Angela Thriving
+                {user?.first_name} {user?.last_name}
               </UrbanistText>
               <UrbanistText className="text-[12px] leading-[16px] text-[#535353]">
-                angelaisthriving@gmail.com
+                {user?.email}
               </UrbanistText>
               <UrbanistText className="text-[12px] leading-[16px] text-[#535353]">
-                +44 7700 900123
+                {user?.phone_number}
               </UrbanistText>
             </View>
           </View>
 
+          {/* Default Address */}
           <View className="py-[4.68px] border-t-[0.58px] border-[#F1EAE7] mt-[9px]">
             <OreAppText className="text-[14px] leading-[18px] text-[#424242]">
               Default Address
             </OreAppText>
             <View className="gap-[4.68px] mt-[8px]">
-              <UrbanistText className="text-[12px] leading-[12.87px] text-[#535353]">
-                G1 1AA
-              </UrbanistText>
-              <UrbanistText className="text-[12px] leading-[12.87px] text-[#2C2C2C]">
-                Flat 3, Chester street, Glasgow UK
-              </UrbanistText>
+              {user?.address && user.address.length > 0 ? (
+                (() => {
+                  const defaultAddr =
+                    user.address.find((a: Address) => a.default_addr) ||
+                    user.address[0];
+                  return (
+                    <>
+                      <UrbanistText className="text-[12px] leading-[12.87px] text-[#535353]">
+                        {defaultAddr.post_code}
+                      </UrbanistText>
+                      <UrbanistText className="text-[12px] leading-[12.87px] text-[#2C2C2C]">
+                        {defaultAddr.addr}, {defaultAddr.city}
+                      </UrbanistText>
+                    </>
+                  );
+                })()
+              ) : (
+                <UrbanistText className="text-[12px] leading-[12.87px] text-[#2C2C2C]">
+                  No address found
+                </UrbanistText>
+              )}
             </View>
           </View>
 
@@ -82,18 +111,22 @@ export default function CheckOut() {
           </OreAppText>
 
           <View className="mt-[20.57px] gap-[13.71px] pr-[12.29px]">
-            <OrderSummaryCartItem
-              title="Egusi (Melon seed)"
-              weight="10kg"
-              quantity={5}
-              price="£70.00"
-            />
-            <OrderSummaryCartItem
-              title="Yam"
-              weight="10kg"
-              quantity={5}
-              price="£70.00"
-            />
+            {items.length > 0 ? (
+              items.map((cartItem: any) => (
+                <OrderSummaryCartItem
+                  key={cartItem.id}
+                  title={cartItem.item.product.item_name}
+                  weight={`${cartItem.item.weight}kg`}
+                  quantity={cartItem.quantity}
+                  price={`€${cartItem.total_item_price.toFixed(2)}`}
+                  image={{ uri: cartItem.item.product.prod_image_url }}
+                />
+              ))
+            ) : (
+              <UrbanistText className="text-[14px] text-[#2C2C2C]">
+                Your cart is empty
+              </UrbanistText>
+            )}
           </View>
 
           {/* Totals */}
@@ -103,7 +136,7 @@ export default function CheckOut() {
                 Sub total
               </UrbanistText>
               <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                €300.00
+                €{total.toFixed(2)}
               </UrbanistText>
             </View>
             <View className="flex-row items-center justify-between">
@@ -111,7 +144,7 @@ export default function CheckOut() {
                 Delivery fee
               </UrbanistText>
               <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                €300.00
+                €0.00
               </UrbanistText>
             </View>
             <View className="flex-row items-center justify-between">
@@ -119,7 +152,7 @@ export default function CheckOut() {
                 Vat
               </UrbanistText>
               <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                €300.00
+                €0.00
               </UrbanistText>
             </View>
             <View className="flex-row items-center justify-between">
@@ -133,7 +166,7 @@ export default function CheckOut() {
                 className="text-[16px] text-[#2D2220] leading-[22px]"
                 style={{ fontFamily: "UrbanistSemiBold" }}
               >
-                €330.00
+                €{total.toFixed(2)}
               </UrbanistText>
             </View>
           </View>

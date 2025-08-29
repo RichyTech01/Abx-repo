@@ -5,8 +5,15 @@ import ProductCard from "@/common/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import { Product } from "@/types/store";
+import AddtoCartModal from "@/Modals/AddtoCartModal";
+import { ProductVariation } from "@/types/store";
 
 export default function BestSelling() {
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [selectedProductId, setSelectedProductId] = React.useState<
+    number | null
+  >(null);
+
   const { data, isLoading, error } = useQuery<{ results: Product[] }>({
     queryKey: ["bestSellingProducts"],
     queryFn: async () => {
@@ -15,7 +22,20 @@ export default function BestSelling() {
     },
   });
 
+  const { data: productDetails, isLoading: productLoading } = useQuery<Product>(
+    {
+      queryKey: ["productDetails", selectedProductId],
+      queryFn: () => StoreApi.getProduct(selectedProductId as number),
+      enabled: !!selectedProductId,
+    }
+  );
+
   const products = data?.results ?? [];
+
+  const handleAddToCart = (id: number) => {
+    setSelectedProductId(id);
+    setModalVisible(true);
+  };
 
   return (
     <View>
@@ -28,7 +48,9 @@ export default function BestSelling() {
           Failed to load products
         </Text>
       ) : products.length === 0 ? (
-        <Text style={{ marginTop: 16, color: "#666", textAlign: "center" }}>
+        <Text
+          style={{ marginVertical: 16, color: "#666", textAlign: "center" }}
+        >
           No best-selling products available at the moment.
         </Text>
       ) : (
@@ -41,34 +63,34 @@ export default function BestSelling() {
             paddingVertical: 8,
           }}
         >
-          {products.map((product) => {
-            const stock =
-              product.variations && product.variations.length > 0
-                ? product.variations[0].stock
-                : 0;
-
-            return (
-              <ProductCard
-                key={product.id}
-                productId={product.id.toString()}
-                productName={product.item_name}
-                priceRange={`€${product.min_price} - €${product.max_price}`}
-                isOutOfStock={
-                  product.variations?.[0]?.stock === 0 ||
-                  !product.variations?.length
-                }
-                isShopOpen={true}
-                rating={4.9}
-                sizes={product.variations?.length ?? 0}
-                onAddToCart={() => console.log("Added to cart", product.id)}
-                ProductImg={{ uri: product.prod_image_url }}
-                store_open={product.store?.open_time}
-                store_close={product.store?.close_time}
-              />
-            );
-          })}
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              productId={product.id.toString()}
+              productName={product.item_name}
+              priceRange={`€${product.min_price} - €${product.max_price}`}
+              isOutOfStock={
+                product.variations?.[0]?.stock === 0 ||
+                !product.variations?.length
+              }
+              isShopOpen={true}
+              rating={4.9}
+              sizes={product.variations?.length ?? 0}
+              onAddToCart={() => handleAddToCart(product.id)}
+              ProductImg={{ uri: product.prod_image_url }}
+              store_open={product.store?.open_time}
+              store_close={product.store?.close_time}
+            />
+          ))}
         </ScrollView>
       )}
+
+      <AddtoCartModal
+        value={modalVisible}
+        setValue={setModalVisible}
+        loading={productLoading}
+        data={(productDetails?.variations ?? []) as ProductVariation[]}
+      />
     </View>
   );
 }

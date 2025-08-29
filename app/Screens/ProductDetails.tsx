@@ -8,10 +8,10 @@ import {
   Image,
   ActivityIndicator,
   StatusBar,
+  Dimensions,
 } from "react-native";
-import { useState, useEffect } from "react";
-import { useLocalSearchParams } from "expo-router";
-import React from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import Button from "@/common/Button";
 import Carticon from "@/assets/svgs/Carticon";
@@ -22,31 +22,37 @@ import { isStoreOpen } from "@/utils/storeStatus";
 import VendorIcon from "@/assets/svgs/VendorIcon.svg";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import StoreApi from "@/api/StoreApi";
+import React, { useState } from "react";
+import { Product } from "@/types/store";
+import { ProductVariation } from "@/types/store";
 import showToast from "@/utils/showToast";
 
 export default function ProductDetails() {
+  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [productData, setProductData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        if (!id) return;
-        const numericId = Number(id);
-        const res = await StoreApi.getProduct(numericId);
-        setProductData(res);
-      } catch (err: any) {
-        console.error("Failed to fetch product", err);
-        showToast("error", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const {
+    data: productData,
+    isLoading,
+    error,
+  } = useQuery<Product>({
+    queryKey: ["product", id],
+    queryFn: async () => {
+      if (!id) throw new Error("Invalid product id");
+      return await StoreApi.getProduct(Number(id));
+    },
+    enabled: !!id,
+  });
 
-    fetchProduct();
-  }, [id]);
+  if (error) {
+    showToast("error", (error as Error).message || "Failed to load product");
+  }
+
+  const SCREEN_PADDING = 20;
+  const GAP = 16;
+  const ITEM_WIDTH =
+    (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
 
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1 ">
@@ -61,7 +67,7 @@ export default function ProductDetails() {
         />
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#000" />
         </View>
@@ -79,6 +85,7 @@ export default function ProductDetails() {
               productData.store.open_time,
               productData.store.close_time
             );
+            console.log("variation", productData.variations);
             return (
               <View className="mx-[20px] bg-white border border-[#E6E6E6] rounded-[8px] mt-[26px]  px-[7px] py-[15px] ">
                 <View className="px-[]">
@@ -175,12 +182,56 @@ export default function ProductDetails() {
                     onPress={() => {}}
                   />
                 </View>
+
+                <View className="mt-[24px]  ">
+                  <Text className="text-[#424242] text-[16px] font-urbanist-semibold mx-[16px] ">
+                    Other items from this store
+                  </Text>
+                  <View className="mt-[10px]   ">
+                    {/* <FlatList
+                      data={productData.variations}
+                      keyExtractor={(item) => item.id.toString()}
+                      numColumns={2}
+                      scrollEnabled={false}
+                      contentContainerStyle={{
+                        paddingHorizontal: SCREEN_PADDING,
+                        paddingTop: 16,
+                        paddingBottom: 40,
+                      }}
+                      columnWrapperStyle={{
+                        justifyContent: "space-between",
+                        marginBottom: GAP,
+                      }}
+                      renderItem={({ item }) => (
+                        <View style={{ width: ITEM_WIDTH }}>
+                          <CategoryProduct
+                            image={{ uri: item.prod_image_url }}
+                            name={item.item_name}
+                            price={`€${item.display_price} - €${item.display_price}`}
+                            rating={2}
+                            onPress={() =>
+                              router.push({
+                                pathname: "/Screens/ProductDetails",
+                                params: { id: item.id },
+                              })
+                            }
+                          />
+                        </View>
+                      )}
+                    /> */}
+                  </View>
+                </View>
               </View>
             );
           })()}
         </ScrollView>
       )}
-      <AddtoCartModal value={showModal} setValue={setShowModal} />
+      <AddtoCartModal
+        value={showModal}
+        setValue={setShowModal}
+        data={(productData?.variations ?? []) as ProductVariation[]}
+        loading={isLoading}
+      />
     </SafeAreaView>
   );
 }

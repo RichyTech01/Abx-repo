@@ -63,10 +63,10 @@ export default function ProductCard({
         <Text
           className="text-[12px] leading-[16px] font-urbanist"
           style={{
-            color: isShopOpen ? "#05A85A" : "#F04438",
+            color: isOpen ? "#05A85A" : "#F04438",
           }}
         >
-          {isOpen ? "Shop open" : "Shop closed"}
+          {isOpen ? "Shop open" : "Closed"}
         </Text>
       </View>
 

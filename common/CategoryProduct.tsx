@@ -11,12 +11,12 @@ import Button from "./Button";
 import StarRating from "./StarRating";
 
 interface CategoryProductProps {
-  image: ImageSourcePropType;
+  image?: ImageSourcePropType;
   name: string;
   price: string;
   rating?: number;
   sizes?: number;
-   onPress?: () => void;
+  onPress?: () => void;
 }
 
 export default function CategoryProduct({
@@ -54,14 +54,14 @@ export default function CategoryProduct({
           <StarRating rating={rating} />
         </View>
 
-        {sizes !== undefined && (
+        {/* {sizes !== undefined && ( */}
           <View className="bg-[#F2F2F2] p-[4px] rounded-[8px] flex-row items-center justify-center max-w-[69px] gap-[4px]">
             <UrbanistText className="text-[#424242] text-[12px] leading-[16px]">
               Sizes: {sizes}
             </UrbanistText>
             <DropDownArrow />
           </View>
-        )}
+        {/* )} */}
 
         <View className="mt-[8px]">
           <Button

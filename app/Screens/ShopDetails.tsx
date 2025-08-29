@@ -11,7 +11,7 @@ const ShopBanner = require("../../assets/Images/Frame 1000008001.png");
 
 export default function ShopDetails() {
   const [activeTab, setActiveTab] = useState<string>("About store");
-   const { shop } = useLocalSearchParams ();
+  const { id } = useLocalSearchParams();
 
   return (
     <SafeAreaView className="flex-1 bg-[#FFF6F2]">

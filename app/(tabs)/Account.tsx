@@ -1,10 +1,13 @@
-import { View, Text, SafeAreaView} from 'react-native'
-import React from 'react'
+import { View, Text, } from 'react-native'
+import ScreenWrapper from '@/common/ScreenWrapper'
+import ProfileImg from "@/assets/svgs/ProfileImg.svg"
 
 export default function Account() {
   return (
-    <SafeAreaView>
-      <Text>Account</Text>
-    </SafeAreaView>
+    <ScreenWrapper>
+        <View className=' bg-[#346E5F] rounded-[4px] p-[24px]  ' >
+            <ProfileImg />
+        </View>
+    </ScreenWrapper>
   )
 }

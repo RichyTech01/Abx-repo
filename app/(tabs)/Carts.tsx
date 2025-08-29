@@ -4,71 +4,106 @@ import {
   FlatList,
   Platform,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/common/Header";
 import UrbanistText from "@/common/UrbanistText";
 import CartItemCard from "@/common/CartItemCard";
 import Button from "@/common/Button";
 import { useRouter } from "expo-router";
-
-const CartImg = require("@/assets/Images/Frame 1000008001.png");
-
-const dummyCartData = [
-  {
-    id: "1",
-    name: "Fresh tomatoes",
-    price: "€30.00",
-    unit: "1kg of tomatoes",
-    image: CartImg,
-  },
-  {
-    id: "2",
-    name: "Golden apples",
-    price: "€18.50",
-    unit: "2kg pack",
-    image: CartImg,
-  },
-  {
-    id: "3",
-    name: "Green peppers",
-    price: "€12.00",
-    unit: "500g bag",
-    image: CartImg,
-  },
-];
+import OrderApi from "@/api/OrderApi";
 
 export default function Carts() {
   const router = useRouter();
 
-  const [quantities, setQuantities] = useState<{ [key: string]: number }>({
-    "1": 1,
-    "2": 1,
-    "3": 1,
-  });
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
-  const handleIncrease = (id: string) => {
-    setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
+  const fetchCart = async () => {
+    try {
+      setLoading(true);
+      const cart = await OrderApi.getCart();
+      setCartItems(cart.items || []);
+      console.log("Fetched cart items:", cart.items);
+    } catch (err) {
+      console.error("Failed to fetch cart:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDecrease = (id: string) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [id]: Math.max(1, prev[id] - 1),
-    }));
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+  const updateQuantity = async (
+    cartItemId: number,
+    action: "increase" | "decrease"
+  ) => {
+    if (updatingItems.has(cartItemId)) return;
+
+    setUpdatingItems((prev) => new Set(prev).add(cartItemId));
+
+    try {
+      await OrderApi.updateCart(cartItemId, { action });
+      setCartItems((prev) =>
+        prev.map((item) => {
+          if (item.id === cartItemId) {
+            const newQty =
+              action === "increase" ? item.quantity + 1 : item.quantity - 1;
+            return {
+              ...item,
+              quantity: newQty,
+              total_item_price: newQty * parseFloat(item.item.price),
+            };
+          }
+          return item;
+        })
+      );
+    } catch (err) {
+      console.error(`Failed to ${action} quantity:`, err);
+    } finally {
+      setUpdatingItems((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(cartItemId);
+        return newSet;
+      });
+    }
   };
 
-  const handleRemove = (id: string) => {
-    setQuantities((prev) => {
-      const copy = { ...prev };
-      delete copy[id];
-      return copy;
-    });
+  const handleRemove = async (cartItemId: number) => {
+    if (updatingItems.has(cartItemId)) return;
+
+    setUpdatingItems((prev) => new Set(prev).add(cartItemId));
+
+    try {
+      await OrderApi.removeFromCart(cartItemId);
+      setCartItems((prev) => prev.filter((item) => item.id !== cartItemId));
+    } catch (err) {
+      console.error("Failed to remove item:", err);
+    } finally {
+      setUpdatingItems((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(cartItemId);
+        return newSet;
+      });
+    }
   };
 
-  const cartItems = dummyCartData.filter(
-    (item) => quantities[item.id] !== undefined
+  const total = cartItems.reduce(
+    (acc, item) => acc + parseFloat(item.total_item_price),
+    0
   );
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-[#FFF6F2]">
+        <ActivityIndicator size="large" color="#0C513F" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1">
@@ -83,60 +118,74 @@ export default function Carts() {
       <View
         className={`${
           Platform.OS === "ios" ? "mb-24 mt-[16px]" : "mb-32"
-        }  mx-[20px] flex-1  `}
+        }  mx-[20px] flex-1`}
       >
         <UrbanistText className="text-[#656565] text-[14px] leading-[20px] mx-auto">
           You have {cartItems.length} items in your cart
         </UrbanistText>
+        {loading ? (
+          <View className="flex-1 justify-center items-center bg-[#FFF6F2]">
+            <ActivityIndicator size="large" color="#0C513F" />
+          </View>
+        ) : (
+          <FlatList
+            data={cartItems}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View className="mt-[8px]">
+                <CartItemCard
+                  image={{ uri: item.item.product.prod_image_url }}
+                  name={item.item.product.item_name}
+                  price={`€${item.total_item_price.toFixed(2)}`}
+                  quantity={item.quantity}
+                  unit={
+                    item.item.weight + "kg of " + item.item.product.item_name
+                  }
+                  onIncrease={() => updateQuantity(item.id, "increase")}
+                  onDecrease={() => updateQuantity(item.id, "decrease")}
+                  onRemove={() => handleRemove(item.id)}
+                />
+              </View>
+            )}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
 
-        <FlatList
-          data={cartItems}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View className="mt-[8px]">
-              <CartItemCard
-                image={item.image}
-                name={item.name}
-                price={item.price}
-                unit={item.unit}
-                quantity={quantities[item.id]}
-                onIncrease={() => handleIncrease(item.id)}
-                onDecrease={() => handleDecrease(item.id)}
-                onRemove={() => handleRemove(item.id)}
-              />
-            </View>
-          )}
-          showsVerticalScrollIndicator={false}
-        />
-
-        <View className="bg-white px-[12px] py-[8px] rounded-[8px] mt-[8px]   ">
-          <View className="py-[4px]  gap-[#7D7D7D]  ">
-            <UrbanistText className="text-[#656565] text-[16px] leading-[22px] font-urbanist-medium    ">
-              Cart summary
+        <View className="bg-white px-[12px] py-[8px] rounded-[8px] mt-[8px]">
+          <UrbanistText className="text-[#656565] text-[16px] leading-[22px] font-urbanist-medium">
+            Cart summary
+          </UrbanistText>
+          <View className="flex-row items-center justify-between mt-[4px]">
+            <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold">
+              Total
             </UrbanistText>
-            <View className="flex-row items-center justify-between  ">
-              <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold ">
-                Total
-              </UrbanistText>
-              <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold ">
-                €300.00{" "}
-              </UrbanistText>
-            </View>
-            <UrbanistText className="text-[#7D7D7D] text-[14px] leading-[20px] font-urbanist ">
-              Delivery fees not included yet
+            <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold">
+              €{total.toFixed(2)}
             </UrbanistText>
           </View>
+          <UrbanistText className="text-[#7D7D7D] text-[14px] leading-[20px] font-urbanist mt-[2px]">
+            Delivery fees not included yet
+          </UrbanistText>
 
-          <View className="gap-[8px] mt-[8px] ">
+          <View className="gap-[8px] mt-[8px]">
             <Button
               title="Continue"
               textColor="#0C513F"
               variant="outline"
               borderColor="#0C513F"
               fontClassName="urbanist-medium"
-              onPress={() => router.push("/Screens/Carts/CheckOut")}
+              onPress={() => {
+                router.push({
+                  pathname: "/Screens/Carts/CheckOut",
+                  params: {
+                    cartData: JSON.stringify({
+                      items: cartItems, // <-- use cartItems here
+                      total: total,
+                    }),
+                  },
+                });
+              }}
             />
-
             <Button
               title="Keep shopping"
               borderColor="#0C513F"

@@ -16,9 +16,19 @@ import AuthApi from "@/api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import showToast from "@/utils/showToast";
 
+interface SignInResponse {
+  access: string;
+  refresh: string;
+  is_first_login: boolean;
+  is_vendor: boolean;
+  id: string;
+  is_staff: boolean;
+  is_admin: boolean;
+  is_verified: boolean;
+}
+
 export default function Login() {
   const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,13 +41,11 @@ export default function Login() {
 
     try {
       setLoading(true);
-      const res = await AuthApi.signIn({ email, password });
+      const res: SignInResponse = await AuthApi.signIn({ email, password });
 
-      const { access, refresh } = res;
-
-      await AsyncStorage.setItem("accessToken", access);
-      await AsyncStorage.setItem("refreshToken", refresh);
-
+      // Save tokens
+      await AsyncStorage.setItem("accessToken", res.access);
+      await AsyncStorage.setItem("refreshToken", res.refresh);
       await AsyncStorage.setItem("isLoggedIn", "true");
 
       console.log("Login successful:", res);
@@ -46,7 +54,13 @@ export default function Login() {
       router.replace("/(tabs)");
     } catch (err: any) {
       console.log("Login error:", err);
-      showToast("error", err.detail || "Check your credentials");
+
+      // Better error handling
+      if (err.response?.data?.detail) {
+        showToast("error", err.response.data.detail);
+      } else {
+        showToast("error", "Check your credentials");
+      }
     } finally {
       setLoading(false);
     }

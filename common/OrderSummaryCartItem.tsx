@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { View, Image, ImageSourcePropType } from "react-native";
 import UrbanistText from "@/common/UrbanistText";
 
 type OrderSummaryCartItemProps = {
@@ -7,6 +7,7 @@ type OrderSummaryCartItemProps = {
   weight: string;
   quantity: number;
   price: string;
+  image: ImageSourcePropType;
 };
 
 const OrderSummaryCartItem: React.FC<OrderSummaryCartItemProps> = ({
@@ -14,12 +15,12 @@ const OrderSummaryCartItem: React.FC<OrderSummaryCartItemProps> = ({
   weight,
   quantity,
   price,
+  image,
 }) => {
   return (
     <View className="flex-row items-center justify-between">
       <View className="flex-row items-center gap-[5.14px]">
-        <View className="h-[51.4px] w-[51.4px] rounded-full bg-slate-400" />
-
+        <Image source={image} className="h-[51.4px] w-[51.4px] rounded-full" />
         <UrbanistText className="text-[12px] text-[#1A1A1A] leading-[17.14px]">
           {title}
           {"\u00A0\u00A0"}
