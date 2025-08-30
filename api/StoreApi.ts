@@ -2,11 +2,6 @@ import ApiService from "./apiService";
 import {
   Store,
   Product,
-  StoreReview,
-  PaginatedProductList,
-  PaginatedStoreList,
-  PaginatedStoreReviewList,
-  PaginatedProductCategoryList,
 } from "@/types/store";
 
 class StoreApi {
@@ -24,8 +19,8 @@ class StoreApi {
   }
 
   //  Get all favorite stores of the current user
-  public async getFavoriteStores(page?: number): Promise<PaginatedStoreList> {
-    const res = await this.client.get<PaginatedStoreList>(
+  public async getFavoriteStores(page?: number): Promise<any> {
+    const res = await this.client.get<any>(
       "/api/store/favorite-stores",
       { params: { page } }
     );
@@ -33,8 +28,8 @@ class StoreApi {
   }
 
   //  List reviews of a store
-  public async getStoreReviews(storeId: number, page?: number): Promise<PaginatedStoreReviewList> {
-    const res = await this.client.get<PaginatedStoreReviewList>(
+  public async getStoreReviews(storeId: number, page?: number): Promise<any> {
+    const res = await this.client.get<any>(
       `/api/store/${storeId}/store-reviews`,
       { params: { page } }
     );
@@ -42,14 +37,14 @@ class StoreApi {
   }
 
   //  Create a store review
-  public async createStoreReview(data: { store_id: number; rating: number; comment: string }): Promise<StoreReview> {
-    const res = await this.client.post<StoreReview>("/api/store/create-store-review", data);
+  public async createStoreReview(data: { store_id: number; rating: number; comment: string }): Promise<any> {
+    const res = await this.client.post<any>("/api/store/create-store-review", data);
     return res.data;
   }
 
   // Get all approved stores
-  public async getAllStores(page?: number): Promise<PaginatedStoreList> {
-    const res = await this.client.get<PaginatedStoreList>("/store/all", {
+  public async getAllStores(page?: number): Promise<any> {
+    const res = await this.client.get<any>("/store/all", {
       params: { page },
     });
     return res.data;
@@ -64,8 +59,8 @@ class StoreApi {
     page?: number;
     published?: boolean;
     search?: string;
-  }): Promise<PaginatedProductList> {
-    const res = await this.client.get<PaginatedProductList>("/store/all-products", {
+  }): Promise<any> {
+    const res = await this.client.get<any>("/store/all-products", {
       params: filters,
     });
     return res.data;
@@ -86,16 +81,16 @@ class StoreApi {
     page?: number;
     published?: boolean;
     search?: string;
-  }): Promise<PaginatedProductList> {
-    const res = await this.client.get<PaginatedProductList>("/store/products", {
+  }): Promise<any> {
+    const res = await this.client.get<any>("/store/products", {
       params: filters,
     });
     return res.data;
   }
 
   //  Product categories with counts
-  public async getProductCategories(page?: number): Promise<PaginatedProductCategoryList> {
-    const res = await this.client.get<PaginatedProductCategoryList>("/store/product-category-count", {
+  public async getProductCategories(page?: number): Promise<any> {
+    const res = await this.client.get<any>("/store/product-category-count", {
       params: { page },
     });
     return res.data;

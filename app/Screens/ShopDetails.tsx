@@ -6,6 +6,7 @@ import TabSwitcher from "@/common/TabSwitcher";
 import UrbanistText from "@/common/UrbanistText";
 import AboutStore from "@/components/ShopDetailsComps/AboutStore";
 import CustomerFeedback from "@/components/ShopDetailsComps/CustomerFeedback";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 const ShopBanner = require("../../assets/Images/Frame 1000008001.png");
 
@@ -14,9 +15,9 @@ export default function ShopDetails() {
   const { id } = useLocalSearchParams();
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FFF6F2]">
+    <ScreenWrapper>
       <View
-        className={`${Platform.OS === "android" ? "mt-[45px]" : ""} pb-[15px]`}
+        className={`pb-[15px]`}
       >
         <HeaderWithSearchInput label="Closest shops" />
       </View>
@@ -54,10 +55,10 @@ export default function ShopDetails() {
 
         {activeTab === "About store" && (
           <View className="mx-[21px]">
-            <AboutStore />
+            {/* <AboutStore id={id}/> */}
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
