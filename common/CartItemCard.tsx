@@ -5,8 +5,8 @@ import Button from "@/common/Button";
 import BlackAddTocartIcon from "@/assets/svgs/BlackAddToCart.svg";
 
 type CartItemCardProps = {
-  image: ImageSourcePropType;                
-  name: string;
+  image?: ImageSourcePropType;                
+  name?: string;
   price: string;
   quantity: number;
   unit?: string;            

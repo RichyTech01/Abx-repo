@@ -12,12 +12,21 @@ import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import CategoryProduct from "@/common/CategoryProduct";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import StoreApi from "@/api/StoreApi";
+import AddtoCartModal from "@/Modals/AddtoCartModal";
 
 export default function CategoryDetails() {
   const router = useRouter();
   const { category } = useLocalSearchParams<{ category: string }>();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Modal & product details state
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
+  const [productDetails, setProductDetails] = useState<any>(null);
+  const [productLoading, setProductLoading] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -30,8 +39,25 @@ export default function CategoryDetails() {
         setLoading(false);
       }
     };
+
     if (category) fetchProducts();
   }, [category]);
+
+  // Handle add to cart modal
+  const handleAddToCart = async (id: number) => {
+    setSelectedProductId(id);
+    setModalVisible(true);
+    setProductLoading(true);
+
+    try {
+      const product = await StoreApi.getProduct(id);
+      setProductDetails(product);
+    } catch (err) {
+      console.error("Failed to fetch product details", err);
+    } finally {
+      setProductLoading(false);
+    }
+  };
 
   const SCREEN_PADDING = 20;
   const GAP = 16;
@@ -81,12 +107,21 @@ export default function CategoryDetails() {
                     pathname: "/Screens/ProductDetails",
                     params: { id: item.id },
                   })
-                }
+                } 
+                onAddToCart={() => handleAddToCart(item.id)} 
               />
             </View>
           )}
         />
       )}
+
+      {/* Add to Cart Modal */}
+      <AddtoCartModal
+        value={modalVisible}
+        setValue={setModalVisible}
+        loading={productLoading}
+        data={productDetails?.variations ?? []}
+      />
     </SafeAreaView>
   );
 }

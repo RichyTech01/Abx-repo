@@ -24,9 +24,9 @@ export default function Carts() {
   const fetchCart = async () => {
     try {
       setLoading(true);
-      const cart = await OrderApi.getCart();
-      setCartItems(cart.items || []);
-      console.log("Fetched cart items:", cart.items);
+      const res = await OrderApi.getCart(); // res = { cart: {...}, cart_id: "..." }
+      setCartItems(res.cart?.items || []); // ✅ use res.cart.items
+      console.log("Fetched cart items:", res.cart.items);
     } catch (err) {
       console.error("Failed to fetch cart:", err);
     } finally {
@@ -97,14 +97,6 @@ export default function Carts() {
     0
   );
 
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-[#FFF6F2]">
-        <ActivityIndicator size="large" color="#0C513F" />
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1">
       <View
@@ -124,8 +116,8 @@ export default function Carts() {
           You have {cartItems.length} items in your cart
         </UrbanistText>
         {loading ? (
-          <View className="flex-1 justify-center items-center bg-[#FFF6F2]">
-            <ActivityIndicator size="large" color="#0C513F" />
+          <View className="flex-1  items-center bg-[#FFF6F2] py-10">
+            <ActivityIndicator size="small" color="#000000" />
           </View>
         ) : (
           <FlatList
@@ -148,6 +140,8 @@ export default function Carts() {
               </View>
             )}
             showsVerticalScrollIndicator={false}
+            refreshing={loading} 
+            onRefresh={fetchCart} 
           />
         )}
 
@@ -179,7 +173,7 @@ export default function Carts() {
                   pathname: "/Screens/Carts/CheckOut",
                   params: {
                     cartData: JSON.stringify({
-                      items: cartItems, // <-- use cartItems here
+                      items: cartItems,
                       total: total,
                     }),
                   },

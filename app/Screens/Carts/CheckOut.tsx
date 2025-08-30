@@ -4,6 +4,7 @@ import {
   ScrollView,
   StatusBar,
   Platform,
+  Alert,
 } from "react-native";
 import { useState, useEffect } from "react";
 import Header from "@/common/Header";
@@ -15,19 +16,55 @@ import AddDeliveryAddressModal from "@/Modals/AddDeliveryAddressModal";
 import OrderSummaryCartItem from "@/common/OrderSummaryCartItem";
 import { useUserStore } from "@/store/useUserStore";
 import { Address } from "@/types/carts";
+import OrderApi from "@/api/OrderApi";
 
 export default function CheckOut() {
   const [showModal, setShowModal] = useState(false);
-  const { cartData } = useLocalSearchParams();
-  const cartString = Array.isArray(cartData) ? cartData[0] : cartData;
+  const [cartDetails, setCartDetails] = useState<any>(null);
+  const [loadingPayment, setLoadingPayment] = useState(false);
+  const [address, setAddress] = useState<Address | null>(null);
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
 
-  const { items, total } = cartString
-    ? JSON.parse(cartString)
-    : { items: [], total: 0 };
   const { user, fetchUser } = useUserStore();
+
   useEffect(() => {
+    const Checkout = async () => {
+      try {
+        const data = await OrderApi.checkout();
+        setCartDetails(data);
+      } catch (error) {
+        console.error("Checkout error:", error);
+      }
+    };
+    Checkout();
     if (!user) fetchUser();
   }, []);
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+      try {
+        const data = await OrderApi.getMyAddress();
+        setAddress(data);
+        console.log(data);
+      } catch (err) {
+        console.error("Failed to fetch address:", err);
+      }
+    };
+
+    fetchAddress();
+  }, []);
+
+  const handlePayment = async () => {
+    try {
+      setLoadingPayment(true);
+      const res = await OrderApi.initiatePayment();
+      console.log("Payment response:", res);
+      Alert.alert("Success", "Payment initiated successfully.");
+    } catch (error: any) {
+    } finally {
+      setLoadingPayment(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#FFF6F2]">
@@ -68,27 +105,12 @@ export default function CheckOut() {
               Default Address
             </OreAppText>
             <View className="gap-[4.68px] mt-[8px]">
-              {user?.address && user.address.length > 0 ? (
-                (() => {
-                  const defaultAddr =
-                    user.address.find((a: Address) => a.default_addr) ||
-                    user.address[0];
-                  return (
-                    <>
-                      <UrbanistText className="text-[12px] leading-[12.87px] text-[#535353]">
-                        {defaultAddr.post_code}
-                      </UrbanistText>
-                      <UrbanistText className="text-[12px] leading-[12.87px] text-[#2C2C2C]">
-                        {defaultAddr.addr}, {defaultAddr.city}
-                      </UrbanistText>
-                    </>
-                  );
-                })()
-              ) : (
-                <UrbanistText className="text-[12px] leading-[12.87px] text-[#2C2C2C]">
-                  No address found
-                </UrbanistText>
-              )}
+              <UrbanistText className="text-[12px] leading-[12.87px] text-[#535353]">
+                {address?.post_code}
+              </UrbanistText>
+              <UrbanistText className="text-[12px] leading-[12.87px] text-[#2C2C2C]">
+                {address?.addr},
+              </UrbanistText>
             </View>
           </View>
 
@@ -111,8 +133,8 @@ export default function CheckOut() {
           </OreAppText>
 
           <View className="mt-[20.57px] gap-[13.71px] pr-[12.29px]">
-            {items.length > 0 ? (
-              items.map((cartItem: any) => (
+            {cartDetails?.cart_items?.length > 0 ? (
+              cartDetails.cart_items.map((cartItem: any) => (
                 <OrderSummaryCartItem
                   key={cartItem.id}
                   title={cartItem.item.product.item_name}
@@ -136,7 +158,7 @@ export default function CheckOut() {
                 Sub total
               </UrbanistText>
               <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                €{total.toFixed(2)}
+                €{cartDetails?.subtotal?.toFixed(2) ?? "0.00"}
               </UrbanistText>
             </View>
             <View className="flex-row items-center justify-between">
@@ -144,20 +166,12 @@ export default function CheckOut() {
                 Delivery fee
               </UrbanistText>
               <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                €0.00
-              </UrbanistText>
-            </View>
-            <View className="flex-row items-center justify-between">
-              <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                Vat
-              </UrbanistText>
-              <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                €0.00
+                €{cartDetails?.total_delivery_fee?.toFixed(2) ?? "0.00"}
               </UrbanistText>
             </View>
             <View className="flex-row items-center justify-between">
               <UrbanistText
-                className="text-[14px] text-[#2D2220] leading-[20px]"
+                className="text-[16px] text-[#2D2220] leading-[22px]"
                 style={{ fontFamily: "UrbanistSemiBold" }}
               >
                 Total
@@ -166,13 +180,17 @@ export default function CheckOut() {
                 className="text-[16px] text-[#2D2220] leading-[22px]"
                 style={{ fontFamily: "UrbanistSemiBold" }}
               >
-                €{total.toFixed(2)}
+                €{cartDetails?.grand_total?.toFixed(2) ?? "0.00"}
               </UrbanistText>
             </View>
           </View>
 
           <View className="mt-[32px] mx-[10px]">
-            <Button title="Make payment" onPress={() => {}} />
+            <Button
+              title={loadingPayment ? "Processing..." : "Make payment"}
+              onPress={handlePayment}
+              disabled={loadingPayment}
+            />
           </View>
         </View>
       </ScrollView>

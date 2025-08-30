@@ -16,9 +16,9 @@ export default function Index() {
         const accessToken = await AsyncStorage.getItem("accessToken");
 
         if (accessToken) {
-          router.replace("/(tabs)"); // Logged in
+          router.replace("/(tabs)"); 
         } else {
-          router.replace("/onboarding"); 
+          router.replace("/onboarding");
         }
       } catch (err) {
         console.error("Auth check failed:", err);

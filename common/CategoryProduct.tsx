@@ -17,6 +17,7 @@ interface CategoryProductProps {
   rating?: number;
   sizes?: number;
   onPress?: () => void;
+  onAddToCart: () => void; 
 }
 
 export default function CategoryProduct({
@@ -25,7 +26,8 @@ export default function CategoryProduct({
   price,
   rating = 0,
   sizes,
-  onPress
+  onPress,
+  onAddToCart
 }: CategoryProductProps) {
   return (
     <TouchableOpacity
@@ -55,18 +57,18 @@ export default function CategoryProduct({
         </View>
 
         {/* {sizes !== undefined && ( */}
-          <View className="bg-[#F2F2F2] p-[4px] rounded-[8px] flex-row items-center justify-center max-w-[69px] gap-[4px]">
-            <UrbanistText className="text-[#424242] text-[12px] leading-[16px]">
-              Sizes: {sizes}
-            </UrbanistText>
-            <DropDownArrow />
-          </View>
+        <View className="bg-[#F2F2F2] p-[4px] rounded-[8px] flex-row items-center justify-center max-w-[69px] gap-[4px]">
+          <UrbanistText className="text-[#424242] text-[12px] leading-[16px]">
+            Sizes: {sizes}
+          </UrbanistText>
+          <DropDownArrow />
+        </View>
         {/* )} */}
 
         <View className="mt-[8px]">
           <Button
             fontClassName="font-urbanist-medium"
-            onPress={() => {}}
+            onPress={onAddToCart} 
             icon={<Carticon stroke="#FFFFFF" />}
             title="Add to cart"
             iconPosition="left"

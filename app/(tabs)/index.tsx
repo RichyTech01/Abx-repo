@@ -31,7 +31,7 @@ export default function Home() {
   const router = useRouter();
   const [query, setQuery] = useState("");
 
-  const { user, loading, error, fetchUser } = useUserStore();
+  const { user, loading, fetchUser } = useUserStore();
    useEffect(() => {
     if (!user) fetchUser();
   }, []);

@@ -1,4 +1,3 @@
-import ProductDetails from "@/app/Screens/ProductDetails";
 
 // --- Product ---
 export type Product = {
@@ -18,6 +17,42 @@ export type Product = {
   expiration_date: string
   
 };
+export interface TopRatedStore {
+  id: number;
+  business_name: string;
+  open_time: string;
+  close_time: string;
+  store_img: string | null;
+  is_approved: boolean;
+  is_active: boolean;
+  is_favorited: boolean;
+  distance_km: number | null;
+  store_rating: number;
+}
+
+export interface StoreDetails {
+  id: number;
+  business_name: string;
+  store_description: string;
+  store_code: string;
+  open_time: string;
+  close_time: string;
+  store_img: string | null;
+  is_approved: boolean;
+  is_active: boolean;
+  is_favorited: boolean;
+  address: string;
+  distance_km: string | null;
+  store_rating: string;
+  payout_enabled: boolean;
+  customer_feedback: string;
+}
+export interface TopRatedStoresResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: TopRatedStore[];
+}
 
 export interface ProductDetailsType {
   id: number;

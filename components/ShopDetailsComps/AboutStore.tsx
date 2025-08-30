@@ -49,7 +49,7 @@ const products = [
   },
 ];
 
-export default function AboutStore({id}:{id: number}) {
+export default function AboutStore() {
 
    
   return (

@@ -5,7 +5,7 @@ import axios from "axios";
 const { GET_ADDRESS_API_KEY } = Constants.expoConfig?.extra || {};
 const ADDRESS_BASE_URL = "https://api.getAddress.io";
 
-console.log("API Key:", GET_ADDRESS_API_KEY);
+// console.log("API Key:", GET_ADDRESS_API_KEY);
 
 class AuthApi {
   private client = ApiService.getClient();

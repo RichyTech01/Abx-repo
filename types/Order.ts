@@ -1,6 +1,4 @@
-// types/carts.ts
 
-// Backend API types
 export interface BackendCartItem {
   id: number;
   item: {
@@ -40,6 +38,18 @@ export interface CartItem {
   image?: string;
 }
 
+export type OrderStatus =
+  | "pending"
+  | "processing"
+  | "paid"
+  | "shipped"
+  | "completed"
+  | "cancelled";
+
+export interface ChangeOrderStatus {
+  status: OrderStatus;
+}
+ 
 export interface Cart {
   items: CartItem[];
   totalQuantity: number;

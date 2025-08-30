@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import OreAppText from "@/common/OreApptext";
+import { useRouter } from "expo-router";
 import CancelModalIcon from "@/assets/svgs/CancelModalIcon.svg";
 import UrbanistText from "@/common/UrbanistText";
 import Button from "@/common/Button";
@@ -25,6 +26,7 @@ export default function AddtoCartModal({
   data,
   loading,
 }: AddtoCartModalProps) {
+  const router = useRouter();
   return (
     <Modal
       visible={value}
@@ -76,9 +78,12 @@ export default function AddtoCartModal({
             <Button
               title="Proceed to checkout"
               variant="outline"
-              onPress={() => {}}
+              onPress={() => { setValue(!value); router.push("/Screens/Carts/CheckOut")}}
             />
-            <Button title="Continue shopping" onPress={() => {}} />
+            <Button
+              title="Continue shopping"
+              onPress={() => setValue(!value)}
+            />
           </View>
         </Pressable>
       </Pressable>

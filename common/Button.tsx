@@ -26,7 +26,8 @@ type ButtonProps = {
   fontClassName?: string;
   paddingVertical?: number;
   paddingHorizontal?: number;
-  borderRadius?: number;   // 👈 added
+  borderRadius?: number;  
+  disabled?: boolean
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -40,17 +41,18 @@ const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
   loading = false,
+  disabled = false,   
   icon,
   iconPosition = "right",
   fontClassName,
   paddingVertical = 12,
   paddingHorizontal = 20,
-  borderRadius = 8,   // 👈 default
+  borderRadius = 8,
 }) => {
   const isSolid = variant === "solid";
 
   const handlePress = () => {
-    if (loading) return;
+    if (loading || disabled) return;   // 👈 prevent press
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress();
   };
@@ -67,18 +69,18 @@ const Button: React.FC<ButtonProps> = ({
           backgroundColor: isSolid ? backgroundColor : "transparent",
           borderColor,
           borderWidth,
-          opacity: loading ? 0.7 : 1,
+          opacity: loading || disabled ? 0.5 : 1,   // 👈 faded when disabled
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
           paddingVertical,
           paddingHorizontal,
-          borderRadius,   // 👈 applied
+          borderRadius,
         },
         style,
       ]}
       activeOpacity={0.8}
-      disabled={loading}
+      disabled={loading || disabled}   // 👈 apply
     >
       {loading ? (
         <ActivityIndicator color={resolvedTextColor} />
@@ -101,6 +103,7 @@ const Button: React.FC<ButtonProps> = ({
     </TouchableOpacity>
   );
 };
+
 
 const styles = StyleSheet.create({
   base: {

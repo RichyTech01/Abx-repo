@@ -26,7 +26,7 @@ interface ShopCardProps {
   width?: number;
   onFavoritePress: () => void;
 }
-
+  
 const ShopCard: React.FC<ShopCardProps> = ({
   shop,
   width,

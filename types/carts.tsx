@@ -31,6 +31,7 @@ export interface BackendCart {
   items: BackendCartItem[];
 }
 
+
 // Frontend types
 export interface CartItem {
   id: number;

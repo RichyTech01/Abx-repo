@@ -17,7 +17,6 @@ export default function StepTwo({
 }) {
   const [suggestions, setSuggestions] = useState<any[]>([]);
 
-  // Fetch suggestions based on input
   const fetchSuggestions = async (term: string) => {
     if (!term) {
       setSuggestions([]);

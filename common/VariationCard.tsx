@@ -3,33 +3,45 @@ import UrbanistText from "@/common/UrbanistText";
 import AddtoCartIcon from "@/assets/svgs/AddToCartIcon.svg";
 import { ProductVariation } from "@/types/store";
 import { useCartStore } from "@/store/cartStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import showToast from "@/utils/showToast";
 
 type VariationCardProps = {
   item: ProductVariation;
 };
 
 export default function VariationCard({ item }: VariationCardProps) {
-  const { cart, addItem, updateItem, removeItem, loading } = useCartStore();
+  const { items, addItem, updateItem, removeItem, loading } = useCartStore();
 
-  // Find if this variation is already in cart
-  const existingItem = cart?.items.find((ci) => ci.product_variation_id === item.id);
+  // 🔑 Ensure matching by product_id
+  const existingItem = items.find((ci) => ci.product_id === item.id);
   const quantity = existingItem?.quantity || 0;
 
   const handleIncrease = async () => {
-    if (loading) return; // prevent multiple requests
+    if (loading) return;
+
+    if (quantity >= item.stock) {
+      showToast("info", "Out of stock!");
+      return;
+    }
+
     if (existingItem) {
       await updateItem(existingItem.id, "increase");
     } else {
-      await addItem({ product_variation_id: item.id, quantity: 1 });
+      await AsyncStorage.getItem("cartId"); 
+      await addItem({ product_id: item.id });
+      showToast("success", "Product added to cart!");
     }
   };
 
   const handleDecrease = async () => {
     if (loading || !existingItem) return;
+
     if (quantity > 1) {
       await updateItem(existingItem.id, "decrease");
     } else {
-      await removeItem(existingItem.id);
+      await removeItem(existingItem.id); 
+      showToast("success", "Product removed from cart");
     }
   };
 

@@ -1,38 +1,59 @@
 import { View } from "react-native";
 import CustomerReview from "@/common/CustomerReview";
 import Button from "@/common/Button";
+import UrbanistText from "@/common/UrbanistText";
 
-export default function CustomerFeedback() {
-  return (
-    <View className="mt-[16px]  ">
-      <View className="gap-[24px]  ">
-        <CustomerReview
-          rating={4.7}
-          date="12/02/25"
-          title="Amazing Store!"
-          content="The service and product exceeded my expectations—absolutely superb!"
-          author="Chinaturum"
-          verified
-        />
-        <CustomerReview
-          rating={4.7}
-          date="12/02/25"
-          title="Amazing Store!"
-          content="The service and product exceeded my expectations—absolutely superb!"
-          author="Chinaturum"
-          verified
-        />
-        <CustomerReview
-          rating={4.7}
-          date="12/02/25"
-          title="Amazing Store!"
-          content="The service and product exceeded my expectations—absolutely superb!"
-          author="Chinaturum"
-          verified
-        />
+type FeedbackItem = {
+  id: number;
+  rating: number;
+  date: string;
+  title: string;
+  message: string;
+  username: string;
+  verified: boolean;
+};
+
+type CustomerFeedbackProps = {
+  feedback: FeedbackItem[];
+};
+
+export default function CustomerFeedback({ feedback }: CustomerFeedbackProps) {
+  if (!feedback || feedback.length === 0) {
+    return (
+      <View className="mt-[16px]">
+        <UrbanistText>No reviews yet.</UrbanistText>
+        <View className="mt-[16px]">
+          <Button
+            title="Write a review"
+            fontClassName="urbanist"
+            onPress={() => {}}
+          />
+        </View>
       </View>
-      <View className="mt-[16px]  ">
-        <Button title="Write a review" fontClassName="urbanist" onPress={() => {}} />
+    );
+  }
+
+  return (
+    <View className="mt-[16px]">
+      <View className="gap-[24px]">
+        {feedback.map((item, index) => (
+          <CustomerReview
+            key={item.id ?? index} 
+            rating={item.rating}
+            date={item.date || "13/03/25"}
+            title={item.title || "Excellent service"}
+            content={item.message}
+            author={item.username}
+            verified={item.verified || true}
+          />
+        ))}
+      </View>
+      <View className="mt-[16px]">
+        <Button
+          title="Write a review"
+          fontClassName="urbanist"
+          onPress={() => {}}
+        />
       </View>
     </View>
   );
