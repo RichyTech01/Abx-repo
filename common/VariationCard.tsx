@@ -5,27 +5,31 @@ import AddtoCartIcon from "@/assets/svgs/AddToCartIcon.svg";
 import { ProductVariation } from "@/types/store";
 import showToast from "@/utils/showToast";
 import OrderApi from "@/api/OrderApi";
+import { CartItemsType } from "@/types/carts";
 
 type VariationCardProps = {
   item: ProductVariation;
-  cartItems: any[];
+  cartItems: CartItemsType;
   onCartUpdate: () => Promise<void>;
 };
 
-export default function VariationCard({ item, cartItems, onCartUpdate }: VariationCardProps) {
+export default function VariationCard({
+  item,
+  cartItems,
+  onCartUpdate,
+}: VariationCardProps) {
   const [updating, setUpdating] = useState(false);
 
-  // ✅ Find existing cart item using the correct path
   const existingItem = cartItems.find(
     (ci) => String(ci.item?.id) === String(item.id)
   );
-  
+
   const quantity = existingItem ? existingItem.quantity : 0;
 
-  console.log("VariationCard - Item.id:", item.id);
-  console.log("VariationCard - Cart items:", cartItems);
-  console.log("VariationCard - Found existingItem:", existingItem);
-  console.log("VariationCard - Quantity:", quantity);
+  // console.log("VariationCard - Item.id:", item.id);
+  // console.log("VariationCard - Cart items:", cartItems);
+  // console.log("VariationCard - Found existingItem:", existingItem);
+  // console.log("VariationCard - Quantity:", quantity);
 
   const handleIncrease = async () => {
     if (updating) return;
@@ -68,7 +72,6 @@ export default function VariationCard({ item, cartItems, onCartUpdate }: Variati
         await OrderApi.removeFromCart(existingItem.id);
         showToast("success", "Product removed from cart");
       }
-      // ✅ Refresh shared cart state
       await onCartUpdate();
     } catch (err) {
       console.error("Failed to decrease quantity:", err);
@@ -102,7 +105,9 @@ export default function VariationCard({ item, cartItems, onCartUpdate }: Variati
       {/* Cart Actions */}
       <View className="flex-row items-center">
         <Pressable
-          className="w-[35px] h-[35px] rounded-[8px] bg-[#86A89F] items-center justify-center"
+          className={`w-[35px] ${
+            quantity === 0 ? "bg-[#86A89F]" : "bg-[#0C513F]"
+          } h-[35px] rounded-[8px] bg-[#0C513F] items-center justify-center`}
           onPress={handleDecrease}
           disabled={updating || quantity === 0}
         >

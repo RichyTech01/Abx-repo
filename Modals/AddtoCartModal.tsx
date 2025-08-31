@@ -5,9 +5,10 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback} from "react";
 import OreAppText from "@/common/OreApptext";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import CancelModalIcon from "@/assets/svgs/CancelModalIcon.svg";
 import UrbanistText from "@/common/UrbanistText";
 import Button from "@/common/Button";
@@ -30,16 +31,16 @@ export default function AddtoCartModal({
 }: AddtoCartModalProps) {
   const router = useRouter();
   
-  // ✅ Lift cart state to modal level
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState([]);
   const [cartLoading, setCartLoading] = useState(false);
 
   const fetchCart = async () => {
     try {
       setCartLoading(true);
       const res = await OrderApi.getCart();
-      setCartItems(res.cart?.items || []);
-      console.log("Modal - Fetched cart items:", res.cart?.items);
+      console.log("Full API response:", res);
+      setCartItems(res.cart.items || []); 
+      console.log("Modal - Fetched cart items:", res.items);
     } catch (err) {
       console.error("Failed to fetch cart:", err);
     } finally {
@@ -53,6 +54,15 @@ export default function AddtoCartModal({
       fetchCart();
     }
   }, [value]);
+
+  // ✅ Add focus listener to refresh when navigating back
+  useFocusEffect(
+    useCallback(() => {
+      if (value) {
+        fetchCart();
+      }
+    }, [value])
+  );
 
   return (
     <Modal

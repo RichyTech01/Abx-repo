@@ -6,7 +6,7 @@ import {
   StatusBar,
   ActivityIndicator,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import Header from "@/common/Header";
 import UrbanistText from "@/common/UrbanistText";
 import CartItemCard from "@/common/CartItemCard";
@@ -14,6 +14,7 @@ import Button from "@/common/Button";
 import { useRouter } from "expo-router";
 import OrderApi from "@/api/OrderApi";
 import showToast from "@/utils/showToast";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function Carts() {
   const router = useRouter();
@@ -21,6 +22,12 @@ export default function Carts() {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
+
+   useFocusEffect(
+    useCallback(() => {
+      fetchCart();
+    }, [])
+  );
 
   const fetchCart = async () => {
     try {
@@ -34,10 +41,6 @@ export default function Carts() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchCart();
-  }, []);
 
   const updateQuantity = async (
     cartItemId: number,
@@ -53,7 +56,6 @@ export default function Carts() {
       return;
     }
 
-    // ✅ Prevent going below 1
     if (action === "decrease" && item.quantity <= 1) {
       showToast("info", "Remove Item Instead.");
       return;

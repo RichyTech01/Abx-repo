@@ -1,5 +1,7 @@
 import ApiService from "./apiService";
-import { Cart, CartItem, ChangeOrderStatus } from "@/types/Order";
+import {  ChangeOrderStatus } from "@/types/Order";
+import { CartItemsType } from "@/types/carts";
+// import { Cart } from "@/types/carts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export interface AddAddressPayload {
@@ -24,7 +26,7 @@ class OrderApi {
   private client = ApiService.getClient();
 
   // ✅ Add item to cart - Accepts product_id as per backend requirement
-  public async addToCart(payload: { product_id: number }): Promise<CartItem> {
+  public async addToCart(payload: { product_id: number }): Promise<CartItemsType> {
     const res = await this.client.post("/order/add-to-cart", payload);
 
     if (res.data.cart_id) {
@@ -35,7 +37,7 @@ class OrderApi {
   }
 
   // ✅ Get cart details
-  public async getCart(): Promise<Cart> {
+  public async getCart() {
     const res = await this.client.get("/order/cart");
     return res.data;
   }
@@ -48,7 +50,7 @@ class OrderApi {
   public async updateCart(
     item_id: number,
     payload: { action: "increase" | "decrease" } | { quantity: number }
-  ): Promise<CartItem> {
+  ): Promise<CartItemsType> {
     const res = await this.client.patch(
       `/order/${item_id}/update-cart`,
       payload
