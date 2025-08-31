@@ -45,7 +45,7 @@ export default function CheckOut() {
       try {
         const data = await OrderApi.getMyAddress();
         setAddress(data);
-        console.log(data);
+        console.log("adress",data);
       } catch (err) {
         console.error("Failed to fetch address:", err);
       }

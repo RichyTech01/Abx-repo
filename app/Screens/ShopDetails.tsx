@@ -32,7 +32,7 @@ export default function ShopDetails() {
   });
 
   const reviewsArray = reviews?.results ?? [];
-
+  
 
   return (
     <ScreenWrapper>
@@ -75,7 +75,7 @@ export default function ShopDetails() {
 
         {activeTab === "About store" && (
           <View className="mx-[21px]">
-            <AboutStore  />
+            <AboutStore id={id} />
           </View>
         )}
       </ScrollView>

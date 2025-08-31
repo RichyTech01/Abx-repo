@@ -1,8 +1,10 @@
 import { SafeAreaView, FlatList, View, Platform } from "react-native";
+import { useEffect, useState } from "react";
 import OreAppText from "@/common/OreApptext";
 import CategoryProduct from "@/common/CategoryProduct";
 import CategoryImg from "@/assets/svgs/CategoryProduct.svg";
-
+import StoreApi from "@/api/StoreApi";
+import OrderApi from "@/api/OrderApi";
 
 
 
@@ -49,9 +51,23 @@ const products = [
   },
 ];
 
-export default function AboutStore() {
+export default function AboutStore({id}) {
 
+  const [pro, setPro] = useState([])
+
+  useEffect(() => {
+    const fetchpr = async () => {
+      try {
+        const data = await StoreApi.getStoreWithProducts(id);
+        setPro(data)
+      } catch (error) {
+        
+      }
+    }
+    fetchpr()
+  })
    
+
   return (
     <View>
       <OreAppText className="text-[16px] leading-[20px] text-[#2D2220] mx-auto my-[24px]  ">

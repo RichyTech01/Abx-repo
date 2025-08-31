@@ -5,14 +5,14 @@ import {
   TextInput,
   StyleSheet,
   TextInputProps,
-  TouchableOpacity,
+  Pressable
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 type CustomTextInputProps = TextInputProps & {
   label?: string;
   isPassword?: boolean;
-  placeholder: string;
+  placeholder?: string;
 };
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -23,7 +23,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   ...props
 }) => {
   const [secureText, setSecureText] = useState(isPassword);
-  const [isFocused, setIsFocused] = useState(false); 
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View>
@@ -34,7 +34,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
       <View
         style={[
           styles.inputWrapper,
-          { borderColor: isFocused ? "#0C513F" : "#F1EAE7" }, 
+          { borderColor: isFocused ? "#0C513F" : "#F1EAE7" },
         ]}
         className="mt-[8px]"
       >
@@ -50,12 +50,17 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           {...props}
         />
         {isPassword && (
-          <TouchableOpacity
+          <Pressable
             onPress={() => setSecureText(!secureText)}
             style={styles.iconWrapper}
+            className=" h-full w-8 items-end justify-center"
           >
-            <Ionicons name={secureText ? "eye-off" : "eye"} size={15} color="#929292" />
-          </TouchableOpacity>
+            <Ionicons
+              name={secureText ? "eye-off-outline" : "eye-outline"}
+              size={15}
+              color="#929292"
+            />
+          </Pressable>
         )}
       </View>
     </View>

@@ -95,6 +95,15 @@ export interface Store {
   store_address: StoreAddress;
 }
 
+export interface StoreProductProps {
+  id: number;
+  business_name: string;
+  open_time: string;
+  close_time: string;
+  products: Product[];
+}
+
+
 export interface StoreAddress {
   id: number;
   addr: string;

@@ -3,8 +3,11 @@ import {
   Store,
   Product,
   TopRatedStoresResponse,
-  StoreDetails, 
+  StoreDetails,
+  StoreProductProps
 } from "@/types/store";
+
+
 
 class StoreApi {
   private client = ApiService.getClient();
@@ -12,47 +15,53 @@ class StoreApi {
   //  Retrieve a specific store with its published products
   public async getStoreWithProducts(id: number): Promise<Store> {
     const res = await this.client.get<Store>(`/store/${id}/products`);
-    return res.data;
+     return res.data;
   }
 
-  
-public async getStoreById(id: number): Promise<StoreDetails> {
-  const res = await this.client.get<StoreDetails>(`/store/stores/${id}`);
-  return res.data;
-}
+  public async getStoreById(id: number): Promise<StoreDetails> {
+    const res = await this.client.get<StoreDetails>(`/store/stores/${id}`);
+    return res.data;
+  }
 
   //  Favorite / Unfavorite a store
   public async toggleFavorite(storeId: number): Promise<void> {
     await this.client.post(`/store/${storeId}/favorite-a-store`);
   }
-  
-// Top rated
-  public async getTopRatedStores(page?: number): Promise<TopRatedStoresResponse> {
-  const res = await this.client.get<TopRatedStoresResponse>("/store/top-rated-stores", {
-    params: { page },
-  });
-  return res.data;
-}
+
+  // Top rated
+  public async getTopRatedStores(
+    page?: number
+  ): Promise<TopRatedStoresResponse> {
+    const res = await this.client.get<TopRatedStoresResponse>(
+      "/store/top-rated-stores",
+      {
+        params: { page },
+      }
+    );
+    return res.data;
+  }
   //  Get all favorite stores of the current user
   public async getFavoriteStores(page?: number): Promise<any> {
-    const res = await this.client.get<any>(
-      "/store/favorite-stores",
-      { params: { page } }
-    );
+    const res = await this.client.get<any>("/store/favorite-stores", {
+      params: { page },
+    });
     return res.data;
   }
 
   //  List reviews of a store
   public async getStoreReviews(storeId: number, page?: number): Promise<any> {
-    const res = await this.client.get<any>(
-      `/store/${storeId}/store-reviews`,
-      { params: { page } }
-    );
+    const res = await this.client.get<any>(`/store/${storeId}/store-reviews`, {
+      params: { page },
+    });
     return res.data;
   }
 
   //  Create a store review
-  public async createStoreReview(data: { store_id: number; rating: number; comment: string }): Promise<any> {
+  public async createStoreReview(data: {
+    store_id: number;
+    rating: number;
+    comment: string;
+  }): Promise<any> {
     const res = await this.client.post<any>("/store/create-store-review", data);
     return res.data;
   }
@@ -113,22 +122,25 @@ public async getStoreById(id: number): Promise<StoreDetails> {
 
   //  Marketplace search (stores + products)
   public async searchMarketplace(query: string): Promise<any> {
-    const res = await this.client.get("/store/marketplace", { params: { search: query } });
+    const res = await this.client.get("/store/marketplace", {
+      params: { search: query },
+    });
     return res.data;
   }
 
   //  Nearest stores (based on lat & lon)
   public async getNearestStores(lat: number, lon: number): Promise<any> {
-    const res = await this.client.get("/store/nearest", { params: { lat, lon } });
+    const res = await this.client.get("/store/nearest", {
+      params: { lat, lon },
+    });
     return res.data;
   }
 
   //  Popular products
- public async getPopularProducts(): Promise<Product[]> {
-  const res = await this.client.get<Product[]>("/store/popular-products");
-  return res.data;
-}
-
+  public async getPopularProducts(): Promise<Product[]> {
+    const res = await this.client.get<Product[]>("/store/popular-products");
+    return res.data;
+  }
 }
 
 export default new StoreApi();

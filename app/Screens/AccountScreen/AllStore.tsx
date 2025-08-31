@@ -43,7 +43,6 @@ export default function AllStore() {
   return (
     <ScreenWrapper>
       <View
-        className={`${Platform.OS === "android" ? "mt-[45px]" : ""} pb-[15px]`}
       >
         <HeaderWithSearchInput label="All available stores on ABX" />
       </View>

@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import React from "react";
+import { useRouter } from "expo-router";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 import { useQuery } from "@tanstack/react-query";
@@ -15,6 +16,7 @@ import AddtoCartModal from "@/Modals/AddtoCartModal";
 import showToast from "@/utils/showToast";
 
 export default function RescueAndSaveProduct() {
+  const router = useRouter();
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedProductId, setSelectedProductId] = React.useState<
     number | null
@@ -39,7 +41,7 @@ export default function RescueAndSaveProduct() {
   if (error) {
     showToast("error", (error as Error).message || "Failed to load product");
   }
-  const products = data?.results ?? [];
+  const products = (data?.results ?? []).slice(0, 4);
 
   const handleAddToCart = (id: number) => {
     setSelectedProductId(id);
@@ -47,8 +49,11 @@ export default function RescueAndSaveProduct() {
   };
 
   return (
-    <View className={`${Platform.OS === "ios" ? "mb-16" : "mb-20"} mb-16`}>
-      <SectionHeader title="Rescue and save" onPress={() => {}} />
+    <View className={`${Platform.OS === "ios" ? "mb-16" : "mb-28"} mb-16`}>
+      <SectionHeader
+        title="Rescue and save"
+        onPress={() => router.push("/Screens/AccountScreen/RescueAndSave")}
+      />
 
       <Text className="mx-[20px] text-[#2D2220] text-[10px] leading-[14px] font-urbanist ">
         (These are products that are near their expiration date but still
