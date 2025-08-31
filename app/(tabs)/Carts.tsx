@@ -13,6 +13,7 @@ import CartItemCard from "@/common/CartItemCard";
 import Button from "@/common/Button";
 import { useRouter } from "expo-router";
 import OrderApi from "@/api/OrderApi";
+import showToast from "@/utils/showToast";
 
 export default function Carts() {
   const router = useRouter();
@@ -24,8 +25,8 @@ export default function Carts() {
   const fetchCart = async () => {
     try {
       setLoading(true);
-      const res = await OrderApi.getCart(); // res = { cart: {...}, cart_id: "..." }
-      setCartItems(res.cart?.items || []); // ✅ use res.cart.items
+      const res = await OrderApi.getCart();
+      setCartItems(res.cart?.items || []);
       console.log("Fetched cart items:", res.cart.items);
     } catch (err) {
       console.error("Failed to fetch cart:", err);
@@ -43,6 +44,20 @@ export default function Carts() {
     action: "increase" | "decrease"
   ) => {
     if (updatingItems.has(cartItemId)) return;
+    const item = cartItems.find((i) => i.id === cartItemId);
+    if (!item) return;
+
+    // ✅ Check stock before increasing
+    if (action === "increase" && item.quantity >= item.item.stock) {
+      showToast("info", "Out of stock You cannot add more of this item.");
+      return;
+    }
+
+    // ✅ Prevent going below 1
+    if (action === "decrease" && item.quantity <= 1) {
+      showToast("info", "Remove Item Instead.");
+      return;
+    }
 
     setUpdatingItems((prev) => new Set(prev).add(cartItemId));
 
@@ -116,7 +131,7 @@ export default function Carts() {
           You have {cartItems.length} items in your cart
         </UrbanistText>
         {loading ? (
-          <View className="flex-1  items-center bg-[#FFF6F2] py-10">
+          <View className="flex-1  items-center bg-[#FFF6F2] py-10 ">
             <ActivityIndicator size="small" color="#000000" />
           </View>
         ) : (
@@ -140,8 +155,8 @@ export default function Carts() {
               </View>
             )}
             showsVerticalScrollIndicator={false}
-            refreshing={loading} 
-            onRefresh={fetchCart} 
+            refreshing={loading}
+            onRefresh={fetchCart}
           />
         )}
 

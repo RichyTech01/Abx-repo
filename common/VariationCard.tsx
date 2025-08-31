@@ -1,47 +1,80 @@
 import { View, Image, Pressable } from "react-native";
+import { useState } from "react";
 import UrbanistText from "@/common/UrbanistText";
 import AddtoCartIcon from "@/assets/svgs/AddToCartIcon.svg";
 import { ProductVariation } from "@/types/store";
-import { useCartStore } from "@/store/cartStore";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import showToast from "@/utils/showToast";
+import OrderApi from "@/api/OrderApi";
 
 type VariationCardProps = {
   item: ProductVariation;
+  cartItems: any[];
+  onCartUpdate: () => Promise<void>;
 };
 
-export default function VariationCard({ item }: VariationCardProps) {
-  const { items, addItem, updateItem, removeItem, loading } = useCartStore();
+export default function VariationCard({ item, cartItems, onCartUpdate }: VariationCardProps) {
+  const [updating, setUpdating] = useState(false);
 
-  // 🔑 Ensure matching by product_id
-  const existingItem = items.find((ci) => ci.product_id === item.id);
-  const quantity = existingItem?.quantity || 0;
+  // ✅ Find existing cart item using the correct path
+  const existingItem = cartItems.find(
+    (ci) => String(ci.item?.id) === String(item.id)
+  );
+  
+  const quantity = existingItem ? existingItem.quantity : 0;
+
+  console.log("VariationCard - Item.id:", item.id);
+  console.log("VariationCard - Cart items:", cartItems);
+  console.log("VariationCard - Found existingItem:", existingItem);
+  console.log("VariationCard - Quantity:", quantity);
 
   const handleIncrease = async () => {
-    if (loading) return;
+    if (updating) return;
 
     if (quantity >= item.stock) {
       showToast("info", "Out of stock!");
       return;
     }
 
-    if (existingItem) {
-      await updateItem(existingItem.id, "increase");
-    } else {
-      await AsyncStorage.getItem("cartId"); 
-      await addItem({ product_id: item.id });
-      showToast("success", "Product added to cart!");
+    setUpdating(true);
+
+    try {
+      if (existingItem) {
+        // Update existing item
+        await OrderApi.updateCart(existingItem.id, { action: "increase" });
+      } else {
+        // Add new item
+        await OrderApi.addToCart({ product_id: item.id });
+        showToast("success", "Product added to cart!");
+      }
+      // ✅ Refresh shared cart state
+      await onCartUpdate();
+    } catch (err) {
+      console.error("Failed to increase quantity:", err);
+      showToast("error", "Failed to update cart");
+    } finally {
+      setUpdating(false);
     }
   };
 
   const handleDecrease = async () => {
-    if (loading || !existingItem) return;
+    if (updating || !existingItem) return;
 
-    if (quantity > 1) {
-      await updateItem(existingItem.id, "decrease");
-    } else {
-      await removeItem(existingItem.id); 
-      showToast("success", "Product removed from cart");
+    setUpdating(true);
+
+    try {
+      if (quantity > 1) {
+        await OrderApi.updateCart(existingItem.id, { action: "decrease" });
+      } else {
+        await OrderApi.removeFromCart(existingItem.id);
+        showToast("success", "Product removed from cart");
+      }
+      // ✅ Refresh shared cart state
+      await onCartUpdate();
+    } catch (err) {
+      console.error("Failed to decrease quantity:", err);
+      showToast("error", "Failed to update cart");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -71,6 +104,7 @@ export default function VariationCard({ item }: VariationCardProps) {
         <Pressable
           className="w-[35px] h-[35px] rounded-[8px] bg-[#86A89F] items-center justify-center"
           onPress={handleDecrease}
+          disabled={updating || quantity === 0}
         >
           <View className="bg-white h-[2px] w-[11.67px]" />
         </Pressable>
@@ -85,6 +119,7 @@ export default function VariationCard({ item }: VariationCardProps) {
         <Pressable
           className="w-[35px] h-[35px] rounded-[8px] bg-[#0C513F] items-center justify-center"
           onPress={handleIncrease}
+          disabled={updating}
         >
           <AddtoCartIcon />
         </Pressable>

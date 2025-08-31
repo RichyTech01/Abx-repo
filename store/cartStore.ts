@@ -78,59 +78,59 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
-  updateItem: async (cartItemId, action) => {
-    const currentItems = get().items;
-    const item = currentItems.find((i) => i.id === cartItemId);
+ updateItem: async (productId, action) => {
+  const currentItems = get().items;
+  const item = currentItems.find((i) => i.product_id === productId);
 
-    if (!item) return;
+  if (!item) return;
 
-    // Optimistically update UI
+  // Use item.id here, not productId
+  const cartItemId = item.id;
+
+  // Optimistic update
+  set((state) => ({
+    items: state.items.map((i) => {
+      if (i.product_id === productId) {
+        const newQty = action === "increase" ? i.quantity + 1 : i.quantity - 1;
+        return {
+          ...i,
+          quantity: newQty,
+        };
+      }
+      return i;
+    }),
+  }));
+
+  try {
+    const updated = await OrderApi.updateCart(cartItemId, { action });
     set((state) => ({
-      items: state.items.map((i) => {
-        if (i.id === cartItemId) {
-          const newQty =
-            action === "increase" ? i.quantity + 1 : i.quantity - 1;
-          return {
-            ...i,
-            quantity: newQty,
-            total_item_price: newQty * parseFloat(i.item.price),
-          };
-        }
-        return i;
-      }),
+      items: state.items.map((i) =>
+        i.product_id === productId ? updated : i
+      ),
     }));
+  } catch (err) {
+    console.error("Failed to update cart item:", err);
+    set({ items: currentItems }); // rollback
+    throw err;
+  }
+},
 
-    try {
-      const updated = await OrderApi.updateCart(cartItemId, { action });
-      // Update with actual response
-      set((state) => ({
-        items: state.items.map((i) => (i.id === cartItemId ? updated : i)),
-      }));
-    } catch (err) {
-      console.error("Failed to update cart item:", err);
-      // Revert optimistic update
-      set({ items: currentItems });
-      throw err;
-    }
-  },
+removeItem: async (productId) => {
+  const currentItems = get().items;
 
-  removeItem: async (cartItemId) => {
-    const currentItems = get().items;
+  set((state) => ({
+    items: state.items.filter((i) => i.product_id !== productId),
+  }));
 
-    // Optimistically remove item
-    set((state) => ({
-      items: state.items.filter((i) => i.id !== cartItemId),
-    }));
+  try {
+    await OrderApi.removeFromCart(productId);
+  } catch (err) {
+    console.error("Failed to remove item:", err);
+    set({ items: currentItems });
+    throw err;
+  }
+},
 
-    try {
-      await OrderApi.removeFromCart(cartItemId);
-    } catch (err) {
-      console.error("Failed to remove item:", err);
-      // Revert optimistic update
-      set({ items: currentItems });
-      throw err;
-    }
-  },
 
   clearCart: () => {
     set({ items: [] });

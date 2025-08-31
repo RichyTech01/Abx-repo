@@ -9,6 +9,8 @@ import {
   Urbanist_600SemiBold,
   Urbanist_700Bold,
 } from "@expo-google-fonts/urbanist";
+import { BaseToast, ErrorToast} from "react-native-toast-message";
+
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
@@ -16,10 +18,12 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import Toast from "react-native-toast-message";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { toastConfig } from "@/toastConfig";
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
+
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({

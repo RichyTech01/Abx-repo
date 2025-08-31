@@ -1,7 +1,7 @@
-import { View, Text, ScrollView } from "react-native";
-import { useEffect } from "react";
-import { useRouter } from "expo-router";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { useEffect, useState } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import ArrowRIght from "@/assets/svgs/ArrowRight.svg";
 import ProfileImg from "@/assets/svgs/ProfileImg.svg";
 import OreAppText from "@/common/OreApptext";
 import General from "@/components/AccountComps/General";
@@ -9,8 +9,12 @@ import MyAccountComps from "@/components/AccountComps/MyAccountComps";
 import Finance from "@/components/AccountComps/Finance";
 import Help from "@/components/AccountComps/Help";
 import { useUserStore } from "@/store/useUserStore";
+import LogoutIcon from "@/assets/svgs/LogOutIcon.svg";
+import LogoutModal from "@/Modals/LogoutModal";
 
 export default function Account() {
+  const [showModal, setShowModal] = useState(false);
+
   const { user, fetchUser } = useUserStore();
   useEffect(() => {
     if (!user) fetchUser();
@@ -48,8 +52,28 @@ export default function Account() {
           <MyAccountComps />
           <Finance />
           <Help />
+
+          <View className="border border-[#F1EAE7] rounded-[8px] py-[8px] px-[8px] bg-white  mt-[16px] ">
+            <TouchableOpacity
+              className="py-[4px] pl-[4px] flex-row items-center justify-between "
+              onPress={() => setShowModal((prev) => !prev)}
+            >
+              <View className="flex-row items-center ">
+                <LogoutIcon />
+                <Text className="font-urbanist-medium text-[#F04438] text-[16px] leading-[22px] ml-[8px]  ">
+                  Log out
+                </Text>
+              </View>
+              <ArrowRIght />
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
+
+      <LogoutModal
+        visible={showModal}
+        onClose={() => setShowModal((prev) => !prev)}
+      />
     </ScreenWrapper>
   );
 }

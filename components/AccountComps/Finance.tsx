@@ -14,22 +14,22 @@ export default function Finance() {
         Finance
       </OreAppText>
 
-      <View className="border border-[#F1EAE7] rounded-[8px] py-[10px] px-[8px] bg-white ">
-        <TouchableOpacity
-          className="py-[4px] pl-[4px] flex-row items-center justify-between "
-          onPress={() =>
-            router.push("/Screens/AccountScreen/SpendingBudgetScreen")
-          }
-        >
-          <View className="flex-row items-center ">
-            <SpendingInsightIcon />
-            <Text className="font-urbanist-medium text-[#2D2220] text-[14px] leading-[20px] ml-[8px]  ">
-              Spending Insight
-            </Text>
-          </View>
-          <ArrowRIght />
-        </TouchableOpacity>
-      </View>
+        <View className="border border-[#F1EAE7] rounded-[8px] py-[10px] px-[8px] bg-white ">
+          <TouchableOpacity
+            className="py-[4px] pl-[4px] flex-row items-center justify-between "
+            onPress={() =>
+              router.push("/Screens/AccountScreen/SpendingBudgetScreen")
+            }
+          >
+            <View className="flex-row items-center ">
+              <SpendingInsightIcon />
+              <Text className="font-urbanist-medium text-[#2D2220] text-[14px] leading-[20px] ml-[8px]  ">
+                Spending Insight
+              </Text>
+            </View>
+            <ArrowRIght />
+          </TouchableOpacity>
+        </View>
     </View>
   );
 }

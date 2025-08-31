@@ -7,18 +7,23 @@ import {
 } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import { useRouter } from "expo-router";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
 import StoreApi from "@/api/StoreApi";
+import EmptyyImg from "@/assets/svgs/EmptyStoreImg.svg";
+import OreAppText from "@/common/OreApptext";
+import UrbanistText from "@/common/UrbanistText";
+import Button from "@/common/Button";
 
 export default function FavouriteStore() {
+  const router = useRouter();
   const queryClient = useQueryClient();
 
-  // Fetch favorite stores
   const { data: shops = [], isLoading } = useQuery<Shop[]>({
     queryKey: ["favoriteStores"],
     queryFn: async () => {
-      const res = await StoreApi.getFavoriteStores(); 
+      const res = await StoreApi.getFavoriteStores();
       return res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
@@ -27,12 +32,11 @@ export default function FavouriteStore() {
           "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
         store_open: store.open_time,
         store_close: store.close_time,
-        isFavorite: store.is_favorited ?? true, 
+        isFavorite: store.is_favorited ?? true,
       }));
     },
   });
 
-  // Toggle favorite
   const favoriteMutation = useMutation({
     mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
     onSuccess: () =>
@@ -44,26 +48,44 @@ export default function FavouriteStore() {
       <View
         className={`${Platform.OS === "android" ? "mt-[45px]" : ""} pb-[15px]`}
       >
-        <HeaderWithSearchInput label="Favourite Stores" />
+        <HeaderWithSearchInput label="Your favorite stores" />
       </View>
 
       {isLoading ? (
         <ActivityIndicator
           size="large"
           color="#000"
-          style={{ marginTop: 16 }}
+          style={{ paddingVertical: 20 }}
         />
       ) : shops.length === 0 ? (
-        <Text
-          style={{
-            textAlign: "center",
-            marginTop: 16,
-            color: "#666",
-            fontSize: 14,
+        <ScrollView
+          contentContainerStyle={{
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 20,
           }}
         >
-          You have no favorite stores yet.
-        </Text>
+          <View className="bg-white rounded-[8px] mx-[20px] py-[50px] px-[32px]  items-center ">
+            <View className="items-center">
+              <EmptyyImg />
+              <OreAppText className="text-[#121212] text-[16px] leading-[20px] mt-[18px] ">
+                No favorite stores
+              </OreAppText>
+            </View>
+            <UrbanistText className="text-[#2C2C2C] text-[12px] leading-[16px] text-center mt-[16px] ">
+              Looks like you don&apos;t have any favorite stores yet—no worries,
+              Start browsing and find a store you&apos;ll love. We&apos;ve got
+              plenty of great stores waiting for you!
+            </UrbanistText>
+
+            <View className="mt-[24px] ">
+              <Button
+                title="Explore ABX stores"
+                onPress={() => router.push("/Screens/AllTopRatedStores")}
+              />
+            </View>
+          </View>
+        </ScrollView>
       ) : (
         <ScrollView
           contentContainerStyle={{

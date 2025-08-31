@@ -5,6 +5,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
+import { useState, useEffect } from "react";
 import OreAppText from "@/common/OreApptext";
 import { useRouter } from "expo-router";
 import CancelModalIcon from "@/assets/svgs/CancelModalIcon.svg";
@@ -12,6 +13,7 @@ import UrbanistText from "@/common/UrbanistText";
 import Button from "@/common/Button";
 import { ProductVariation } from "@/types/store";
 import VariationCard from "@/common/VariationCard";
+import OrderApi from "@/api/OrderApi";
 
 type AddtoCartModalProps = {
   value: boolean;
@@ -27,6 +29,31 @@ export default function AddtoCartModal({
   loading,
 }: AddtoCartModalProps) {
   const router = useRouter();
+  
+  // ✅ Lift cart state to modal level
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartLoading, setCartLoading] = useState(false);
+
+  const fetchCart = async () => {
+    try {
+      setCartLoading(true);
+      const res = await OrderApi.getCart();
+      setCartItems(res.cart?.items || []);
+      console.log("Modal - Fetched cart items:", res.cart?.items);
+    } catch (err) {
+      console.error("Failed to fetch cart:", err);
+    } finally {
+      setCartLoading(false);
+    }
+  };
+
+  // ✅ Fetch cart when modal opens
+  useEffect(() => {
+    if (value) {
+      fetchCart();
+    }
+  }, [value]);
+
   return (
     <Modal
       visible={value}
@@ -68,7 +95,13 @@ export default function AddtoCartModal({
               <FlatList
                 data={data}
                 keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => <VariationCard item={item} />}
+                renderItem={({ item }) => (
+                  <VariationCard 
+                    item={item} 
+                    cartItems={cartItems}
+                    onCartUpdate={fetchCart}
+                  />
+                )}
                 showsVerticalScrollIndicator={false}
               />
             </View>
@@ -78,7 +111,10 @@ export default function AddtoCartModal({
             <Button
               title="Proceed to checkout"
               variant="outline"
-              onPress={() => { setValue(!value); router.push("/Screens/Carts/CheckOut")}}
+              onPress={() => {
+                setValue(!value);
+                router.push("/Screens/Carts/CheckOut");
+              }}
             />
             <Button
               title="Continue shopping"

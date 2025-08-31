@@ -6,6 +6,7 @@ import SPendingLimitIcon from "@/assets/svgs/AddspendLimitIcon.svg";
 import SPendingLimitBg from "@/assets/svgs/PartOfLimitBg.svg";
 import SecondSPendingLimitBg from "@/assets/svgs/SecondLimitBg.svg";
 import Button from "@/common/Button";
+import TabSwitcher from "@/common/TabSwitcher";
 
 export default function SpendingBudgetScreen() {
   return (

@@ -71,7 +71,7 @@ export default function RescueAndSave() {
 
         <View>
           {isLoading ? (
-            <View className="flex-1 items-center justify-center">
+            <View className="flex-1 items-center justify-center py-10">
               <ActivityIndicator size="large" color="#000" />
             </View>
           ) : products?.length === 0 ? (

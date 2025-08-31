@@ -67,10 +67,7 @@ export default function CartItemCard({
         <View className="border border-[#E6E6E6] px-[8px] py-[5.5px] rounded-[170px] mt-[16px] flex-row items-center justify-between">
           <TouchableOpacity
             onPress={onDecrease}
-            disabled={quantity <= 1} 
-            className={`rounded-full h-[34px] w-[34px] items-center justify-center ${
-              quantity <= 1 ? "bg-[#CCCCCC]" : "bg-[#F2F2F2]"
-            }`}
+            className={`rounded-full h-[34px] w-[34px] items-center justify-center bg-[#F2F2F2]`}
           >
             <View
               className={`h-[1.5px] w-[9.33px] ${
