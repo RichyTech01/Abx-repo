@@ -16,7 +16,7 @@ export default function Finance() {
 
       <View className="border border-[#F1EAE7] rounded-[8px] py-[10px] px-[8px] bg-white ">
         <TouchableOpacity
-          className="py-[4px] pl-[4px] border-b border-[#F1EAE7] flex-row items-center justify-between "
+          className="py-[4px] pl-[4px] flex-row items-center justify-between "
           onPress={() =>
             router.push("/Screens/AccountScreen/SpendingBudgetScreen")
           }
