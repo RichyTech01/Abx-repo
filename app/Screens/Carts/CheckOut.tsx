@@ -64,7 +64,6 @@ export default function CheckOut() {
       );
       return;
     }
-
     if (!cartDetails?.grand_total) {
       showToast("error", "Cart total not found.");
       return;
@@ -88,8 +87,8 @@ export default function CheckOut() {
         return;
       }
 
-      Alert.alert(
-        "Success",
+      showToast(
+        "success",
         "Payment initiated successfully. Check console for client secret."
       );
     } catch (err: any) {
@@ -224,9 +223,10 @@ export default function CheckOut() {
 
           <View className="mt-[32px] mx-[10px]">
             <Button
-              title={loadingPayment ? "Processing..." : "Make payment"}
+              title={"Make payment"}
               onPress={handlePayment}
               disabled={loadingPayment}
+              loading={loadingPayment}
             />
           </View>
         </View>

@@ -9,7 +9,7 @@ import {
   Urbanist_600SemiBold,
   Urbanist_700Bold,
 } from "@expo-google-fonts/urbanist";
-import { BaseToast, ErrorToast} from "react-native-toast-message";
+import { BaseToast, ErrorToast } from "react-native-toast-message";
 
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,11 +19,11 @@ import { useEffect } from "react";
 import Toast from "react-native-toast-message";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { toastConfig } from "@/toastConfig";
+import { StripeProvider } from "@stripe/stripe-react-native";
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
-
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -45,12 +45,14 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <StatusBar style="dark" backgroundColor="#fff" />
-        <Stack screenOptions={{ headerShown: false }} />
-        <Toast />
-      </SafeAreaProvider>
-    </QueryClientProvider>
+    <StripeProvider publishableKey="pk_test_51S2NU69eKwZ7DcZQKtLBxcneVLO0uXjx14Z12e14fxaDNCXmpblZR0lw7POuU7OHfENGFU3Bw0EdRwncVCj9Licz008vT7bH2E">
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider>
+          <StatusBar style="dark" backgroundColor="#fff" />
+          <Stack screenOptions={{ headerShown: false }} />
+          <Toast config={toastConfig} />
+        </SafeAreaProvider>
+      </QueryClientProvider>
+    </StripeProvider>
   );
 }

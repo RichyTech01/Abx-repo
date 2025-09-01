@@ -34,7 +34,6 @@ export default function Carts() {
       setLoading(true);
       const res = await OrderApi.getCart();
       setCartItems(res.cart?.items || []);
-      console.log("Fetched cart items:", res.cart.items);
     } catch (err) {
       console.error("Failed to fetch cart:", err);
     } finally {
