@@ -5,7 +5,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { useState, useEffect, useCallback} from "react";
+import { useState, useEffect, useCallback } from "react";
 import OreAppText from "@/common/OreApptext";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
@@ -21,6 +21,7 @@ type AddtoCartModalProps = {
   setValue: React.Dispatch<React.SetStateAction<boolean>>;
   data: ProductVariation[];
   loading: boolean;
+  isOpen?: boolean;
 };
 
 export default function AddtoCartModal({
@@ -28,9 +29,10 @@ export default function AddtoCartModal({
   setValue,
   data,
   loading,
+  isOpen,
 }: AddtoCartModalProps) {
   const router = useRouter();
-  
+
   const [cartItems, setCartItems] = useState([]);
   const [cartLoading, setCartLoading] = useState(false);
 
@@ -38,9 +40,9 @@ export default function AddtoCartModal({
     try {
       setCartLoading(true);
       const res = await OrderApi.getCart();
-      console.log("Full API response:", res);
-      setCartItems(res.cart.items || []); 
-      console.log("Modal - Fetched cart items:", res.items);
+      // console.log("Full API response:", res);
+      setCartItems(res.cart.items || []);
+      // console.log("Modal - Fetched cart items:", res.items);
     } catch (err) {
       console.error("Failed to fetch cart:", err);
     } finally {
@@ -106,10 +108,11 @@ export default function AddtoCartModal({
                 data={data}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                  <VariationCard 
-                    item={item} 
+                  <VariationCard
+                    item={item}
                     cartItems={cartItems}
                     onCartUpdate={fetchCart}
+                    isOpen={isOpen}
                   />
                 )}
                 showsVerticalScrollIndicator={false}
@@ -121,6 +124,7 @@ export default function AddtoCartModal({
             <Button
               title="Proceed to checkout"
               variant="outline"
+              disabled={!isOpen}
               onPress={() => {
                 setValue(!value);
                 router.push("/Screens/Carts/CheckOut");

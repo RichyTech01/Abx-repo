@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import { Product } from "@/types/store";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
+import { isStoreOpen } from "@/utils/storeStatus";
 import { ProductVariation } from "@/types/store";
 
 export default function BestSelling() {
@@ -90,6 +91,14 @@ export default function BestSelling() {
         setValue={setModalVisible}
         loading={productLoading}
         data={(productDetails?.variations ?? []) as ProductVariation[]}
+        isOpen={
+          productDetails
+            ? isStoreOpen(
+                productDetails.store.open_time,
+                productDetails.store.close_time
+              )
+            : false
+        }
       />
     </View>
   );

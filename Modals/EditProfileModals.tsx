@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import { useState, useEffect } from "react";
 import Button from "@/common/Button";
 import OreAppText from "@/common/OreApptext";
 import CustomTextInput from "@/common/CustomTextInput";
@@ -15,12 +16,31 @@ import CustomTextInput from "@/common/CustomTextInput";
 type EditProfileModalsProps = {
   visible: boolean;
   onClose: () => void;
+  user?: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+    phone_number?: string;
+  } | null;
 };
 
 export default function EditProfileModals({
   visible,
   onClose,
+  user,
 }: EditProfileModalsProps) {
+  const [fullName, setFullName] = useState(
+    `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()
+  );
+  const [email, setEmail] = useState(user?.email ?? "");
+  const [phone, setPhone] = useState(user?.phone_number ?? "");
+
+  useEffect(() => {
+    setFullName(`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim());
+    setEmail(user?.email ?? "");
+    setPhone(user?.phone_number ?? "");
+  }, [user]);
+
   return (
     <Modal
       transparent
@@ -50,14 +70,23 @@ export default function EditProfileModals({
 
               <View className="gap-[16px] mt-[10%]">
                 <CustomTextInput
-                  label="Full name"
-                  value="Angela striving"
+                  label="Full Name"
+                  value={fullName}
+                  onChangeText={setFullName}
+                  editable={true}
                 />
                 <CustomTextInput
                   label="Email Address"
-                  value="Angela striving"
+                  value={email}
+                  onChangeText={setEmail}
+                  editable={true}
                 />
-                <CustomTextInput label="Phone number" value="+444 09873 0984" />
+                <CustomTextInput
+                  label="Phone number"
+                  value={phone}
+                  onChangeText={setPhone}
+                  editable={true}
+                />
               </View>
 
               <View className="mt-[12%]">

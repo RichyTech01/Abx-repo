@@ -26,13 +26,12 @@ import RescueAndSave from "@/components/HomeComps/RescueAndSave";
 import RecueAndSaveProduct from "@/components/HomeComps/RecueAndSaveProduct";
 import { useUserStore } from "@/store/useUserStore";
 
-
 export default function Home() {
   const router = useRouter();
   const [query, setQuery] = useState("");
 
   const { user, loading, fetchUser } = useUserStore();
-   useEffect(() => {
+  useEffect(() => {
     if (!user) fetchUser();
   }, []);
 
@@ -58,9 +57,7 @@ export default function Home() {
             className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center"
             onPress={() => router.push("/Carts")}
           >
-            <View className="">
-              
-            </View>
+            <View className=""></View>
             <MaincartIcon />
           </Pressable>
         </View>

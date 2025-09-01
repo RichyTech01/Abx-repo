@@ -26,7 +26,7 @@ interface ShopCardProps {
   width?: number;
   onFavoritePress: () => void;
 }
-  
+
 const ShopCard: React.FC<ShopCardProps> = ({
   shop,
   width,
@@ -39,7 +39,12 @@ const ShopCard: React.FC<ShopCardProps> = ({
     <TouchableOpacity
       className="bg-white shadow rounded-[8px] shadow-[#624C3917]/10 p-[10px]"
       style={{ width: width || "100%" }}
-      onPress={() => router.push(`/Screens/ShopDetails?id=${shop.id}`)}
+      onPress={() =>
+        router.push({
+          pathname: "/Screens/ShopDetails",
+          params: { id: shop.id, image: shop.image },
+        })
+      }
     >
       <View className="relative h-[158px]">
         <Image

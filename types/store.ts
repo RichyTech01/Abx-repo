@@ -1,4 +1,3 @@
-
 // --- Product ---
 export type Product = {
   id: number;
@@ -11,11 +10,10 @@ export type Product = {
     open_time: string;
     close_time: string;
     business_name: string;
-    store_code: string 
+    store_code: string;
   };
   item_description?: string;
-  expiration_date: string
-  
+  expiration_date: string;
 };
 export interface TopRatedStore {
   id: number;
@@ -92,7 +90,7 @@ export interface Store {
   open_time: string;
   close_time: string;
   store_code: string;
-  store_address: StoreAddress;
+  products: any;
 }
 
 export interface StoreProductProps {
@@ -102,7 +100,6 @@ export interface StoreProductProps {
   close_time: string;
   products: Product[];
 }
-
 
 export interface StoreAddress {
   id: number;
@@ -118,7 +115,7 @@ export interface Address {
   city: string;
   post_code: string;
   default_addr: boolean;
-  location: [number, number]; 
+  location: [number, number];
 }
 
 export interface User {
@@ -132,5 +129,58 @@ export interface User {
   address: Address[];
 }
 
+// Category type (expand as needed)
+export interface CategoryType {
+  id?: number;
+  name?: string;
+  [key: string]: any;
+}
 
+// Store reference type
+interface StoreRef {
+  id?: number;
+  name?: string;
+  [key: string]: any;
+}
 
+// Variation type
+export interface Variation {
+  id: number;
+  price: string;
+  stock: number;
+  [key: string]: any;
+}
+
+// Product type
+export interface ShopProductType {
+  id: number;
+  item_name: string;
+  item_description: string;
+  min_price: string;  
+  max_price: string;
+  prod_image_url: string;
+  expiration_date: string;
+  published: boolean;
+  rescue_n_save: boolean;
+  category: CategoryType;
+  store: StoreRef;
+  variations: Variation[];
+}
+
+// Shop (with many products)
+export interface ShopWithProducts {
+  id: number;
+  business_name: string;
+  open_time: string;  // "HH:mm:ss"
+  close_time: string; // "HH:mm:ss"
+  products: ShopProductType[];
+}
+
+// Shop type
+export interface Shop {
+  id: number;
+  business_name: string;
+  open_time: string; // "HH:mm:ss"
+  close_time: string; // "HH:mm:ss"
+  products: Product[];
+}

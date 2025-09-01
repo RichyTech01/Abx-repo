@@ -17,7 +17,7 @@ interface CategoryProductProps {
   rating?: number;
   sizes?: number;
   onPress?: () => void;
-  onAddToCart?: () => void; 
+  onAddToCart: () => void; 
 }
 
 export default function CategoryProduct({

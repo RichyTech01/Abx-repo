@@ -1,10 +1,12 @@
 import { View, Text } from "react-native";
+import { useRouter } from "expo-router";
 import React from "react";
 import ImageIcon from "@/assets/svgs/Image.svg";
 import ArrowRight from "@/assets/svgs/DoubleArrowRight.svg";
 import Button from "@/common/Button";
 
 export default function RescueAndSave() {
+  const router = useRouter();
   return (
     <View>
       <View className="mx-[20px]  mt-[]">
@@ -30,7 +32,9 @@ export default function RescueAndSave() {
             <Button
               title="Click to start shopping"
               icon={<ArrowRight />}
-              onPress={() => console.log("Shopping started")}
+              onPress={() =>
+                router.push("/Screens/AccountScreen/RescueAndSave")
+              }
               iconPosition="right"
             />
           </View>

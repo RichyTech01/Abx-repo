@@ -1,21 +1,29 @@
 import { View, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/common/Header";
 import CustomTextInput from "@/common/CustomTextInput";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import Button from "@/common/Button";
 import OreAppText from "@/common/OreApptext";
 import EditProfileModals from "@/Modals/EditProfileModals";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function ProfileInformationScreen() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
 
+  const { user, loading, fetchUser } = useUserStore();
+  useEffect(() => {
+    if (!user) fetchUser();
+  }, []);
+
+  const UserType = user?.is_vendor === true ? "Vendor" : "Customer";
+
   return (
     <ScreenWrapper>
       <Header title="Profile information" />
-      
+
       <ScrollView
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
@@ -24,22 +32,24 @@ export default function ProfileInformationScreen() {
           <View className="gap-[16px]">
             <CustomTextInput
               label="Full name"
-              value="Angela striving"
+              value={`${user?.first_name ?? ""} ${
+                user?.last_name ?? ""
+              }`.trim()}
               editable={false}
             />
             <CustomTextInput
               label="Email Address"
-              value="Angela striving"
+              value={user?.email}
               editable={false}
             />
             <CustomTextInput
               label="Phone number"
-              value="Angela striving"
+              value={user?.phone_number}
               editable={false}
             />
             <CustomTextInput
               label="Account type"
-              value="Customer"
+              value={UserType}
               editable={false}
             />
           </View>
@@ -73,10 +83,13 @@ export default function ProfileInformationScreen() {
           </View>
         </View>
 
-        <EditProfileModals
-          visible={showModal}
-          onClose={() => setShowModal((prev) => !prev)}
-        />
+        {user && (
+          <EditProfileModals
+            visible={showModal}
+            onClose={() => setShowModal(false)}
+            user={user}
+          />
+        )}
       </ScrollView>
     </ScreenWrapper>
   );

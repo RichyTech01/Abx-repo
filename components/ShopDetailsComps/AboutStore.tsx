@@ -1,72 +1,68 @@
-import { SafeAreaView, FlatList, View, Platform } from "react-native";
+import { SafeAreaView, FlatList, View, ActivityIndicator } from "react-native";
 import { useEffect, useState } from "react";
 import OreAppText from "@/common/OreApptext";
 import CategoryProduct from "@/common/CategoryProduct";
-import CategoryImg from "@/assets/svgs/CategoryProduct.svg";
 import StoreApi from "@/api/StoreApi";
-import OrderApi from "@/api/OrderApi";
+import { useRouter } from "expo-router";
+import { ShopProductType } from "@/types/store";
+import AddtoCartModal from "@/Modals/AddtoCartModal";
+import { isStoreOpen } from "@/utils/storeStatus";
 
+export interface StoreProductProps {
+  id: number;
+  business_name: string;
+  open_time: string;
+  close_time: string;
+  products: ShopProductType[];
+}
 
-
-const products = [
-  {
-    id: "1",
-    name: "Onion",
-    price: "€14.99 - €19.99",
-    rating: 4.5,
-    sizes: 4,
-    image: <CategoryImg />,
-  },
-  {
-    id: "2",
-    name: "Fresh Apples",
-    price: "€4.99 / kg",
-    rating: 4,
-    sizes: 2,
-    image: <CategoryImg />,
-  },
-  {
-    id: "3",
-    name: "Organic Bananas",
-    price: "€3.50 / bunch",
-    rating: 5,
-    sizes: 3,
-    image: <CategoryImg />,
-  },
-  {
-    id: "4",
-    name: "Tomatoes",
-    price: "€2.99 / 500g",
-    rating: 3,
-    sizes: 2,
-    image: <CategoryImg />,
-  },
-  {
-    id: "5",
-    name: "Carrots",
-    price: "€2.49 / kg",
-    rating: 4,
-    sizes: 3,
-    image: <CategoryImg />,
-  },
-];
-
-export default function AboutStore({id}) {
-
-  const [pro, setPro] = useState([])
+export default function AboutStore({
+  id,
+  image,
+}: {
+  id: number;
+  image: string;
+}) {
+  const [shopProduct, setShopProduct] = useState<StoreProductProps | null>(
+    null
+  );
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
+  const [productDetails, setProductDetails] = useState<any>(null);
+  const [productLoading, setProductLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchpr = async () => {
+      setLoading(true);
       try {
         const data = await StoreApi.getStoreWithProducts(id);
-        setPro(data)
+        setShopProduct(data);
       } catch (error) {
-        
+        console.error("Failed to fetch store:", error);
       }
+      setLoading(false);
+    };
+    fetchpr();
+  }, [id]);
+
+  const handleAddToCart = async (id: number) => {
+    setSelectedProductId(id);
+    setModalVisible(true);
+    setProductLoading(true);
+
+    try {
+      const product = await StoreApi.getProduct(id);
+      setProductDetails(product);
+    } catch (err) {
+      console.error("Failed to fetch product details", err);
+    } finally {
+      setProductLoading(false);
     }
-    fetchpr()
-  })
-   
+  };
 
   return (
     <View>
@@ -74,29 +70,56 @@ export default function AboutStore({id}) {
         Available food items in store
       </OreAppText>
 
-      <View>
-        <FlatList
-          data={products}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={{
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-          renderItem={({ item }) => (
-            <View style={{ width: "48%" }}>
-              <CategoryProduct
-                // image={item.image}
-                name={item.name}
-                price={item.price}
-                rating={item.rating}
-                sizes={item.sizes}
-              />
-            </View>
-          )}
-          scrollEnabled={false}
-        />
-      </View>
+      {loading ? (
+        <View className="py-10">
+          <ActivityIndicator size={"large"} color={"black"} />
+        </View>
+      ) : (
+        <View>
+          <FlatList
+            data={shopProduct?.products ?? []}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={2}
+            columnWrapperStyle={{
+              justifyContent: "space-between",
+              marginBottom: 16,
+            }}
+            renderItem={({ item }) => (
+              <View style={{ width: "48%" }}>
+                <CategoryProduct
+                  name={item.item_name}
+                  price={`€${item.min_price} - €${item.max_price}`}
+                  rating={4.5}
+                  sizes={item.variations?.length ?? 0}
+                  image={{ uri: item.prod_image_url }}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/Screens/ProductDetails",
+                      params: { id: item.id },
+                    })
+                  }
+                  onAddToCart={() => handleAddToCart(item.id)}
+                />
+              </View>
+            )}
+            scrollEnabled={false}
+          />
+        </View>
+      )}
+      <AddtoCartModal
+        value={modalVisible}
+        setValue={setModalVisible}
+        loading={productLoading}
+        data={productDetails?.variations ?? []}
+        isOpen={
+          productDetails?.store
+            ? isStoreOpen(
+                productDetails.store.open_time,
+                productDetails.store.close_time
+              )
+            : false
+        }
+      />
     </View>
   );
 }

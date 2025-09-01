@@ -11,12 +11,14 @@ type VariationCardProps = {
   item: ProductVariation;
   cartItems: CartItemsType;
   onCartUpdate: () => Promise<void>;
+  isOpen?: boolean;
 };
 
 export default function VariationCard({
   item,
   cartItems,
   onCartUpdate,
+  isOpen,
 }: VariationCardProps) {
   const [updating, setUpdating] = useState(false);
 
@@ -32,6 +34,11 @@ export default function VariationCard({
   // console.log("VariationCard - Quantity:", quantity);
 
   const handleIncrease = async () => {
+    if (isOpen === false) {
+      showToast("info", "Shop is closed");
+      return;
+    }
+
     if (updating) return;
 
     if (quantity >= item.stock) {
@@ -106,7 +113,7 @@ export default function VariationCard({
       <View className="flex-row items-center">
         <Pressable
           className={`w-[35px] ${
-            quantity === 0 ? "bg-[#86A89F]" : "bg-[#0C513F]"
+            quantity === 0 || !isOpen ? "bg-[#86A89F]" : "bg-[#0C513F]"
           } h-[35px] rounded-[8px] bg-[#0C513F] items-center justify-center`}
           onPress={handleDecrease}
           disabled={updating || quantity === 0}
@@ -122,9 +129,11 @@ export default function VariationCard({
         </UrbanistText>
 
         <Pressable
-          className="w-[35px] h-[35px] rounded-[8px] bg-[#0C513F] items-center justify-center"
+          className={`w-[35px] ${
+            !isOpen ? "bg-[#86A89F]" : "bg-[#0C513F]"
+          } h-[35px] rounded-[8px] bg-[#0C513F] items-center justify-center`}
           onPress={handleIncrease}
-          disabled={updating}
+          disabled={updating || !isOpen}
         >
           <AddtoCartIcon />
         </Pressable>

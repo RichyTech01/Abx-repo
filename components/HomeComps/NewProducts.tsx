@@ -5,6 +5,7 @@ import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 import StoreApi from "@/api/StoreApi";
 import { Product, ProductVariation } from "@/types/store";
+import { isStoreOpen } from "@/utils/storeStatus";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 
 export default function NewProducts() {
@@ -89,6 +90,14 @@ export default function NewProducts() {
         setValue={setModalVisible}
         loading={productLoading}
         data={(productDetails?.variations ?? []) as ProductVariation[]}
+        isOpen={
+          productDetails
+            ? isStoreOpen(
+                productDetails.store.open_time,
+                productDetails.store.close_time
+              )
+            : false
+        }
       />
     </View>
   );

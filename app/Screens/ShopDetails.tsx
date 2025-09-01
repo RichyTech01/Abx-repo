@@ -15,7 +15,7 @@ const ShopBanner = require("../../assets/Images/Frame 1000008001.png");
 
 export default function ShopDetails() {
   const [activeTab, setActiveTab] = useState<string>("About store");
-  const { id } = useLocalSearchParams();
+  const { id, image } = useLocalSearchParams<{ id: string; image: string }>();
 
   // Fetch store details
   const { data: store, isLoading: storeLoading } = useQuery({
@@ -32,53 +32,58 @@ export default function ShopDetails() {
   });
 
   const reviewsArray = reviews?.results ?? [];
-  
+  const storeId = Number(id);
 
   return (
     <ScreenWrapper>
-      <HeaderWithSearchInput label="Closest shops" />
+      <HeaderWithSearchInput label="Shop Details" />
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 20 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {storeLoading && (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#000" />
-          </View>
-        )}
-        <Image source={ShopBanner} alt="banner" />
-
-        <View className="bg-white py-[24px] px-[10px] mt-[18px] mx-[15px] rounded-[4px] ">
-          <TabSwitcher
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            tabs={["About store", "Customer feedback"]}
+      {storeLoading ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      ) : (
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 20 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <Image
+            source={{ uri: image }}
+            alt="banner"
+            className="w-full h-[112px] mt-[14px] "
           />
 
-          {activeTab === "About store" && (
-            <UrbanistText className="text-[#808080] text-[14px] leading-[21px] mt-[16px] mx-[23.5px]">
-              {store?.store_description || "No description available."}
-            </UrbanistText>
-          )}
+          <View className="bg-white py-[24px] px-[10px] mt-[18px] mx-[15px] rounded-[4px] ">
+            <TabSwitcher
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              tabs={["About store", "Customer feedback"]}
+            />
 
-          {activeTab === "Customer feedback" && (
-            <View className="mt-[16px]">
-              {reviewsLoading ? (
-                <ActivityIndicator size="small" color="#000" />
-              ) : (
-                <CustomerFeedback feedback={reviewsArray || []} />
-              )}
+            {activeTab === "About store" && (
+              <UrbanistText className="text-[#808080] text-[14px] leading-[21px] mt-[16px] mx-[23.5px]">
+                {store?.store_description || "No description available."}
+              </UrbanistText>
+            )}
+
+            {activeTab === "Customer feedback" && (
+              <View className="mt-[16px]">
+                {reviewsLoading ? (
+                  <ActivityIndicator size="small" color="#000" />
+                ) : (
+                  <CustomerFeedback feedback={reviewsArray || []} />
+                )}
+              </View>
+            )}
+          </View>
+
+          {activeTab === "About store" && (
+            <View className="mx-[21px]">
+              <AboutStore id={storeId} image={image} />
             </View>
           )}
-        </View>
-
-        {activeTab === "About store" && (
-          <View className="mx-[21px]">
-            <AboutStore id={id} />
-          </View>
-        )}
-      </ScrollView>
+        </ScrollView>
+      )}
     </ScreenWrapper>
   );
 }

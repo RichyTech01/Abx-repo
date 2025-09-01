@@ -231,6 +231,14 @@ export default function ProductDetails() {
         setValue={setShowModal}
         data={(productData?.variations ?? []) as ProductVariation[]}
         loading={isLoading}
+        isOpen={
+          productData
+            ? isStoreOpen(
+                productData.store.open_time,
+                productData.store.close_time
+              )
+            : false
+        }
       />
     </SafeAreaView>
   );

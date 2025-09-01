@@ -13,6 +13,7 @@ import CategoryProduct from "@/common/CategoryProduct";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import StoreApi from "@/api/StoreApi";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
+import { isStoreOpen } from "@/utils/storeStatus";
 
 export default function CategoryDetails() {
   const router = useRouter();
@@ -107,8 +108,8 @@ export default function CategoryDetails() {
                     pathname: "/Screens/ProductDetails",
                     params: { id: item.id },
                   })
-                } 
-                onAddToCart={() => handleAddToCart(item.id)} 
+                }
+                onAddToCart={() => handleAddToCart(item.id)}
               />
             </View>
           )}
@@ -121,6 +122,14 @@ export default function CategoryDetails() {
         setValue={setModalVisible}
         loading={productLoading}
         data={productDetails?.variations ?? []}
+        isOpen={
+          productDetails?.store
+            ? isStoreOpen(
+                productDetails.store.open_time,
+                productDetails.store.close_time
+              )
+            : false
+        }
       />
     </SafeAreaView>
   );

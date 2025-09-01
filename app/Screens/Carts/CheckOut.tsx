@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { useState, useEffect } from "react";
 import Header from "@/common/Header";
-import { useLocalSearchParams } from "expo-router";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
 import Button from "@/common/Button";
@@ -16,6 +15,7 @@ import AddDeliveryAddressModal from "@/Modals/AddDeliveryAddressModal";
 import OrderSummaryCartItem from "@/common/OrderSummaryCartItem";
 import { useUserStore } from "@/store/useUserStore";
 import { Address } from "@/types/carts";
+import showToast from "@/utils/showToast";
 import OrderApi from "@/api/OrderApi";
 
 export default function CheckOut() {
@@ -26,6 +26,21 @@ export default function CheckOut() {
   const [loadingAddresses, setLoadingAddresses] = useState(true);
 
   const { user, fetchUser } = useUserStore();
+
+  const fetchAddress = async () => {
+    try {
+      const data = await OrderApi.getMyAddress();
+      setAddress(data);
+      console.log("Address fetched:", data);
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        console.warn("No address found for user. Please add one.");
+        setAddress(null);
+      } else {
+        console.error("Failed to fetch address:", err);
+      }
+    }
+  };
 
   useEffect(() => {
     const Checkout = async () => {
@@ -38,29 +53,51 @@ export default function CheckOut() {
     };
     Checkout();
     if (!user) fetchUser();
-  }, []);
-
-  useEffect(() => {
-    const fetchAddress = async () => {
-      try {
-        const data = await OrderApi.getMyAddress();
-        setAddress(data);
-        console.log("adress",data);
-      } catch (err) {
-        console.error("Failed to fetch address:", err);
-      }
-    };
-
     fetchAddress();
   }, []);
 
   const handlePayment = async () => {
+    if (!address) {
+      showToast(
+        "error",
+        "Please select or add a delivery address before paying."
+      );
+      return;
+    }
+
+    if (!cartDetails?.grand_total) {
+      showToast("error", "Cart total not found.");
+      return;
+    }
+
     try {
       setLoadingPayment(true);
-      const res = await OrderApi.initiatePayment();
+
+      const res = await OrderApi.initiatePayment({
+        total_price: cartDetails?.grand_total,
+      });
+
       console.log("Payment response:", res);
-      Alert.alert("Success", "Payment initiated successfully.");
-    } catch (error: any) {
+      const clientSecret = res.client_secret;
+
+      if (!clientSecret) {
+        showToast(
+          "error",
+          "Payment initiation failed: no client secret returned."
+        );
+        return;
+      }
+
+      Alert.alert(
+        "Success",
+        "Payment initiated successfully. Check console for client secret."
+      );
+    } catch (err: any) {
+      console.error("Payment initiation error:", err.response?.data || err);
+      showToast(
+        "error",
+        err.response?.data?.message || "Payment initiation failed."
+      );
     } finally {
       setLoadingPayment(false);
     }

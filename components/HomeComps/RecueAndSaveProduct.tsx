@@ -14,6 +14,7 @@ import StoreApi from "@/api/StoreApi";
 import { Product, ProductVariation } from "@/types/store";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import showToast from "@/utils/showToast";
+import { isStoreOpen } from "@/utils/storeStatus";
 
 export default function RescueAndSaveProduct() {
   const router = useRouter();
@@ -107,6 +108,14 @@ export default function RescueAndSaveProduct() {
         setValue={setModalVisible}
         data={(productDetails?.variations ?? []) as ProductVariation[]}
         loading={isProductLoading}
+        isOpen={
+          productDetails
+            ? isStoreOpen(
+                productDetails.store.open_time,
+                productDetails.store.close_time
+              )
+            : false
+        }
       />
     </View>
   );

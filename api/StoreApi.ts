@@ -4,7 +4,8 @@ import {
   Product,
   TopRatedStoresResponse,
   StoreDetails,
-  StoreProductProps
+  StoreProductProps, 
+  ShopProductType
 } from "@/types/store";
 
 
@@ -12,8 +13,7 @@ import {
 class StoreApi {
   private client = ApiService.getClient();
 
-  //  Retrieve a specific store with its published products
-  public async getStoreWithProducts(id: number): Promise<Store> {
+  public async getStoreWithProducts(id: number): Promise<StoreProductProps> {
     const res = await this.client.get<Store>(`/store/${id}/products`);
      return res.data;
   }

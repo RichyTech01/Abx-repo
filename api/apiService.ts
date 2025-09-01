@@ -21,11 +21,11 @@ class ApiService {
         const cartId = await AsyncStorage.getItem("cartId");
 
         if (accessToken) {
-          config.headers.set("Authorization", `Bearer ${accessToken}`);
+          config.headers["Authorization"] = `Bearer ${accessToken}`;
         }
 
         if (cartId) {
-          config.headers.set("X-Cart-ID", cartId);
+          config.headers["X-Cart-ID"] = cartId;
         }
 
         return config;

@@ -1,6 +1,5 @@
 
 
-// Frontend types
 export interface CartItem {
   id: number;
   product_id: number;

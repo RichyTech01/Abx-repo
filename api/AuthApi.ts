@@ -40,12 +40,26 @@ class AuthApi {
   }
 
   // Change password
+  // public async changePassword(data: {
+  //   current_password: string;
+  //   new_password: string;
+  // }) {
+  //   const res = await this.client.put("/auth/change-password", data);
+  //   return res.data;
+  // }
+
   public async changePassword(data: {
     current_password: string;
     new_password: string;
+    confirm_new_password: string;
   }) {
-    const res = await this.client.put("/auth/change-password", data);
-    return res.data;
+    try {
+      const res = await this.client.patch("/auth/change-password", data);
+      return res.data;
+    } catch (error: any) {
+      console.error("Change password error:", error.response || error.message);
+      throw error;
+    }
   }
 
   // Forgot password

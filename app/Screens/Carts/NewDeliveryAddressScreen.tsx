@@ -10,13 +10,16 @@ import { useState } from "react";
 import Header from "@/common/Header";
 import CustomTextInput from "@/common/CustomTextInput";
 import OreAppText from "@/common/OreApptext";
+import { useNavigation } from "@react-navigation/native";
 import Button from "@/common/Button";
 import Toggle from "@/common/Toggle";
 import CustomPhoneInput from "@/common/PhoneNumberInput";
 import OrderApi from "@/api/OrderApi";
 import showToast from "@/utils/showToast";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 export default function NewDeliveryAddressScreen() {
+  const navigaion = useNavigation();
   const [is_guest, setIs_Guest] = useState(false);
   const [fullName, setFullName] = useState("");
   const [rawPhoneNumber, setRawPhoneNumber] = useState("");
@@ -25,48 +28,65 @@ export default function NewDeliveryAddressScreen() {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const statusBarHeight =
-    Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0;
-
   const handleAddAddress = async () => {
-    if (is_guest && !fullName) {
-      Alert.alert("Error", "Please enter recipient's full name");
-      return;
+    if (is_guest) {
+      if (!fullName) {
+        showToast("error", "Please enter recipient's full name");
+        return;
+      }
+      if (!rawPhoneNumber) {
+        showToast("error", "Please enter recipient's phone number");
+        return;
+      }
     }
+
     if (!postCode || !city || !address) {
-      Alert.alert("Error", "Please fill in all required fields");
+      showToast("error", "Please fill in all required fields");
       return;
     }
 
-    const payload = {
+    const payload: any = {
       addr: address,
       post_code: postCode,
       city,
-      is_guest,
-      full_name: is_guest ? fullName : undefined,
     };
+
+    if (is_guest) {
+      payload.is_guest = true;
+      payload.full_name = fullName;
+      payload.phone = rawPhoneNumber;
+    }
 
     try {
       setLoading(true);
+
       const res = await OrderApi.addAddress(payload);
+      navigaion.goBack();
       showToast("success", "Address added successfully");
+
       setFullName("");
       setRawPhoneNumber("");
       setPostCode("");
       setCity("");
       setAddress("");
       setIs_Guest(false);
+
+      return res;
     } catch (err: any) {
-      console.log(err);
-      showToast("error", err.response?.data?.message || "Something went wrong");
+      console.log("Add address error:", err.response?.data || err);
+      showToast(
+        "error",
+        err.response?.data?.message ||
+          "Something went wrong while adding address"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FFF6F2]">
-      <View style={{ paddingTop: statusBarHeight }}>
+    <ScreenWrapper>
+      <View>
         <Header title="New delivery address" />
       </View>
 
@@ -133,6 +153,6 @@ export default function NewDeliveryAddressScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

@@ -1,5 +1,5 @@
 import ApiService from "./apiService";
-import {  ChangeOrderStatus } from "@/types/Order";
+import { ChangeOrderStatus } from "@/types/Order";
 import { CartItemsType } from "@/types/carts";
 // import { Cart } from "@/types/carts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -25,8 +25,9 @@ export interface AddressResponse {
 class OrderApi {
   private client = ApiService.getClient();
 
-  // ✅ Add item to cart - Accepts product_id as per backend requirement
-  public async addToCart(payload: { product_id: number }): Promise<CartItemsType> {
+  public async addToCart(payload: {
+    product_id: number;
+  }): Promise<CartItemsType> {
     const res = await this.client.post("/order/add-to-cart", payload);
 
     if (res.data.cart_id) {
@@ -61,7 +62,7 @@ class OrderApi {
   // ✅ Checkout (get summary)
   public async checkout(): Promise<any> {
     try {
-      const res = await this.client.get("/order/checkout"); // or get, depending on API
+      const res = await this.client.get("/order/checkout");
       return res.data;
     } catch (error) {
       console.error("Checkout error:", error);
@@ -72,7 +73,7 @@ class OrderApi {
   public async getMyAddress(): Promise<any> {
     try {
       const res = await this.client.get("/customer/my-address");
-      return res.data; 
+      return res.data;
     } catch (error: any) {
       console.error(
         "Error fetching user address:",
@@ -81,18 +82,20 @@ class OrderApi {
       throw error;
     }
   }
-   
-  public async addAddress(payload: AddAddressPayload): Promise<AddressResponse> {
+
+  public async addAddress(
+    payload: AddAddressPayload
+  ): Promise<AddressResponse> {
     const res = await this.client.post("/customer/add-address", payload);
     return res.data;
   }
 
-  public async initiatePayment(): Promise<any> {
+  public async initiatePayment(payload: { total_price: number }): Promise<any> {
     try {
-      const res = await this.client.post("/payment/initiate-payment");
+      const res = await this.client.post("/payment/initiate-payment", payload);
       return res.data;
-    } catch (error) {
-      console.error("Initiate payment error:", error);
+    } catch (error: any) {
+      console.error("Initiate payment error:", error.response?.data || error);
       throw error;
     }
   }
