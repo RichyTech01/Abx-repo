@@ -5,6 +5,7 @@ import OreAppText from "@/common/OreApptext";
 import OrderDetails from "./OrderDetails";
 
 export default function AllOrders() {
+    
   const [orderDetails, setOrderDetails] = useState(false);
   const sections = [
     {
