@@ -3,12 +3,13 @@ import { ChangeOrderStatus } from "@/types/Order";
 import { CartItemsType } from "@/types/carts";
 // import { Cart } from "@/types/carts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { OrdersResponse } from "@/types/Order";
 
 export interface AddAddressPayload {
   addr: string;
   post_code: string;
   city: string;
-  is_guest: boolean;
+  is_guest?: boolean;
   full_name?: string; // required if the API complains like in your 400 example
 }
 
@@ -114,6 +115,16 @@ class OrderApi {
     payload: Partial<ChangeOrderStatus>
   ): Promise<ChangeOrderStatus> {
     const res = await this.client.patch(`/order/${id}/change-status`, payload);
+    return res.data;
+  }
+
+  public async getCustomerOrders(payload?: {
+    is_completed?: boolean;
+    page?: number;
+  }): Promise<OrdersResponse> {
+    const res = await this.client.get<OrdersResponse>("/customer/orders", {
+      params: payload,
+    });
     return res.data;
   }
 }

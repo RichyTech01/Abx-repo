@@ -52,7 +52,13 @@ export default function Home() {
         )}
 
         <View className="flex-row items-center gap-[20px]">
-          <NotificationIcon />
+          <Pressable
+            onPress={() =>
+              router.push("/Screens/HomeScreen/NotificationScreen")
+            }
+          >
+            <NotificationIcon />
+          </Pressable>
           <Pressable
             className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center"
             onPress={() => router.push("/Carts")}

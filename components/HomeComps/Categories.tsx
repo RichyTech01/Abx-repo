@@ -44,7 +44,7 @@ export default function Categories() {
     <View>
       <SectionHeader
         title="Categories"
-        onPress={() => router.push("/Screens/AllcateGories")}
+        onPress={() => router.push("/Screens/HomeScreen/AllcateGories")}
       />
 
       {loading ? (
@@ -69,7 +69,7 @@ export default function Categories() {
               image={{ uri: item.img }}
               onPress={() =>
                 router.push({
-                  pathname: "/Screens/CategoryDetails",
+                  pathname: "/Screens/HomeScreen/CategoryDetails",
                   params: { category: item.name },
                 })
               }

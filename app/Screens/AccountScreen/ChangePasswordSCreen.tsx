@@ -15,8 +15,10 @@ export default function ChangePasswordScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const disable = !currentPassword || !newPassword || !confirmPassword
+
   const handleSave = async () => {
-    if (newPassword !== confirmPassword) {
+    if (newPassword !== confirmPassword ) {
       showToast("error", "New passwords do not match!");
       return;
     }
@@ -82,6 +84,7 @@ export default function ChangePasswordScreen() {
               paddingVertical={10}
               borderWidth={0}
               loading={loading}
+              disabled={disable}
             />
           </View>
         </View>

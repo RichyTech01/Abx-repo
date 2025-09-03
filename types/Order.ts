@@ -23,3 +23,23 @@ export interface ChangeOrderStatus {
 }
 
 
+
+// types/Order.ts
+export interface OrderType {
+  id: string;
+  customer_names: string;
+  order_code: string;
+  store_code: string;
+  total_items: string;
+  store_total_price: string;
+  status: string;
+  created_at: string;
+  grand_total: string;
+}
+
+export interface OrdersResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: OrderType[];
+}

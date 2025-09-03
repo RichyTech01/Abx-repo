@@ -41,7 +41,7 @@ const ShopCard: React.FC<ShopCardProps> = ({
       style={{ width: width || "100%" }}
       onPress={() =>
         router.push({
-          pathname: "/Screens/ShopDetails",
+          pathname: "/Screens/HomeScreen/ShopDetails",
           params: { id: shop.id, image: shop.image },
         })
       }

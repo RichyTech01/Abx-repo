@@ -9,9 +9,7 @@ import AboutStore from "@/components/ShopDetailsComps/AboutStore";
 import CustomerFeedback from "@/components/ShopDetailsComps/CustomerFeedback";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import StoreApi from "@/api/StoreApi";
-import { isStoreOpen } from "@/utils/storeStatus";
 
-const ShopBanner = require("../../assets/Images/Frame 1000008001.png");
 
 export default function ShopDetails() {
   const [activeTab, setActiveTab] = useState<string>("About store");

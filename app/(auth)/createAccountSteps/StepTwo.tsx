@@ -76,7 +76,6 @@ export default function StepTwo({
           placeholder="Type your post code"
           value={formData.user_address.post_code}
           onChangeText={(text) => {
-            // Limit postcode to 10 characters
             const limitedText = text.substring(0, 10);
             setFormData({
               ...formData,

@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Text,
   Modal,
   Pressable,
   View,
@@ -29,6 +28,7 @@ export default function EditProfileModals({
   onClose,
   user,
 }: EditProfileModalsProps) {
+  
   const [fullName, setFullName] = useState(
     `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()
   );

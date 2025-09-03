@@ -105,7 +105,7 @@ export default function CategoryDetails() {
                 rating={2}
                 onPress={() =>
                   router.push({
-                    pathname: "/Screens/ProductDetails",
+                    pathname: "/Screens/HomeScreen/ProductDetails",
                     params: { id: item.id },
                   })
                 }

@@ -40,7 +40,7 @@ export default function TopratedShops() {
     <View className=" ">
       <SectionHeader
         title="Top Rated Shops"
-        onPress={() => router.push("/Screens/AllTopRatedStores")}
+        onPress={() => router.push("/Screens/HomeScreen/AllTopRatedStores")}
       />
 
       {isLoading ? (

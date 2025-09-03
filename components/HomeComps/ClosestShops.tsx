@@ -91,7 +91,7 @@ export default function ClosestShops() {
     <View>
       <SectionHeader
         title="Closest shops"
-        onPress={() => router.push("/Screens/AllClosestShops")}
+        onPress={() => router.push("/Screens/HomeScreen/AllClosestShops")}
       />
       {content}
     </View>

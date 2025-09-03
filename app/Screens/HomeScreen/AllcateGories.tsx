@@ -98,7 +98,7 @@ export default function AllCategories() {
                   paddingY={10}
                   onPress={() =>
                     router.push({
-                      pathname: "/Screens/CategoryDetails",
+                      pathname: "/Screens/HomeScreen/CategoryDetails",
                       params: { category: item.name },
                     })
                   }

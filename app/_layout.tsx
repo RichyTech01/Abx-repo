@@ -9,7 +9,9 @@ import {
   Urbanist_600SemiBold,
   Urbanist_700Bold,
 } from "@expo-google-fonts/urbanist";
-import { BaseToast, ErrorToast } from "react-native-toast-message";
+import {
+  Inter_400Regular,
+} from "@expo-google-fonts/inter";
 
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -32,6 +34,7 @@ export default function RootLayout() {
     UrbanistMedium: Urbanist_500Medium,
     UrbanistSemiBold: Urbanist_600SemiBold,
     UrbanistBold: Urbanist_700Bold,
+    InterRegular: Inter_400Regular,
   });
 
   useEffect(() => {

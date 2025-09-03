@@ -73,7 +73,7 @@ export default function ProductCard({
       {/* Product Image */}
       <Pressable
         className="mx-auto pt-[18px] pb-[13px] w-full "
-        onPress={() => router.push(`/Screens/ProductDetails?id=${productId}`)}
+        onPress={() => router.push(`/Screens/HomeScreen/ProductDetails?id=${productId}`)}
       >
         <Image
           source={ProductImg}

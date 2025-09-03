@@ -4,9 +4,9 @@ import {
   ScrollView,
   StatusBar,
   Platform,
-  Alert,
 } from "react-native";
 import { useState, useEffect } from "react";
+import { CardField, useConfirmPayment } from "@stripe/stripe-react-native";
 import Header from "@/common/Header";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
@@ -20,12 +20,16 @@ import OrderApi from "@/api/OrderApi";
 
 export default function CheckOut() {
   const [showModal, setShowModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [cartDetails, setCartDetails] = useState<any>(null);
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [address, setAddress] = useState<Address | null>(null);
-  const [loadingAddresses, setLoadingAddresses] = useState(true);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [cardDetails, setCardDetails] = useState<any>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   const { user, fetchUser } = useUserStore();
+  const { confirmPayment } = useConfirmPayment();
 
   const fetchAddress = async () => {
     try {
@@ -56,7 +60,7 @@ export default function CheckOut() {
     fetchAddress();
   }, []);
 
-  const handlePayment = async () => {
+  const initiatePaymentFlow = async () => {
     if (!address) {
       showToast(
         "error",
@@ -87,16 +91,61 @@ export default function CheckOut() {
         return;
       }
 
-      showToast(
-        "success",
-        "Payment initiated successfully. Check console for client secret."
-      );
+      // Store client secret and show payment modal
+      setClientSecret(clientSecret);
+      setShowPaymentModal(true);
+      showToast("success", "Payment initiated. Please enter your card details.");
+
     } catch (err: any) {
       console.error("Payment initiation error:", err.response?.data || err);
       showToast(
         "error",
         err.response?.data?.message || "Payment initiation failed."
       );
+    } finally {
+      setLoadingPayment(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!cardDetails?.complete) {
+      showToast("error", "Please enter complete card details.");
+      return;
+    }
+    if (!clientSecret) {
+      showToast("error", "Payment session expired. Please try again.");
+      return;
+    }
+
+    try {
+      setLoadingPayment(true);
+
+      // Process payment with Stripe
+      const { error, paymentIntent } = await confirmPayment(clientSecret, {
+        paymentMethodType: 'Card',
+        paymentMethodData: {
+          billingDetails: {
+            email: user?.email,
+            name: `${user?.first_name} ${user?.last_name}`,
+          },
+        },
+      });
+
+      if (error) {
+        console.error('Payment failed:', error);
+        showToast("error", error.message || "Payment failed.");
+      } else {
+        console.log('Payment succeeded:', paymentIntent);
+        showToast("success", "Payment completed successfully!");
+        setShowPaymentModal(false);
+        setClientSecret(null);
+        setCardDetails(null);
+        // Navigate to success screen or handle success
+      }
+
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      showToast("error", "Payment processing failed.");
     } finally {
       setLoadingPayment(false);
     }
@@ -162,6 +211,60 @@ export default function CheckOut() {
           </View>
         </View>
 
+        {/* Payment Method - Only show after initiating payment */}
+        {showPaymentModal && (
+          <View className="py-[19px] bg-white px-[17px] mt-[16px] mx-[16px] rounded-[4.68px] border border-[#F1EAE7]">
+            <OreAppText className="text-[14px] leading-[18px] text-[#424242] mb-[16px]">
+              Payment Method
+            </OreAppText>
+            
+            {/* Stripe Card Field - Pre-styled by Stripe */}
+            <CardField
+              postalCodeEnabled={true}
+              placeholders={{
+                number: '4242 4242 4242 4242',
+              }}
+              style={{
+                width: '100%',
+                height: 50,
+                marginVertical: 8,
+              }}
+              onCardChange={(details) => {
+                setCardDetails(details);
+                console.log('Card details:', details);
+              }}
+              onFocus={(focusedField) => {
+                console.log('Focused field:', focusedField);
+              }}
+            />
+
+            {/* Payment Actions */}
+            <View className="mt-[16px] flex-row gap-[8px]">
+              <View className="flex-1">
+                <Button
+                  title="Cancel"
+                  variant="outline"
+                  textColor="#666"
+                  borderColor="#DDD"
+                  onPress={() => {
+                    setShowPaymentModal(false);
+                    setClientSecret(null);
+                    setCardDetails(null);
+                  }}
+                />
+              </View>
+              <View className="flex-1">
+                <Button
+                  title="Complete Payment"
+                  onPress={handlePayment}
+                  disabled={loadingPayment || !cardDetails?.complete}
+                  loading={loadingPayment}
+                />
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Order Summary */}
         <View className="py-[16px] px-[8px] rounded-[8px] mt-[8px] mx-[16px] bg-white">
           <OreAppText className="text-[16px] leading-[17.14px] text-[#1A1A1A] mx-auto">
@@ -222,15 +325,18 @@ export default function CheckOut() {
           </View>
 
           <View className="mt-[32px] mx-[10px]">
-            <Button
-              title={"Make payment"}
-              onPress={handlePayment}
-              disabled={loadingPayment}
-              loading={loadingPayment}
-            />
+            {!showPaymentModal ? (
+              <Button
+                title={"Proceed to Payment"}
+                onPress={initiatePaymentFlow}
+                disabled={loadingPayment}
+                loading={loadingPayment}
+              />
+            ) : null}
           </View>
         </View>
       </ScrollView>
+      
       {showModal && (
         <AddDeliveryAddressModal
           onClose={() => setShowModal(false)}
@@ -238,5 +344,4 @@ export default function CheckOut() {
         />
       )}
     </SafeAreaView>
-  );
-}
+  );}

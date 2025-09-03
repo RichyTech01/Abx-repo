@@ -15,9 +15,13 @@ import EmptyyImg from "@/assets/svgs/EmptyStoreImg.svg";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
 import Button from "@/common/Button";
+import NoData from "@/common/NoData";
+import { focusManager } from "@tanstack/react-query";
+import { useNavigation } from "@react-navigation/native";
 
 export default function FavouriteStore() {
   const router = useRouter();
+  const navigation =useNavigation()
   const queryClient = useQueryClient();
 
   const { data: shops = [], isLoading } = useQuery<Shop[]>({
@@ -35,6 +39,7 @@ export default function FavouriteStore() {
         isFavorite: store.is_favorited ?? true,
       }));
     },
+    
   });
 
   const favoriteMutation = useMutation({
@@ -65,26 +70,12 @@ export default function FavouriteStore() {
             paddingVertical: 20,
           }}
         >
-          <View className="bg-white rounded-[8px] mx-[20px] py-[50px] px-[32px]  items-center ">
-            <View className="items-center">
-              <EmptyyImg />
-              <OreAppText className="text-[#121212] text-[16px] leading-[20px] mt-[18px] ">
-                No favorite stores
-              </OreAppText>
-            </View>
-            <UrbanistText className="text-[#2C2C2C] text-[12px] leading-[16px] text-center mt-[16px] ">
-              Looks like you don&apos;t have any favorite stores yet—no worries,
-              Start browsing and find a store you&apos;ll love. We&apos;ve got
-              plenty of great stores waiting for you!
-            </UrbanistText>
-
-            <View className="mt-[24px] ">
-              <Button
-                title="Explore ABX stores"
-                onPress={() => router.push("/Screens/AllTopRatedStores")}
-              />
-            </View>
-          </View>
+          <NoData
+            title="No favorite stores"
+            subtitle="Looks like you don't have any favorite stores yet—no worries, Start browsing and find a store you'll love. We've got plenty of great stores waiting for you! "
+            buttonTitle="Explore ABX stores"
+            onButtonPress={() => {navigation.goBack(); router.push("/Screens/AccountScreen/AllStore")}}
+          />
         </ScrollView>
       ) : (
         <ScrollView
