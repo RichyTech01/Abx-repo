@@ -30,7 +30,7 @@ export default function Transactioncard({TotalAmount, DatePlaced, OrderNumber }:
         <Text className="text-[14px] leading-[20px] font-urbanist-medium text-[#111827]   ">
           Total amount
         </Text>
-        <Text className="text-[12px] leading-[16px] font-bold text-[#111827]  ">
+        <Text className="text-[12px] leading-[16px] font-urbanist-bold text-[#111827]  ">
           £{TotalAmount}
         </Text>
       </View>

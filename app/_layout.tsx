@@ -9,9 +9,13 @@ import {
   Urbanist_600SemiBold,
   Urbanist_700Bold,
 } from "@expo-google-fonts/urbanist";
+import { Inter_400Regular } from "@expo-google-fonts/inter";
 import {
-  Inter_400Regular,
-} from "@expo-google-fonts/inter";
+  Manrope_400Regular,
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+} from "@expo-google-fonts/manrope";
 
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -35,6 +39,7 @@ export default function RootLayout() {
     UrbanistSemiBold: Urbanist_600SemiBold,
     UrbanistBold: Urbanist_700Bold,
     InterRegular: Inter_400Regular,
+    ManropeSemiBold: Manrope_600SemiBold,
   });
 
   useEffect(() => {

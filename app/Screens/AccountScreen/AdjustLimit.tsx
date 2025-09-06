@@ -10,7 +10,7 @@ import SetBillingCycleModal from "@/Modals/SetBillingCycleModal";
 
 export default function AdjustLimit() {
   const [amount, setAmount] = useState("1,500");
-  const [ShowModal, setShowModal] = useState(true);
+  const [ShowModal, setShowModal] = useState(false);
 
   return (
     <ScreenWrapper>
