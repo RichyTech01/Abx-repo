@@ -10,7 +10,7 @@ export interface AddAddressPayload {
   post_code: string;
   city: string;
   is_guest?: boolean;
-  full_name?: string; // required if the API complains like in your 400 example
+  full_name?: string;
 }
 
 export interface AddressResponse {
@@ -118,14 +118,42 @@ class OrderApi {
     return res.data;
   }
 
-  public async getCustomerOrders(payload?: {
+  public async getCustomerOrders(params?: {
     is_completed?: boolean;
     page?: number;
-  }): Promise<OrdersResponse> {
-    const res = await this.client.get<OrdersResponse>("/customer/orders", {
-      params: payload,
-    });
-    return res.data;
+  }) {
+    try {
+      const res = await this.client.get("/customer/orders", {
+        params,
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Failed to fetch customer orders:", error);
+      throw error;
+    }
+  }
+
+  public async getCustomerOrderById(id: string) {
+    try {
+      const res = await this.client.get(`/customer/orders/${id}`);
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to fetch customer order with id ${id}:`, error);
+      throw error;
+    }
+  }
+  
+  // Inside your OrderApi or CustomerApi class
+  public async completeCustomerOrder(orderId: string) {
+    try {
+      const res = await this.client.patch(
+        `/customer/orders/${orderId}/complete`
+      );
+      return res.data; 
+    } catch (error) {
+      console.error(`Failed to complete order ${orderId}:`, error);
+      throw error;
+    }
   }
 }
 

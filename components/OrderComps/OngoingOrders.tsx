@@ -1,47 +1,96 @@
-import { View, FlatList } from "react-native";
-import React from "react";
+import { FlatList, View, Text } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
 import OrderCard from "@/common/OrderCard";
+import OrderApi from "@/api/OrderApi";
+import dayjs from "dayjs";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
+import OrderDetails from "./OrderDetails";
+
+type OrderStatus = "processing" | "delivered";
+
+type Order = {
+  id: string;
+  order_code: string;
+  created_at: string;
+  store_total_price: string; 
+  is_order_fulfilled: boolean;
+  status: OrderStatus;
+};
 
 export default function OngoingOrders() {
-  // Example ongoing orders (processing / shipped only)
-  const ongoingOrders = [
-    {
-      orderNumber: "WU99001111",
-      datePlaced: "Jul 6, 2025",
-      totalAmount: "£75.00",
-      status: "processing",
-    },
-    {
-      orderNumber: "WU99002222",
-      datePlaced: "Jul 5, 2025",
-      totalAmount: "£180.00",
-      status: "shipped",
-    },
-    {
-      orderNumber: "WU99003333",
-      datePlaced: "Jul 4, 2025",
-      totalAmount: "£210.00",
-      status: "shipped",
-    },
-   
-  ];
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
+  const fetchOngoingOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await OrderApi.getCustomerOrders();
+      const allOrders: Order[] = res.results || [];
+
+      //  Convert API into "processing" or "delivered"
+      const ongoing: Order[] = allOrders
+        .map((order) => ({
+          ...order,
+          status: order.is_order_fulfilled
+            ? ("delivered" as OrderStatus)
+            : ("processing" as OrderStatus),
+        }))
+        .filter((order) => order.status === "processing"); 
+      console.log("Orders received:", allOrders);
+      console.log("Ongoing after filter:", ongoing);
+
+      setOrders(ongoing);
+    } catch (err) {
+      console.error("Failed to fetch ongoing orders:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOngoingOrders();
+  }, [fetchOngoingOrders]);
+
+  if (loading) {
+    return (
+      <View className="py-10">
+        <LoadingSpinner />
+      </View>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <Text className="text-center mt-10 text-gray-500">No ongoing orders</Text>
+    );
+  }
 
   return (
-    <FlatList
-      data={ongoingOrders}
-      keyExtractor={(item) => item.orderNumber}
-      renderItem={({ item }) => (
-        <OrderCard
-          orderNumber={item.orderNumber}
-          datePlaced={item.datePlaced}
-          totalAmount={item.totalAmount}
-          status={item.status as "processing" | "shipped"}
+    <View className="mt-[8%]">
+      {selectedOrderId ? (
+        <OrderDetails
+          orderId={selectedOrderId}
+          onBack={() => setSelectedOrderId(null)}
+        />
+      ) : (
+        <FlatList
+          data={orders}
+          keyExtractor={(item) => String(item.id)} 
+          renderItem={({ item }) => (
+            <OrderCard
+              orderNumber={item.order_code}
+              datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
+              totalAmount={`£${item.store_total_price}`}
+              status={item.is_order_fulfilled ? "delivered" : "processing"}
+              onPressDetail={() => setSelectedOrderId(item.id)}
+            />
+          )}
+          contentContainerStyle={{ gap: 8, paddingBottom: 310 }}
+          showsVerticalScrollIndicator={false}
+          overScrollMode="never"
         />
       )}
-      contentContainerStyle={{ gap: 8, paddingBottom: 310, marginTop:"8%" }}
-      showsVerticalScrollIndicator={false}
-      overScrollMode="never"
-    />
+    </View>
   );
 }

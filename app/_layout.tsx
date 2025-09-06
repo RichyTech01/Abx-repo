@@ -48,7 +48,7 @@ export default function RootLayout() {
   }
 
   return (
-    <StripeProvider publishableKey="pk_test_51S2NU69eKwZ7DcZQKtLBxcneVLO0uXjx14Z12e14fxaDNCXmpblZR0lw7POuU7OHfENGFU3Bw0EdRwncVCj9Licz008vT7bH2E">
+    <StripeProvider publishableKey="pk_test_51RARqlRueoJLqZydZsbUAZa0wbo6okPcMTKWWKIVgRYTH1wHSSmC3GChQf2oInN5bbKo4LeXtXITxIUmT36tTa8v00Fy0PMDMN">
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
           <StatusBar style="dark" backgroundColor="#fff" />

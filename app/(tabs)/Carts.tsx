@@ -23,7 +23,7 @@ export default function Carts() {
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
-   useFocusEffect(
+  useFocusEffect(
     useCallback(() => {
       fetchCart();
     }, [])
@@ -33,9 +33,11 @@ export default function Carts() {
     try {
       setLoading(true);
       const res = await OrderApi.getCart();
+
       setCartItems(res.cart?.items || []);
     } catch (err) {
       console.error("Failed to fetch cart:", err);
+      setCartItems([]);
     } finally {
       setLoading(false);
     }

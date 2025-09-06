@@ -1,82 +1,103 @@
-import { View, Text, SectionList } from "react-native";
-import React from "react";
+import { View, SectionList,  } from "react-native";
+import React, { useEffect, useState, useMemo } from "react";
 import OrderCard from "@/common/OrderCard";
 import OreAppText from "@/common/OreApptext";
+import OrderApi from "@/api/OrderApi";
+import { groupOrdersByDate, Order, Section } from "@/utils/groupOrdersByDate";
+import OrderDetails from "./OrderDetails";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
+import NoData from "@/common/NoData";
+import { useRouter } from "expo-router";
 
 export default function CompletedOrders() {
-  const sections = [
-    {
-      title: "Jul 6, 2025",
-      data: [
-        {
-          orderNumber: "WU88191111",
-          datePlaced: "Jul 6, 2025",
-          totalAmount: "£160.00",
+  const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const res = await OrderApi.getCustomerOrders({ is_completed: true });
+
+        const mapped: Order[] = res.results.map((o: any) => ({
+          ...o,
           status: "delivered",
-        },
-        {
-          orderNumber: "WU88192222",
-          datePlaced: "Jul 6, 2025",
-          totalAmount: "£200.00",
-          status: "delivered",
-        },
-      ],
-    },
-    {
-      title: "Jul 3, 2025",
-      data: [
-        {
-          orderNumber: "WU88193333",
-          datePlaced: "Jul 3, 2025",
-          totalAmount: "£80.00",
-          status: "delivered",
-        },
-      ],
-    },
-    {
-      title: "Jun 28, 2025",
-      data: [
-        {
-          orderNumber: "WU88194444",
-          datePlaced: "Jun 28, 2025",
-          totalAmount: "£120.00",
-          status: "delivered",
-        },
-      ],
-    },
-  ];
+        }));
+
+        setOrders(mapped);
+      } catch (err) {
+        console.error("Error fetching completed orders", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  const sections: Section[] = useMemo(
+    () => groupOrdersByDate(orders),
+    [orders]
+  );
+
+  if (loading) {
+    return (
+      <View className=" justify-center items-center py-10">
+        <LoadingSpinner />
+      </View>
+    );
+  }
+
+  if (sections.every((s) => s.data.length === 0)) {
+    return (
+      <View className="justify-center items-center mt-[20%]">
+        <NoData
+          title="No order history"
+          buttonTitle="Start shopping"
+          onButtonPress={() => router.push("/Screens/AccountScreen/AllStore")}
+          subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
+        />
+      </View>
+    );
+  }
 
   return (
-    <View className="mt-[8%]  ">
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.orderNumber}
-        renderItem={({ item }) => (
-          <View className="mt-[8px]">
-            <OrderCard
-              orderNumber={item.orderNumber}
-              datePlaced={item.datePlaced}
-              totalAmount={item.totalAmount}
-              status={item.status as "processing" | "shipped" | "delivered"}
-              onPressDetail={() => console.log("Go to details")}
-            />
-          </View>
-        )}
-        renderSectionHeader={({ section: { title } }) => (
-          <View
-            className="mt-[20px]"
-            style={{
-              marginTop: title !== sections[0].title ? 32 : 0,
-            }}
-          >
-            <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
-              {title}
-            </OreAppText>
-          </View>
-        )}
-        contentContainerStyle={{ paddingBottom: 310 }}
-        showsVerticalScrollIndicator={false}
-      />
+    <View className="mt-[8%] flex-1">
+      {selectedOrderId ? (
+        <OrderDetails
+          orderId={selectedOrderId}
+          onBack={() => setSelectedOrderId(null)}
+        />
+      ) : (
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View className="mt-[8px]">
+              <OrderCard
+                orderNumber={item.order_code}
+                datePlaced={item.created_at}
+                totalAmount={`£${item.store_total_price}`}
+                status={"delivered"}
+                onPressDetail={() => setSelectedOrderId(item.id)}
+              />
+            </View>
+          )}
+          renderSectionHeader={({ section: { title, data } }) =>
+            data.length > 0 ? (
+              <View className="mt-[20px]">
+                <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
+                  {title}
+                </OreAppText>
+              </View>
+            ) : null
+          }
+          contentContainerStyle={{ paddingBottom: 310 }}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   );
 }

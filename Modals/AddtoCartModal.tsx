@@ -50,14 +50,14 @@ export default function AddtoCartModal({
     }
   };
 
-  // ✅ Fetch cart when modal opens
+  //  Fetch cart when modal opens
   useEffect(() => {
     if (value) {
       fetchCart();
     }
   }, [value]);
 
-  // ✅ Add focus listener to refresh when navigating back
+  //  Add focus listener to refresh when navigating back
   useFocusEffect(
     useCallback(() => {
       if (value) {

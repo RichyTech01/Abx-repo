@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View, Text } from "react-native";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import Header from "@/common/Header";
@@ -6,14 +7,28 @@ import SPendingLimitIcon from "@/assets/svgs/AddspendLimitIcon.svg";
 import SPendingLimitBg from "@/assets/svgs/PartOfLimitBg.svg";
 import SecondSPendingLimitBg from "@/assets/svgs/SecondLimitBg.svg";
 import Button from "@/common/Button";
-import TabSwitcher from "@/common/TabSwitcher";
+import SpendingBudgetTab from "@/common/SpendingBudgetTab";
+import SpendingBudgetTransactions from "@/components/AccountComps/SpendingBudgetTransactions";
+import { useRouter } from "expo-router";
 
 export default function SpendingBudgetScreen() {
+  const [activeTab, setActiveTab] = useState("Spending budget");
+  const router = useRouter();
+
   return (
     <ScreenWrapper>
       <Header title="Spending budget" />
 
-      <View className="mt-[10%]">
+      <View className=" w-[80%] mx-auto px-[20px] mt-[8%]">
+        <SpendingBudgetTab
+          tabs={["Spending budget", "Spending insight"]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          navigateTab="Spending insight"
+        />
+      </View>
+
+      <View className="mt-[8%]">
         <View className="bg-[#346E5F] rounded-[16px] py-[26px] px-[20px] w-[80%] mx-auto relative">
           <View className="absolute top-0 right-0 z-0">
             <SPendingLimitBg />
@@ -50,10 +65,12 @@ export default function SpendingBudgetScreen() {
               iconPosition="left"
               paddingVertical={10}
               borderWidth={0}
-              onPress={() => {}}
+              onPress={() => router.push("/Screens/AccountScreen/AdjustLimit")}
             />
           </View>
         </View>
+
+        <SpendingBudgetTransactions />
       </View>
     </ScreenWrapper>
   );
