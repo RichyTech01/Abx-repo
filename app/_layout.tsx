@@ -1,4 +1,15 @@
 import "./global.css";
+import { useEffect, useState } from "react";
+import * as SplashScreen from "expo-splash-screen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Stack } from "expo-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "@/toastConfig";
+import { StatusBar } from "expo-status-bar";
+import { StripeProvider } from "@stripe/stripe-react-native";
+
 import {
   useFonts,
   OrelegaOne_400Regular,
@@ -10,22 +21,9 @@ import {
   Urbanist_700Bold,
 } from "@expo-google-fonts/urbanist";
 import { Inter_400Regular } from "@expo-google-fonts/inter";
-import {
-  Manrope_600SemiBold,
-} from "@expo-google-fonts/manrope";
-
-import { Stack } from "expo-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { StatusBar } from "expo-status-bar";
-import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
-import Toast from "react-native-toast-message";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { toastConfig } from "@/toastConfig";
-import { StripeProvider } from "@stripe/stripe-react-native";
+import { Manrope_600SemiBold } from "@expo-google-fonts/manrope";
 
 SplashScreen.preventAutoHideAsync();
-
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
@@ -39,22 +37,52 @@ export default function RootLayout() {
     ManropeSemiBold: Manrope_600SemiBold,
   });
 
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem("accessToken");
+      setIsLoggedIn(!!token);
+
+      if (fontsLoaded) {
+        await SplashScreen.hideAsync();
+      }
+    };
+    checkAuth();
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded || isLoggedIn === null) return null;
 
   return (
     <StripeProvider publishableKey="pk_test_51RARqlRueoJLqZydZsbUAZa0wbo6okPcMTKWWKIVgRYTH1wHSSmC3GChQf2oInN5bbKo4LeXtXITxIUmT36tTa8v00Fy0PMDMN">
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
           <StatusBar style="dark" backgroundColor="#fff" />
-          <Stack screenOptions={{ headerShown: false }} />
+          <Stack
+            screenOptions={{
+              // Global screen options
+              headerShown: false,
+            }}
+          >
+            {isLoggedIn ? (
+              <Stack.Screen
+                name="(tabs)/_layout"
+                options={{ 
+                  gestureEnabled: false, // Explicitly disable for tabs
+                  headerShown: false 
+                }}
+              />
+            ) : (
+              <Stack.Screen
+                name="(auth)/onboarding"
+                options={{ 
+                  gestureEnabled: true, // Allow gestures in auth flow if needed
+                  headerShown: false 
+                }}
+              />
+            )}
+          </Stack>
+
           <Toast config={toastConfig} />
         </SafeAreaProvider>
       </QueryClientProvider>

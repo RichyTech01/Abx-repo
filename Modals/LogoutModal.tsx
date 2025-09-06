@@ -6,9 +6,11 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useRouter } from "expo-router";
 import Button from "@/common/Button";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
+import { logoutUser } from "@/utils/logoutUser";
 
 type LogoutModalProps = {
   visible: boolean;
@@ -16,6 +18,9 @@ type LogoutModalProps = {
 };
 
 export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
+
+    const router = useRouter();
+
   return (
     <Modal
       transparent
@@ -49,7 +54,7 @@ export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
                 paddingVertical={10}
                 borderWidth={0}
                 backgroundColor="#F04438"
-                onPress={onClose}
+                onPress={() => {onClose(), logoutUser(router)}}
               />
               <Button
                 title="No, cancel"

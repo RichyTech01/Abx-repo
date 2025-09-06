@@ -5,11 +5,12 @@ import {
   Platform,
   ScrollView,
   Pressable,
+  BackHandler,
   StatusBar,
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import NotificationIcon from "@/assets/svgs/NotificationIcon";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";
@@ -25,15 +26,44 @@ import SpendingLimit from "@/components/HomeComps/SpendingLimit";
 import RescueAndSave from "@/components/HomeComps/RescueAndSave";
 import RecueAndSaveProduct from "@/components/HomeComps/RecueAndSaveProduct";
 import { useUserStore } from "@/store/useUserStore";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 export default function Home() {
+  const navigation = useNavigation();
   const router = useRouter();
   const [query, setQuery] = useState("");
 
   const { user, loading, fetchUser } = useUserStore();
+  
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Prevent hardware back button on Android
+      const backAction = () => {
+        // Return true to prevent default back action
+        return true;
+      };
+      
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction
+      );
+
+      return () => backHandler.remove();
+    }, [])
+  );
+
+  // Additional effect to ensure gesture is disabled when component mounts
+  useEffect(() => {
+    // Disable swipe gesture for the current screen
+    navigation.setOptions({ 
+      gestureEnabled: false,
+      headerShown: false
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1">

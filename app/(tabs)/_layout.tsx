@@ -9,6 +9,9 @@ import AccounTabBarIcon from "@/assets/svgs/AccounTabBarIcon";
 import ActiveHomeTabBar from "@/assets/svgs/ActiveHomeTabBar";
 import ActiveOrderTab from "@/assets/svgs/ActiveOrderTab";
 import ActiveSupporticon from "@/assets/svgs/ActiveSupporticon";
+import { useEffect } from "react";
+import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type TabIconWithBorderProps = {
   children: React.ReactNode;
@@ -16,6 +19,18 @@ type TabIconWithBorderProps = {
 };
 
 const TabIconWithBorder = ({ children, focused }: TabIconWithBorderProps) => {
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem("accessToken");
+      if (!token) {
+        router.replace("/(auth)/onboarding"); 
+      }
+    };
+    checkAuth();
+  }, []);
+
   return (
     <View style={{ alignItems: "center" }}>
       {focused && (
@@ -47,15 +62,15 @@ export default function TabLayout() {
         tabBarInactiveTintColor: "#929292",
         tabBarStyle: {
           backgroundColor: "#FFFFFF",
-          position: "absolute", 
-          borderTopWidth: 0, 
+          position: "absolute",
+          borderTopWidth: 0,
           paddingTop: Platform.OS === "ios" ? 18 : 14,
           paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
           height: 75 + insets.bottom,
           borderTopRightRadius: 16,
           borderTopLeftRadius: 16,
-          overflow: "hidden", 
-          elevation: 5, 
+          overflow: "hidden",
+          elevation: 5,
         },
         tabBarLabelStyle: {
           fontSize: 14,
@@ -63,7 +78,7 @@ export default function TabLayout() {
           fontWeight: "500",
           marginTop: 4,
         },
-       
+        
       }}
     >
       <Tabs.Screen

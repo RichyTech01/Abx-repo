@@ -50,6 +50,7 @@ export default function Login() {
 
       console.log("Login successful:", res);
       showToast("success", "Login successful! Welcome back.");
+      router.dismissAll();
 
       router.replace("/(tabs)");
     } catch (err: any) {
