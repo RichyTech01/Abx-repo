@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 import StoreApi from "@/api/StoreApi";
-import { Product, ProductVariation } from "@/types/store";
+import { ShopProductType, ProductVariation } from "@/types/store";
 import { isStoreOpen } from "@/utils/storeStatus";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 
@@ -14,18 +14,17 @@ export default function NewProducts() {
     number | null
   >(null);
 
-  const { data, isLoading, error } = useQuery<{ results: Product[] }>({
+  const { data, isLoading, error } = useQuery<{ results: ShopProductType[] }>({
     queryKey: ["newProducts"],
     queryFn: () => StoreApi.getPublishedProducts(),
   });
 
-  const { data: productDetails, isLoading: productLoading } = useQuery<Product>(
-    {
+  const { data: productDetails, isLoading: productLoading } =
+    useQuery<ShopProductType>({
       queryKey: ["productDetails", selectedProductId],
       queryFn: () => StoreApi.getProduct(selectedProductId as number),
       enabled: !!selectedProductId,
-    }
-  );
+    });
 
   const products = data?.results.slice(0, 8) ?? [];
 

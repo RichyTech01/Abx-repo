@@ -119,3 +119,24 @@ export interface TopRatedStoresResponse {
 }
 
 
+// --- User Address ---
+export interface UserAddress {
+  id: number;
+  addr: string;
+  post_code: string;
+  city: string;
+  location: GeoLocation | null; // because some addresses have null location
+  default_addr: boolean;
+}
+
+// --- User ---
+export interface AppUser {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  address: UserAddress[];
+  is_verified: boolean;
+  is_vendor: boolean;
+}

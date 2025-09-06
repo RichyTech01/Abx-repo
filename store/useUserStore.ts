@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import AuthApi from "@/api/AuthApi";
-import { User } from "@/types/store";
+import { AppUser } from "@/types/store";
 
 interface UserStore {
-  user: User | null;
+  user: AppUser | null;
   loading: boolean;
   error: string | null;
   fetchUser: () => Promise<void>;
-  setUser: (user: User) => void;
+  setUser: (user: AppUser) => void;
   clearUser: () => void;
 }
 

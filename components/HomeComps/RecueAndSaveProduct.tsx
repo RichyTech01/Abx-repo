@@ -11,7 +11,7 @@ import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
-import { Product, ProductVariation } from "@/types/store";
+import { ShopProductType, ProductVariation } from "@/types/store";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import showToast from "@/utils/showToast";
 import { isStoreOpen } from "@/utils/storeStatus";
@@ -23,7 +23,7 @@ export default function RescueAndSaveProduct() {
     number | null
   >(null);
 
-  const { data, isLoading, error } = useQuery<{ results: Product[] }>({
+  const { data, isLoading, error } = useQuery<{ results: ShopProductType[] }>({
     queryKey: ["rescueAndSaveProducts"],
     queryFn: () =>
       StoreApi.getPublishedProducts({
@@ -33,7 +33,7 @@ export default function RescueAndSaveProduct() {
   });
 
   const { data: productDetails, isLoading: isProductLoading } =
-    useQuery<Product>({
+    useQuery<ShopProductType>({
       queryKey: ["productDetails", selectedProductId],
       queryFn: () => StoreApi.getProduct(selectedProductId as number),
       enabled: !!selectedProductId,
