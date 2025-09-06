@@ -4,7 +4,7 @@
     "slug": "abx-mobile-application",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "",
+    "icon": "./assets/Images/MainLogo.png",
     "scheme": "abxmobileapplication",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -35,7 +35,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/Images/MainLogo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
