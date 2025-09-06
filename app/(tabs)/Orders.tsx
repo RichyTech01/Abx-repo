@@ -1,10 +1,8 @@
-import { View, TouchableOpacity, Text } from "react-native";
-import { useState } from "react";
-import React from "react";
+import React, { useState } from "react";
+import { View, Text } from "react-native";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import OreAppText from "@/common/OreApptext";
 import TabSwitcher from "@/common/TabSwitcher";
-import NoData from "@/common/NoData";
 import AllOrders from "@/components/OrderComps/AllOrders";
 import OngoingOrders from "@/components/OrderComps/OngoingOrders";
 import CompletedOrders from "@/components/OrderComps/CompletedOrders";

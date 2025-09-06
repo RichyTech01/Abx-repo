@@ -2,10 +2,8 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import React from "react";
 import OreAppText from "@/common/OreApptext";
-import ChangePAssIcon from "@/assets/svgs/ChangePasswordIcon.svg";
 import ArrowRIght from "@/assets/svgs/ArrowRight.svg";
 import PersonalInfo from "@/assets/svgs/PersonalInfo.svg";
-import AddressIcon from "@/assets/svgs/Address.Icon.svg";
 import RateThisAppIcon from "@/assets/svgs/RateThisApp.svg"
 import PrivacyAndPolicyIcon from "@/assets/svgs/PrivacyAndPolicy.svg"
 

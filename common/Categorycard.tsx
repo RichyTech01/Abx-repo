@@ -5,7 +5,6 @@ import {
   Image,
   ImageSourcePropType,
 } from "react-native";
-import { useRouter } from "expo-router";
 
 interface CategoryCardProps {
   bgColor: string;
@@ -28,7 +27,6 @@ export default function CategoryCard({
   paddingY = 20,
   onPress
 }: CategoryCardProps) {
-  const router = useRouter();
   console.log(image);
   return (
     <Pressable

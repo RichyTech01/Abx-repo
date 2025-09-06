@@ -27,9 +27,9 @@ export default function AboutStore({
     null
   );
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(
-    null
-  );
+  // const [, setSelectedProductId] = useState<number | null>(
+  //   null
+  // );
   const [productDetails, setProductDetails] = useState<any>(null);
   const [productLoading, setProductLoading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -50,7 +50,7 @@ export default function AboutStore({
   }, [id]);
 
   const handleAddToCart = async (id: number) => {
-    setSelectedProductId(id);
+    // setSelectedProductId(id);
     setModalVisible(true);
     setProductLoading(true);
 

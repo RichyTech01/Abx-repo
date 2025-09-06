@@ -22,6 +22,17 @@ export interface ChangeOrderStatus {
   status: OrderStatus;
 }
 
+export interface Address {
+  id: number;
+  addr: string;
+  post_code: string;
+  city: string;
+  location: {
+    type: "Point";
+    coordinates: [number, number]; 
+  };
+  default_addr: boolean;
+}
 
 
 // types/Order.ts

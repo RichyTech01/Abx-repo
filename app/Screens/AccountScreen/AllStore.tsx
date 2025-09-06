@@ -3,7 +3,6 @@ import {
   Text,
   ScrollView,
   ActivityIndicator,
-  Platform,
 } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";

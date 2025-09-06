@@ -1,5 +1,5 @@
 import React from "react";
-import { SafeAreaView, View, StatusBar, Platform, StyleSheet } from "react-native";
+import { SafeAreaView,  StatusBar, Platform, StyleSheet } from "react-native";
 
 type ScreenWrapperProps = {
   children: React.ReactNode;

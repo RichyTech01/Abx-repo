@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Modal, Pressable } from "react-native";
+import { Text, Modal, Pressable } from "react-native";
 import SuccesLog from "@/assets/svgs/PasswordResetSuccessicon.svg";
 
 type ResetPasswordModalProps = {

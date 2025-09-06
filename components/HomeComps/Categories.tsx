@@ -5,22 +5,22 @@ import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
 import AdminApi from "@/api/AdminApi";
 
+const CATEGORY_COLORS: Record<
+  number,
+  { bgColor: string; borderColor: string }
+> = {
+  1: { bgColor: "#ECF1F0", borderColor: "#5D8B7F" },
+  3: { bgColor: "#DDE5FF", borderColor: "#E6A14A" },
+  4: { bgColor: "#E6F2FF", borderColor: "#4A90E2" },
+  5: { bgColor: "#FDE6F2", borderColor: "#D14A78" },
+  6: { bgColor: "#E8F8F5", borderColor: "#48C9B0" },
+  7: { bgColor: "#FDF0DC", borderColor: "#F4D03F" },
+};
+
 export default function Categories() {
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const CATEGORY_COLORS: Record<
-    number,
-    { bgColor: string; borderColor: string }
-  > = {
-    1: { bgColor: "#ECF1F0", borderColor: "#5D8B7F" },
-    3: { bgColor: "#DDE5FF", borderColor: "#E6A14A" },
-    4: { bgColor: "#E6F2FF", borderColor: "#4A90E2" },
-    5: { bgColor: "#FDE6F2", borderColor: "#D14A78" },
-    6: { bgColor: "#E8F8F5", borderColor: "#48C9B0" },
-    7: { bgColor: "#FDF0DC", borderColor: "#F4D03F" },
-  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -48,7 +48,11 @@ export default function Categories() {
       />
 
       {loading ? (
-        <ActivityIndicator size="small" color={"black"} style={{ marginVertical: 10 }} />
+        <ActivityIndicator
+          size="small"
+          color={"black"}
+          style={{ marginVertical: 10 }}
+        />
       ) : (
         <ScrollView
           horizontal

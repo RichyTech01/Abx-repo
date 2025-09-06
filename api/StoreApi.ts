@@ -1,7 +1,6 @@
 import ApiService from "./apiService";
 import {
-  Store,
-  Product,
+  ShopProductType,
   TopRatedStoresResponse,
   StoreDetails,
   StoreProductProps,
@@ -11,7 +10,7 @@ class StoreApi {
   private client = ApiService.getClient();
 
   public async getStoreWithProducts(id: number): Promise<StoreProductProps> {
-    const res = await this.client.get<Store>(`/store/${id}/products`);
+    const res = await this.client.get<StoreProductProps>(`/store/${id}/products`);
     return res.data;
   }
 
@@ -88,8 +87,8 @@ class StoreApi {
   }
 
   //  Get single product by ID
-  public async getProduct(id: number): Promise<Product> {
-    const res = await this.client.get<Product>(`/store/products/${id}`);
+  public async getProduct(id: number): Promise<ShopProductType> {
+    const res = await this.client.get<ShopProductType>(`/store/products/${id}`);
     return res.data;
   }
 
@@ -134,8 +133,8 @@ class StoreApi {
   }
 
   //  Popular products
-  public async getPopularProducts(): Promise<Product[]> {
-    const res = await this.client.get<Product[]>("/store/popular-products");
+  public async getPopularProducts(): Promise<ShopProductType[]> {
+    const res = await this.client.get<ShopProductType[]>("/store/popular-products");
     return res.data;
   }
 }

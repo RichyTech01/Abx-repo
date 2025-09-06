@@ -11,10 +11,7 @@ import {
 } from "@expo-google-fonts/urbanist";
 import { Inter_400Regular } from "@expo-google-fonts/inter";
 import {
-  Manrope_400Regular,
-  Manrope_500Medium,
   Manrope_600SemiBold,
-  Manrope_700Bold,
 } from "@expo-google-fonts/manrope";
 
 import { Stack } from "expo-router";

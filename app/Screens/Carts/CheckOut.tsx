@@ -15,9 +15,9 @@ import AddDeliveryAddressModal from "@/Modals/AddDeliveryAddressModal";
 import OrderSummaryCartItem from "@/common/OrderSummaryCartItem";
 import CardFieldModal from "@/Modals/CardFieldModal";
 import { useUserStore } from "@/store/useUserStore";
-import { Address } from "@/types/carts";
 import showToast from "@/utils/showToast";
 import OrderApi from "@/api/OrderApi";
+import { Address } from "@/types/Order";
 import PaymentSuccessModal from "@/Modals/PaymentSuccessModal";
 
 export default function CheckOut() {
@@ -26,9 +26,7 @@ export default function CheckOut() {
   const [cartDetails, setCartDetails] = useState<any>(null);
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [address, setAddress] = useState<Address | null>(null);
-  const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [cardDetails, setCardDetails] = useState<any>(null);
-  const [showCardDetails, setShowCardDetails] = useState<boolean>(true);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
 
@@ -62,7 +60,7 @@ export default function CheckOut() {
     Checkout();
     if (!user) fetchUser();
     fetchAddress();
-  }, []);
+  }, [user, fetchUser]);
 
   const initiatePaymentFlow = async () => {
     if (!address) {

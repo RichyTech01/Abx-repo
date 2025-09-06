@@ -1,10 +1,6 @@
 import {
   View,
-  SafeAreaView,
   ScrollView,
-  StatusBar,
-  Platform,
-  Alert,
 } from "react-native";
 import { useState } from "react";
 import Header from "@/common/Header";

@@ -5,7 +5,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 import CustomTextInput from "@/common/CustomTextInput";
 import Button from "@/common/Button";

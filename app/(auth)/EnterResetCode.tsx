@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 import Resetpassheader from "@/common/Resetpassheader";
 import OTPInput from "@/common/OTPInput";
@@ -18,28 +17,31 @@ import showToast from "@/utils/showToast";
 export default function EnterResetCode() {
   const router = useRouter();
   const { email: emailParam } = useLocalSearchParams();
-  const email = Array.isArray(emailParam) ? emailParam[0] : emailParam; 
-  const [otp, setOtp] = useState("");
+  const email = Array.isArray(emailParam) ? emailParam[0] : emailParam;
+  const [, setOtp] = useState("");
 
-const handleOtpComplete = async (code: string) => {
-  if (!email) {
-    showToast("error", "Email not found.");
-    return;
-  }
+  const handleOtpComplete = useCallback(
+    async (code: string) => {
+      if (!email) {
+        showToast("error", "Email not found.");
+        return;
+      }
 
-  try {
-    // Confirm OTP
-    await AuthApi.confirmResetCode({ email, otp_code: code });
+      try {
+        await AuthApi.confirmResetCode({ email, otp_code: code });
 
-    router.push(
-      `/CreateNewPassword?email=${encodeURIComponent(email)}&token=${encodeURIComponent(code)}` as never
-    );
-  } catch (err: any) {
-    console.log("OTP verification error:", err);
-    showToast("error", err.detail || "Invalid code");
-  }
-};
-
+        router.push(
+          `/CreateNewPassword?email=${encodeURIComponent(
+            email
+          )}&token=${encodeURIComponent(code)}` as never
+        );
+      } catch (err: any) {
+        console.log("OTP verification error:", err);
+        showToast("error", err.detail || "Invalid code");
+      }
+    },
+    [email, router] 
+  );
 
   return (
     <SafeAreaView className="bg-white flex-1">

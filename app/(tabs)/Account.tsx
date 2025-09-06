@@ -18,7 +18,7 @@ export default function Account() {
   const { user, fetchUser } = useUserStore();
   useEffect(() => {
     if (!user) fetchUser();
-  }, []);
+  }, [user, fetchUser]);
 
   return (
     <ScreenWrapper>

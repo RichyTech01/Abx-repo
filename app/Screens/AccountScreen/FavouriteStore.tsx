@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   ScrollView,
   ActivityIndicator,
   Platform,
@@ -11,12 +10,7 @@ import { useRouter } from "expo-router";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
 import StoreApi from "@/api/StoreApi";
-import EmptyyImg from "@/assets/svgs/EmptyStoreImg.svg";
-import OreAppText from "@/common/OreApptext";
-import UrbanistText from "@/common/UrbanistText";
-import Button from "@/common/Button";
 import NoData from "@/common/NoData";
-import { focusManager } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
 
 export default function FavouriteStore() {

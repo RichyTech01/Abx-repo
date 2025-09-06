@@ -1,22 +1,20 @@
 import { View, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import {  useEffect } from "react";
 import Header from "@/common/Header";
 import CustomTextInput from "@/common/CustomTextInput";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import Button from "@/common/Button";
 import OreAppText from "@/common/OreApptext";
-import EditProfileModals from "@/Modals/EditProfileModals";
 import { useUserStore } from "@/store/useUserStore";
 
 export default function ProfileInformationScreen() {
   const router = useRouter();
-  const [showModal, setShowModal] = useState(false);
 
-  const { user, loading, fetchUser } = useUserStore();
+  const { user, fetchUser } = useUserStore();
   useEffect(() => {
     if (!user) fetchUser();
-  }, []);
+  }, [user, fetchUser]);
 
   const UserType = user?.is_vendor === true ? "Vendor" : "Customer";
 
@@ -54,14 +52,14 @@ export default function ProfileInformationScreen() {
             />
           </View>
 
-          <View className="mt-[40px]">
+          {/* <View className="mt-[40px]">
             <Button
               title="Edit details"
               onPress={() => setShowModal((prev) => !prev)}
               paddingVertical={10}
               borderWidth={0}
             />
-          </View>
+          </View> */}
 
           <View className="mt-[11%] h-[80px] justify-between">
             <OreAppText className="text-[16px] leading-[20px] text-[#2D2220]">
@@ -82,14 +80,6 @@ export default function ProfileInformationScreen() {
             </View>
           </View>
         </View>
-
-        {user && (
-          <EditProfileModals
-            visible={showModal}
-            onClose={() => setShowModal(false)}
-            user={user}
-          />
-        )}
       </ScrollView>
     </ScreenWrapper>
   );

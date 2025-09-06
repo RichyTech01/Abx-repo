@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Image, Platform } from "react-native";
+import { View, Text,  Image, Platform } from "react-native";
 import React from "react";
 
 export default function Resetpassheader({

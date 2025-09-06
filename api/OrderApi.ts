@@ -1,9 +1,7 @@
 import ApiService from "./apiService";
-import { ChangeOrderStatus } from "@/types/Order";
-import { CartItemsType } from "@/types/carts";
-// import { Cart } from "@/types/carts";
+import { ChangeOrderStatus, Address } from "@/types/Order";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { OrdersResponse } from "@/types/Order";
+import { AddToCartRequest } from "@/types/carts";
 
 export interface AddAddressPayload {
   addr: string;
@@ -20,7 +18,7 @@ export interface AddressResponse {
   city?: string;
   is_guest?: boolean;
   full_name?: string;
-  [key: string]: any; // for any extra props returned
+  [key: string]: any; 
 }
 
 class OrderApi {
@@ -28,7 +26,7 @@ class OrderApi {
 
   public async addToCart(payload: {
     product_id: number;
-  }): Promise<CartItemsType> {
+  }): Promise<AddToCartRequest> {
     const res = await this.client.post("/order/add-to-cart", payload);
 
     if (res.data.cart_id) {
@@ -52,7 +50,7 @@ class OrderApi {
   public async updateCart(
     item_id: number,
     payload: { action: "increase" | "decrease" } | { quantity: number }
-  ): Promise<CartItemsType> {
+  ): Promise<any> {
     const res = await this.client.patch(
       `/order/${item_id}/update-cart`,
       payload
@@ -71,7 +69,7 @@ class OrderApi {
     }
   }
 
-  public async getMyAddress(): Promise<any> {
+  public async getMyAddress(): Promise<Address> {
     try {
       const res = await this.client.get("/customer/my-address");
       return res.data;

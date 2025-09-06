@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View,  TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import OreAppText from "./OreApptext";
 import Backarrow from "@/assets/svgs/BackArrow.svg"

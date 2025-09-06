@@ -5,7 +5,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 import Resetpassheader from "@/common/Resetpassheader";
 import CustomTextInput from "@/common/CustomTextInput";

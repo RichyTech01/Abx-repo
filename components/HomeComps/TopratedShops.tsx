@@ -1,4 +1,4 @@
-import { View, ScrollView, ActivityIndicator, Platform } from "react-native";
+import { View, ScrollView, ActivityIndicator,  } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import React from "react";

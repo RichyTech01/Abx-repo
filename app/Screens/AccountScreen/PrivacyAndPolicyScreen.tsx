@@ -20,8 +20,8 @@ export default function PrivacyAndPolicyScreen() {
               At ABX, we are committed to protecting your privacy and ensuring
               the security of your personal information. All conversations held
               within this chat are end-to-end encrypted. This means only you and
-              the person you're communicating with can read the messages—no one
-              else, not even ABX.
+              the person you&apos;re communicating with can read the messages—no
+              one else, not even ABX.
             </UrbanistText>
 
             <UrbanistText className="text-[#2D2220] text-[16px] leading-[22px] mt-4">
@@ -46,7 +46,7 @@ export default function PrivacyAndPolicyScreen() {
             </UrbanistText>
 
             <UrbanistText className="text-[#2D2220] text-[16px] leading-[22px] mt-4">
-              Your trust means everything to us, and we're dedicated to
+              Your trust means everything to us, and we&apos;re dedicated to
               maintaining a safe, secure, and transparent environment for all
               our users.
             </UrbanistText>

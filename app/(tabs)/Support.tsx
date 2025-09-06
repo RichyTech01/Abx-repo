@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   TouchableOpacity,
   ScrollView,
   Linking,
@@ -64,7 +63,7 @@ export default function Support() {
                   Send an email
                 </OreAppText>
                 <UrbanistText className="text-[#424242] text-[14px] leading-[20px] text-center mt-[8px]">
-                  Got a question? Email us, and we'll get back to you ASAP
+                  Got a question? Email us, and we&apos;ll get back to you ASAP
                 </UrbanistText>
               </View>
             </TouchableOpacity>
@@ -80,7 +79,7 @@ export default function Support() {
                   Call us
                 </OreAppText>
                 <UrbanistText className="text-[#424242] text-[14px] leading-[20px] text-center mt-[8px]">
-                  Need to talk? Give us a call on +442012345678 and we'll be
+                  Need to talk? Give us a call on +442012345678 and we&apos;ll be
                   happy to assist.
                 </UrbanistText>
               </View>

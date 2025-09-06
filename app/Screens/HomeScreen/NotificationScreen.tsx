@@ -3,7 +3,6 @@ import {
   Text,
   Pressable,
   FlatList,
-  ActivityIndicator,
 } from "react-native";
 import { useEffect, useState } from "react";
 import Header from "@/common/Header";

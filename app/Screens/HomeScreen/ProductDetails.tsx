@@ -8,9 +8,8 @@ import {
   Image,
   ActivityIndicator,
   StatusBar,
-  Dimensions,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import Button from "@/common/Button";
@@ -23,12 +22,10 @@ import VendorIcon from "@/assets/svgs/VendorIcon.svg";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import StoreApi from "@/api/StoreApi";
 import React, { useState } from "react";
-import { Product } from "@/types/store";
-import { ProductVariation } from "@/types/store";
+import { ShopProductType, ProductVariation } from "@/types/store";
 import showToast from "@/utils/showToast";
 
 export default function ProductDetails() {
-  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [showModal, setShowModal] = useState(false);
 
@@ -36,7 +33,7 @@ export default function ProductDetails() {
     data: productData,
     isLoading,
     error,
-  } = useQuery<Product>({
+  } = useQuery<ShopProductType>({
     queryKey: ["product", id],
     queryFn: async () => {
       if (!id) throw new Error("Invalid product id");
@@ -49,10 +46,10 @@ export default function ProductDetails() {
     showToast("error", (error as Error).message || "Failed to load product");
   }
 
-  const SCREEN_PADDING = 20;
-  const GAP = 16;
-  const ITEM_WIDTH =
-    (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
+  // const SCREEN_PADDING = 20;
+  // const GAP = 16;
+  // const ITEM_WIDTH =
+  //   (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
 
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1 ">

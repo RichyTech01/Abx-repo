@@ -2,7 +2,6 @@ import React from "react";
 import { Text, Modal, Pressable, View } from "react-native";
 import Succesicon from "@/assets/svgs/ChnageAdrressIcon.svg";
 import Button from "@/common/Button";
-import UrbanistText from "@/common/UrbanistText";
 import { useRouter } from "expo-router";
 
 

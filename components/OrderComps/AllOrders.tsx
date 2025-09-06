@@ -3,7 +3,6 @@ import {
   Text,
   Pressable,
   SectionList,
-  ActivityIndicator,
 } from "react-native";
 import OrderCard from "@/common/OrderCard";
 import { useEffect, useState, useCallback } from "react";

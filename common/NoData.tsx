@@ -1,4 +1,4 @@
-import { View, ScrollView } from "react-native";
+import { View,  } from "react-native";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
 import Button from "@/common/Button";

@@ -5,8 +5,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -14,7 +13,7 @@ import Header from "@/common/Header";
 import UrbanistText from "@/common/UrbanistText";
 import SearchInput from "@/common/SearchInput";
 import StoreApi from "@/api/StoreApi";
-import { Product, ProductVariation } from "@/types/store";
+import { ShopProductType } from "@/types/store";
 import CategoryProduct from "@/common/CategoryProduct";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
@@ -22,13 +21,13 @@ import { isStoreOpen } from "@/utils/storeStatus";
 export default function RescueAndSave() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = React.useState(false);
-  const [selectedProductId, setSelectedProductId] = React.useState<
-    number | null
-  >(null);
+  // const [selectedProductId, setSelectedProductId] = React.useState<
+  //   number | null
+  // >(null);
   const [productDetails, setProductDetails] = useState<any>(null);
   const [productLoading, setProductLoading] = useState(false);
 
-  const { data, isLoading, error } = useQuery<{ results: Product[] }>({
+  const { data, isLoading } = useQuery<{ results: ShopProductType[] }>({
     queryKey: ["rescueAndSaveProducts"],
     queryFn: () =>
       StoreApi.getPublishedProducts({
@@ -38,7 +37,6 @@ export default function RescueAndSave() {
   });
 
   const handleAddToCart = async (id: number) => {
-    setSelectedProductId(id);
     setModalVisible(true);
     try {
       const product = await StoreApi.getProduct(id);

@@ -11,7 +11,6 @@ import ShopCard from "@/common/ShopCard";
 import { useClosestStores } from "@/hooks/useClosestStores";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
-import * as Haptics from "expo-haptics";
 
 export default function AllClosestShops() {
   const queryClient = useQueryClient();

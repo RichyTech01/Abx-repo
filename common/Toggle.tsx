@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, Animated } from "react-native";
+import {  TouchableOpacity, Animated } from "react-native";
 
 type ToggleProps = {
   value: boolean;

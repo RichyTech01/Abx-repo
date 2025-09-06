@@ -5,11 +5,11 @@ import AddtoCartIcon from "@/assets/svgs/AddToCartIcon.svg";
 import { ProductVariation } from "@/types/store";
 import showToast from "@/utils/showToast";
 import OrderApi from "@/api/OrderApi";
-import { CartItemsType } from "@/types/carts";
+import { CartItem  } from "@/types/carts";
 
 type VariationCardProps = {
   item: ProductVariation;
-  cartItems: CartItemsType;
+  cartItems: CartItem[];
   onCartUpdate: () => Promise<void>;
   isOpen?: boolean;
 };
@@ -29,7 +29,7 @@ export default function VariationCard({
   const quantity = existingItem ? existingItem.quantity : 0;
 
   // console.log("VariationCard - Item.id:", item.id);
-  // console.log("VariationCard - Cart items:", cartItems);
+  console.log("VariationCard - Cart items:", cartItems);
   // console.log("VariationCard - Found existingItem:", existingItem);
   // console.log("VariationCard - Quantity:", quantity);
 

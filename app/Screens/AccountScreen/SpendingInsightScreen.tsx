@@ -1,5 +1,4 @@
 import { View, Text, Pressable } from "react-native";
-import Header from "@/common/Header";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import GoBackIcon from "../../../assets/svgs/BackArrow.svg";
 import DropDownIcon from "../../../assets/svgs/SmallDropDownoIcon.svg";

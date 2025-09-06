@@ -2,8 +2,8 @@ import React, { useRef, useState, useEffect } from "react";
 import { View, TextInput, StyleSheet, Dimensions } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const GAP = 10; 
-const INPUT_WIDTH = (SCREEN_WIDTH * 0.8 - GAP * 5) / 6; 
+const GAP = 10;
+const INPUT_WIDTH = (SCREEN_WIDTH * 0.8 - GAP * 5) / 6;
 
 interface OTPInputProps {
   length?: number;
@@ -12,7 +12,7 @@ interface OTPInputProps {
 
 const OTPInput: React.FC<OTPInputProps> = ({ length = 6, onComplete }) => {
   const [values, setValues] = useState(Array(length).fill(""));
-  const inputsRef = useRef<Array<TextInput | null>>([]);
+  const inputsRef = useRef<(TextInput | null)[]>([]);
 
   const handleChange = (text: string, index: number) => {
     const newValues = [...values];
@@ -22,7 +22,7 @@ const OTPInput: React.FC<OTPInputProps> = ({ length = 6, onComplete }) => {
     if (text && index < length - 1) {
       inputsRef.current[index + 1]?.focus();
     }
-    
+
     if (!text && index > 0) {
       inputsRef.current[index - 1]?.focus();
     }
@@ -32,14 +32,16 @@ const OTPInput: React.FC<OTPInputProps> = ({ length = 6, onComplete }) => {
     if (values.every((val) => val !== "")) {
       onComplete?.(values.join(""));
     }
-  }, [values]);
+  }, [values, onComplete]);
 
   return (
     <View style={styles.container}>
       {values.map((value, index) => (
         <TextInput
           key={index}
-          ref={(ref) => { inputsRef.current[index] = ref; }}
+          ref={(ref) => {
+            inputsRef.current[index] = ref;
+          }}
           value={value}
           onChangeText={(text) => handleChange(text, index)}
           keyboardType="number-pad"
@@ -65,7 +67,7 @@ const OTPInput: React.FC<OTPInputProps> = ({ length = 6, onComplete }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    justifyContent: "center", 
+    justifyContent: "center",
     alignSelf: "center",
     width: "95%",
   },

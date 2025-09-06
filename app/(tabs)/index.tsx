@@ -33,7 +33,7 @@ export default function Home() {
   const { user, loading, fetchUser } = useUserStore();
   useEffect(() => {
     if (!user) fetchUser();
-  }, []);
+  }, [user, fetchUser]);
 
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1">

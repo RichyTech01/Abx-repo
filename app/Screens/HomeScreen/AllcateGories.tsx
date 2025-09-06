@@ -12,23 +12,23 @@ import { useRouter } from "expo-router";
 import AdminApi from "@/api/AdminApi";
 import OreAppText from "@/common/OreApptext";
 
+const CATEGORY_COLORS: Record<
+  number,
+  { bgColor: string; borderColor: string }
+> = {
+  1: { bgColor: "#ECF1F0", borderColor: "#5D8B7F" },
+  3: { bgColor: "#FDF0DC", borderColor: "#F4B551" },
+  4: { bgColor: "#EBFFDF", borderColor: "#05A85A" },
+  5: { bgColor: "#DCE7FD", borderColor: "#89AFFD" },
+  6: { bgColor: "#FDE6F2", borderColor: "#D14A78" },
+  7: { bgColor: "#FDF0DC", borderColor: "#B29870" },
+};
+
 export default function AllCategories() {
   const router = useRouter();
 
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const CATEGORY_COLORS: Record<
-    number,
-    { bgColor: string; borderColor: string }
-  > = {
-    1: { bgColor: "#ECF1F0", borderColor: "#5D8B7F" },
-    3: { bgColor: "#FDF0DC", borderColor: "#F4B551" },
-    4: { bgColor: "#EBFFDF", borderColor: "#05A85A" },
-    5: { bgColor: "#DCE7FD", borderColor: "#89AFFD" },
-    6: { bgColor: "#FDE6F2", borderColor: "#D14A78" },
-    7: { bgColor: "#FDF0DC", borderColor: "#B29870" },
-  };
 
   useEffect(() => {
     const fetchCategories = async () => {

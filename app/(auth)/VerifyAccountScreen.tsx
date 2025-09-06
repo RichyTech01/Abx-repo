@@ -11,14 +11,12 @@ import {
 import React, { useState } from "react";
 import Resetpassheader from "@/common/Resetpassheader";
 import OTPInput from "@/common/OTPInput";
-import { useRouter } from "expo-router";
 import { useLocalSearchParams } from "expo-router";
 import VerificationSuccessModal from "@/Modals/AuthModals/VerificationSuccessModal";
 import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
 
 export default function VerifyAccountScreen() {
-  const router = useRouter();
   const { email } = useLocalSearchParams();
 
   const [showModal, setShowModal] = useState(false);

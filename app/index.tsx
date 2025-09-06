@@ -16,7 +16,7 @@ export default function Index() {
         const accessToken = await AsyncStorage.getItem("accessToken");
 
         if (accessToken) {
-          router.replace("/(tabs)"); 
+          router.replace("/(tabs)");
         } else {
           router.replace("/onboarding");
         }
@@ -30,7 +30,7 @@ export default function Index() {
     };
 
     checkUser();
-  }, []);
+  }, [router]); 
 
   if (isCheckingAuth) {
     return (

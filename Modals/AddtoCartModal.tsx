@@ -34,11 +34,9 @@ export default function AddtoCartModal({
   const router = useRouter();
 
   const [cartItems, setCartItems] = useState([]);
-  const [cartLoading, setCartLoading] = useState(false);
 
   const fetchCart = async () => {
     try {
-      setCartLoading(true);
       const res = await OrderApi.getCart();
       // console.log("Full API response:", res);
       setCartItems(res.cart.items || []);
@@ -46,7 +44,6 @@ export default function AddtoCartModal({
     } catch (err) {
       console.error("Failed to fetch cart:", err);
     } finally {
-      setCartLoading(false);
     }
   };
 

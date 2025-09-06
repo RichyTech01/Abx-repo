@@ -4,10 +4,9 @@ import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
-import { Product } from "@/types/store";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
-import { ProductVariation } from "@/types/store";
+import { ProductVariation, ShopProductType } from "@/types/store";
 
 export default function BestSelling() {
   const [modalVisible, setModalVisible] = React.useState(false);
@@ -15,7 +14,7 @@ export default function BestSelling() {
     number | null
   >(null);
 
-  const { data, isLoading, error } = useQuery<{ results: Product[] }>({
+  const { data, isLoading, error } = useQuery<{ results: ShopProductType[] }>({
     queryKey: ["bestSellingProducts"],
     queryFn: async () => {
       const res = await StoreApi.getPopularProducts();
@@ -23,13 +22,12 @@ export default function BestSelling() {
     },
   });
 
-  const { data: productDetails, isLoading: productLoading } = useQuery<Product>(
-    {
+  const { data: productDetails, isLoading: productLoading } =
+    useQuery<ShopProductType>({
       queryKey: ["productDetails", selectedProductId],
       queryFn: () => StoreApi.getProduct(selectedProductId as number),
       enabled: !!selectedProductId,
-    }
-  );
+    });
 
   const products = data?.results ?? [];
 

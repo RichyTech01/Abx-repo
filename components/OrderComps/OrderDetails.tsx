@@ -1,13 +1,11 @@
 import { View, Text, ScrollView, Image, Pressable } from "react-native";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
-import DetaislImg from "@/assets/svgs/detailsImg.svg";
 import ProcessingIcon from "@/assets/svgs/OrderProcessingIcon.svg";
 import ShippedForDeliveryIcon from "@/assets/svgs/ShippedForDeliveryIcon.svg";
 import DeliveredIcon from "@/assets/svgs/OrderDeliveredIcon.svg";
 import Button from "@/common/Button";
-import PendingIcon from "@/assets/svgs/OrderPendingIcon.svg";
-import OrderProccessingIcon from "../../assets/svgs/OrderProcessingIcon.svg";
+// import OrderProccessingIcon from "../../assets/svgs/OrderProcessingIcon.svg";
 import TrackingTimeline from "@/common/TrackingTimeline";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
@@ -64,7 +62,7 @@ export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
         return {
           text: "Your order is pending",
           color: "#F4B551",
-          Icon: OrderProccessingIcon,
+          Icon: ProcessingIcon,
         };
       case "processing":
         return {

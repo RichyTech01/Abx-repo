@@ -23,9 +23,9 @@ export default function CategoryDetails() {
 
   // Modal & product details state
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(
-    null
-  );
+  // const [selectedProductId, setSelectedProductId] = useState<number | null>(
+  //   null
+  // );
   const [productDetails, setProductDetails] = useState<any>(null);
   const [productLoading, setProductLoading] = useState(false);
 
@@ -46,7 +46,6 @@ export default function CategoryDetails() {
 
   // Handle add to cart modal
   const handleAddToCart = async (id: number) => {
-    setSelectedProductId(id);
     setModalVisible(true);
     setProductLoading(true);
 

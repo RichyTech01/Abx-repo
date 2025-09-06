@@ -7,7 +7,6 @@ import {
 } from "react-native";
 import React from "react";
 import DropDownArrow from "@/assets/svgs/DropDownArrow";
-import Product from "@/assets/svgs/Product";
 import StarIcon from "@/assets/svgs/StarIcon.svg";
 import Carticon from "@/assets/svgs/Carticon";
 import IconButton from "./IconButton";

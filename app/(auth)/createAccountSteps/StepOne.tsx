@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState,  } from "react";
 import CustomTextInput from "@/common/CustomTextInput";
 import Button from "@/common/Button";
 import CustomPhoneInput from "@/common/PhoneNumberInput";
