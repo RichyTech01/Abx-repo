@@ -9,8 +9,6 @@ import Svg, {
 } from "react-native-svg"
 const Product = (props: SvgProps) => (
   <Svg
-    xmlns="http://www.w3.org/2000/svg"
-    xmlnsXlink="http://www.w3.org/1999/xlink"
     width={190}
     height={130}
     fill="none"

@@ -1,4 +1,4 @@
-import { SafeAreaView, FlatList, View, ActivityIndicator } from "react-native";
+import {  FlatList, View, ActivityIndicator } from "react-native";
 import { useEffect, useState } from "react";
 import OreAppText from "@/common/OreApptext";
 import CategoryProduct from "@/common/CategoryProduct";
@@ -94,7 +94,7 @@ export default function AboutStore({
                   image={{ uri: item.prod_image_url }}
                   onPress={() =>
                     router.push({
-                      pathname: "/Screens/ProductDetails",
+                      pathname: "/Screens/HomeScreen/ProductDetails",
                       params: { id: item.id },
                     })
                   }

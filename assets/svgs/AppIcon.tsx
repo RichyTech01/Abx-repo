@@ -2,7 +2,6 @@ import * as React from "react"
 import Svg, { SvgProps, G, Path, Defs, ClipPath } from "react-native-svg"
 const AppIcon = (props: SvgProps) => (
   <Svg
-    xmlns="http://www.w3.org/2000/svg"
     width={31}
     height={30}
     fill="none"

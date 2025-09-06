@@ -37,7 +37,7 @@ const GoogleAuth: React.FC<Props> = ({ buttonText = "Continue with Google" }) =>
       await AsyncStorage.setItem("refreshToken", refresh);
 
       showToast("success", "Logged in successfully!");
-      router.replace("/(tabs)/Home");
+      router.replace("/(tabs)");
     } catch (err: any) {
       console.log("Google sign-in error:", err);
       showToast("error", "Google sign-in failed.");

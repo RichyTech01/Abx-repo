@@ -102,7 +102,7 @@ export default function RescueAndSave() {
                     rating={2}
                     onPress={() =>
                       router.push({
-                        pathname: "/Screens/ProductDetails",
+                        pathname: "/Screens/HomeScreen/ProductDetails",
                         params: { id: item.id },
                       })
                     }

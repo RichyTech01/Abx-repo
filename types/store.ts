@@ -93,13 +93,37 @@ export interface Store {
   products: any;
 }
 
+// types/store.ts
+export interface ShopProductType {
+  id: number;
+  item_name: string;
+  item_description: string;
+  prod_image_url: string;
+  min_price: string;
+  max_price: string;
+  expiration_date: string;
+  rescue_n_save: boolean;
+  published: boolean;
+  variations: {
+    id: number;
+    weight: string;
+    price: string;
+    display_price: string;
+    discount_price: string | null;
+    discount_per: string | null;
+    stock: number;
+    pd_image_url: string;
+  }[];
+}
+
 export interface StoreProductProps {
   id: number;
   business_name: string;
   open_time: string;
   close_time: string;
-  products: Product[];
+  products: ShopProductType[]; 
 }
+
 
 export interface StoreAddress {
   id: number;
@@ -164,7 +188,7 @@ export interface ShopProductType {
   rescue_n_save: boolean;
   category: CategoryType;
   store: StoreRef;
-  variations: Variation[];
+  // variations: Variation[];
 }
 
 // Shop (with many products)

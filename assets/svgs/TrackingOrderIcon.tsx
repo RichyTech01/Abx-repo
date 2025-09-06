@@ -2,7 +2,6 @@ import * as React from "react"
 import Svg, { SvgProps, G, Path, Defs, ClipPath } from "react-native-svg"
 const TrackingOrderIcon = (props: SvgProps) => (
   <Svg
-    xmlns="http://www.w3.org/2000/svg"
     width={14}
     height={15}
     fill="none"
