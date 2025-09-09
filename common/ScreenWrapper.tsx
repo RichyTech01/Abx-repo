@@ -1,9 +1,9 @@
 import React from "react";
-import { SafeAreaView,  StatusBar, Platform, StyleSheet } from "react-native";
+import { SafeAreaView, StatusBar, Platform, StyleSheet, StyleProp, ViewStyle } from "react-native";
 
 type ScreenWrapperProps = {
   children: React.ReactNode;
-  style?: object;
+  style?: StyleProp<ViewStyle>;
 };
 
 const ScreenWrapper: React.FC<ScreenWrapperProps> = ({ children, style }) => {

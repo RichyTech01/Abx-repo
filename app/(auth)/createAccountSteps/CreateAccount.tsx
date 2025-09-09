@@ -13,6 +13,7 @@ import StepTwo from "./StepTwo";
 import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
 import { useRouter } from "expo-router";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 export default function CreateAccount() {
   const [step, setStep] = useState(1);
@@ -83,13 +84,13 @@ export default function CreateAccount() {
   };
 
   return (
-    <SafeAreaView className="bg-white flex-1">
+    <ScreenWrapper style={{ flex: 1, backgroundColor: "white" }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -130,6 +131,6 @@ export default function CreateAccount() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

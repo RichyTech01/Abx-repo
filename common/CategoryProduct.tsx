@@ -18,6 +18,8 @@ interface CategoryProductProps {
   sizes?: number;
   onPress?: () => void;
   onAddToCart: () => void; 
+  isOutOfStock: boolean;
+  isOpen: boolean;
 }
 
 export default function CategoryProduct({
@@ -27,11 +29,16 @@ export default function CategoryProduct({
   rating = 0,
   sizes,
   onPress,
-  onAddToCart
+  onAddToCart,
+  isOutOfStock, 
+  isOpen 
 }: CategoryProductProps) {
+
+console.log("outofstock and open ", isOutOfStock, isOpen);
   return (
     <TouchableOpacity
       onPress={onPress}
+      disabled={isOutOfStock || !isOpen}
       activeOpacity={0.8}
       className="bg-white border border-[#E6E6E6] rounded-[8px] p-[10px] w-full"
     >
@@ -73,6 +80,7 @@ export default function CategoryProduct({
             title="Add to cart"
             iconPosition="left"
             paddingVertical={9}
+            disabled={isOutOfStock || !isOpen}
           />
         </View>
       </View>

@@ -13,7 +13,14 @@ export default function VerificationSuccessModal({
   visible,
   onClose,
 }: VerificationSuccessModalProps) {
-  const router =  useRouter()
+  const router = useRouter();
+
+   const handleStartSHopping = () => {
+    router.dismissAll(); 
+    router.replace("/(tabs)"); 
+  };
+
+
   return (
     <Modal
       transparent
@@ -38,7 +45,10 @@ export default function VerificationSuccessModal({
           </Text>
 
           <View className="w-full mt-[18px]  ">
-            <Button title="Start shopping" onPress={() => router.replace("/(tabs)")} />
+            <Button
+              title="Start shopping"
+              onPress={handleStartSHopping}
+            />
           </View>
         </Pressable>
       </Pressable>

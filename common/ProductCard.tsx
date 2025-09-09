@@ -44,7 +44,6 @@ export default function ProductCard({
 }: ProductCardProps) {
   const router = useRouter();
   const isOpen = isStoreOpen(store_open, store_close);
-
   return (
     <View className="bg-white border border-[#E6E6E6] p-[10px] w-[254px] rounded-[8px]">
       <View className="flex-row items-center justify-between">
@@ -72,10 +71,14 @@ export default function ProductCard({
       {/* Product Image */}
       <Pressable
         className="mx-auto pt-[18px] pb-[13px] w-full "
-        onPress={() => router.push(`/Screens/HomeScreen/ProductDetails?id=${productId}`)}
+        disabled={isOutOfStock || !isOpen}
+        onPress={() =>
+          router.push(`/Screens/HomeScreen/ProductDetails?id=${productId}`)
+        }
       >
         <Image
           source={ProductImg}
+          style={{ opacity: isOutOfStock || !isOpen ? 0.5 : 1 }}
           className="h-[130px] w-full rounded-[8px] "
         />
       </Pressable>
@@ -115,6 +118,7 @@ export default function ProductCard({
           label="Add to cart"
           icon={<Carticon />}
           onPress={onAddToCart}
+          disabled={isOutOfStock || isOpen === false}
         />
       </View>
     </View>

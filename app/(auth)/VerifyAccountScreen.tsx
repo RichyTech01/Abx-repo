@@ -15,6 +15,7 @@ import { useLocalSearchParams } from "expo-router";
 import VerificationSuccessModal from "@/Modals/AuthModals/VerificationSuccessModal";
 import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 export default function VerifyAccountScreen() {
   const { email } = useLocalSearchParams();
@@ -38,7 +39,7 @@ export default function VerifyAccountScreen() {
   };
 
   return (
-    <SafeAreaView className="bg-white flex-1">
+    <ScreenWrapper style={{ flex: 1, backgroundColor: "white" }}  >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -103,6 +104,6 @@ export default function VerifyAccountScreen() {
           visible={showModal}
         />
       )}
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

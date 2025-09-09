@@ -15,6 +15,7 @@ import { useRouter } from "expo-router";
 import AuthApi from "@/api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import showToast from "@/utils/showToast";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 interface SignInResponse {
   access: string;
@@ -68,13 +69,13 @@ export default function Login() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <ScreenWrapper style={{ flex: 1, backgroundColor: "white" }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
         >
           <Authheader />
@@ -112,6 +113,6 @@ export default function Login() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

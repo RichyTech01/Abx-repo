@@ -11,6 +11,7 @@ import ShopCard from "@/common/ShopCard";
 import { useClosestStores } from "@/hooks/useClosestStores";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 export default function AllClosestShops() {
   const queryClient = useQueryClient();
@@ -31,7 +32,7 @@ export default function AllClosestShops() {
   });
 
   return (
-    <SafeAreaView className="bg-[#FFF6F2] flex-1">
+    <ScreenWrapper >
       <HeaderWithSearchInput label="Closest shops" />
 
       <View className="flex-1 mt-4">
@@ -95,6 +96,6 @@ export default function AllClosestShops() {
           </ScrollView>
         )}
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

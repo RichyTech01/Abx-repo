@@ -136,7 +136,7 @@ export default function SetBillingCycleModal({
       transparent
     >
       <Pressable
-        className="bg-[#2D222033]/20 z-50 flex-1 justify-end"
+        className="bg-[#2D222033]/20 z-50 flex-1 justify-end "
         onPress={() => setValue(false)}
       >
         <Pressable
@@ -180,7 +180,7 @@ export default function SetBillingCycleModal({
                   </Text>
                 </View>
                 <View
-                  className={`border-[2px] w-[18px] h-[18px] rounded-[100px] items-center justify-center ${
+                  className={`border-[2px] w-[18px] h-[18px] rounded-[11px] items-center justify-center ${
                     selectedOption === "immediate"
                       ? "border-[#0C513F]"
                       : "border-[#D0D5DD]"
@@ -209,7 +209,7 @@ export default function SetBillingCycleModal({
                   </Text>
                 </View>
                 <View
-                  className={`border-[2px] w-[18px] h-[18px] rounded-[100px] items-center justify-center ${
+                  className={`border-[2px] w-[18px] h-[18px] rounded-[10px] items-center justify-center ${
                     selectedOption === "next_month"
                       ? "border-[#0C513F]"
                       : "border-[#D0D5DD]"
@@ -229,7 +229,7 @@ export default function SetBillingCycleModal({
                     {/* Month Selector */}
                     <View className="relative">
                       <Pressable
-                        className="px-[12px] py-[8px] bg-[#F9FAFB] rounded-[6px] flex-row items-center min-w-[120px]"
+                        className="px-[12px] py-[8px] bg-[#F9FAFB] rounded-[8px] flex-row items-center min-w-[159px] border border-[#DCE0E5]  "
                         onPress={() => {
                           setShowMonthDropdown(!showMonthDropdown);
                           setShowYearDropdown(false);

@@ -4,7 +4,6 @@ import {
   FlatList,
   Platform,
   StatusBar,
-  ActivityIndicator,
 } from "react-native";
 import React, { useState, useCallback } from "react";
 import Header from "@/common/Header";
@@ -15,6 +14,8 @@ import { useRouter } from "expo-router";
 import OrderApi from "@/api/OrderApi";
 import showToast from "@/utils/showToast";
 import { useFocusEffect } from "@react-navigation/native";
+import NoData from "@/common/NoData";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
 
 export default function Carts() {
   const router = useRouter();
@@ -125,89 +126,104 @@ export default function Carts() {
         <Header title="Carts" />
       </View>
 
-      <View
-        className={`${
-          Platform.OS === "ios" ? "mb-24 mt-[16px]" : "mb-32"
-        }  mx-[20px] flex-1`}
-      >
-        <UrbanistText className="text-[#656565] text-[14px] leading-[20px] mx-auto">
-          You have {cartItems.length} items in your cart
-        </UrbanistText>
-        {loading ? (
-          <View className="flex-1  items-center bg-[#FFF6F2] py-10 ">
-            <ActivityIndicator size="small" color="#000000" />
-          </View>
-        ) : (
-          <FlatList
-            data={cartItems}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View className="mt-[8px]">
-                <CartItemCard
-                  image={{ uri: item.item.product.prod_image_url }}
-                  name={item.item.product.item_name}
-                  price={`€${item.total_item_price.toFixed(2)}`}
-                  quantity={item.quantity}
-                  unit={
-                    item.item.weight + "kg of " + item.item.product.item_name
-                  }
-                  onIncrease={() => updateQuantity(item.id, "increase")}
-                  onDecrease={() => updateQuantity(item.id, "decrease")}
-                  onRemove={() => handleRemove(item.id)}
+      {cartItems.length === 0 && !loading ? (
+        <View className="flex-1 justify-center items-center px-4">
+          <NoData
+            title="Your cart is empty"
+            subtitle="Browse our products and add items to your cart."
+            buttonTitle="Start Shopping"
+            onButtonPress={() => router.push("/Screens/AccountScreen/AllStore")}
+          />
+        </View>
+      ) : (
+        <View
+          className={`${
+            Platform.OS === "ios" ? "mb-24 mt-[16px]" : "mb-32"
+          }  mx-[20px] flex-1`}
+        >
+          {!loading && (
+            <UrbanistText className="text-[#656565] text-[14px] leading-[20px] mx-auto ">
+              You have {cartItems.length} items in your cart
+            </UrbanistText>
+          )}
+          {loading ? (
+            <View className="flex-1 justify-center items-center bg-[#FFF6F2] py-10 ">
+              <LoadingSpinner />
+            </View>
+          ) : (
+            <FlatList
+              data={cartItems}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View className="mt-[8px]">
+                  <CartItemCard
+                    image={{ uri: item.item.product.prod_image_url }}
+                    name={item.item.product.item_name}
+                    price={`€${item.total_item_price.toFixed(2)}`}
+                    quantity={item.quantity}
+                    unit={
+                      item.item.weight + "kg of " + item.item.product.item_name
+                    }
+                    onIncrease={() => updateQuantity(item.id, "increase")}
+                    onDecrease={() => updateQuantity(item.id, "decrease")}
+                    onRemove={() => handleRemove(item.id)}
+                  />
+                </View>
+              )}
+              showsVerticalScrollIndicator={false}
+              refreshing={loading}
+              onRefresh={fetchCart}
+            />
+          )}
+
+          {!loading && (
+            <View className="bg-white px-[12px] py-[8px] rounded-[8px] mt-[8px]">
+              <UrbanistText className="text-[#656565] text-[16px] leading-[22px] font-urbanist-medium">
+                Cart summary
+              </UrbanistText>
+              <View className="flex-row items-center justify-between mt-[4px]">
+                <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold">
+                  Total
+                </UrbanistText>
+                <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold">
+                  €{total.toFixed(2)}
+                </UrbanistText>
+              </View>
+              <UrbanistText className="text-[#7D7D7D] text-[14px] leading-[20px] font-urbanist mt-[2px]">
+                Delivery fees not included yet
+              </UrbanistText>
+
+              <View className="gap-[8px] mt-[8px]">
+                <Button
+                  title="Continue"
+                  textColor="#0C513F"
+                  variant="outline"
+                  borderColor="#0C513F"
+                  fontClassName="urbanist-medium"
+                  onPress={() => {
+                    router.push({
+                      pathname: "/Screens/Carts/CheckOut",
+                      params: {
+                        cartData: JSON.stringify({
+                          items: cartItems,
+                          total: total,
+                        }),
+                      },
+                    });
+                  }}
+                />
+                <Button
+                  title="Keep shopping"
+                  borderColor="#0C513F"
+                  paddingVertical={14.5}
+                  fontClassName="urbanist-medium"
+                  onPress={() => router.push("/Screens/AccountScreen/AllStore")}
                 />
               </View>
-            )}
-            showsVerticalScrollIndicator={false}
-            refreshing={loading}
-            onRefresh={fetchCart}
-          />
-        )}
-
-        <View className="bg-white px-[12px] py-[8px] rounded-[8px] mt-[8px]">
-          <UrbanistText className="text-[#656565] text-[16px] leading-[22px] font-urbanist-medium">
-            Cart summary
-          </UrbanistText>
-          <View className="flex-row items-center justify-between mt-[4px]">
-            <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold">
-              Total
-            </UrbanistText>
-            <UrbanistText className="text-[#2D2220] text-[14px] leading-[20px] font-urbanist-semibold">
-              €{total.toFixed(2)}
-            </UrbanistText>
-          </View>
-          <UrbanistText className="text-[#7D7D7D] text-[14px] leading-[20px] font-urbanist mt-[2px]">
-            Delivery fees not included yet
-          </UrbanistText>
-
-          <View className="gap-[8px] mt-[8px]">
-            <Button
-              title="Continue"
-              textColor="#0C513F"
-              variant="outline"
-              borderColor="#0C513F"
-              fontClassName="urbanist-medium"
-              onPress={() => {
-                router.push({
-                  pathname: "/Screens/Carts/CheckOut",
-                  params: {
-                    cartData: JSON.stringify({
-                      items: cartItems,
-                      total: total,
-                    }),
-                  },
-                });
-              }}
-            />
-            <Button
-              title="Keep shopping"
-              borderColor="#0C513F"
-              paddingVertical={14.5}
-              fontClassName="urbanist-medium"
-              onPress={() => {}}
-            />
-          </View>
+            </View>
+          )}
         </View>
-      </View>
+      )}
     </SafeAreaView>
   );
 }

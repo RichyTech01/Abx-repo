@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
 import StoreApi from "@/api/StoreApi";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 export default function AllTopRatedStores() {
   const queryClient = useQueryClient();
@@ -36,9 +37,9 @@ export default function AllTopRatedStores() {
   });
 
   return (
-    <SafeAreaView className="bg-[#FFF6F2] flex-1">
+    <ScreenWrapper >
       <View
-        className={`${Platform.OS === "android" ? "mt-[45px]" : ""} pb-[15px]`}
+        className={` pb-[15px]`}
       >
         <HeaderWithSearchInput label="Top rated stores" />
       </View>
@@ -79,6 +80,6 @@ export default function AllTopRatedStores() {
           ))}
         </ScrollView>
       )}
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

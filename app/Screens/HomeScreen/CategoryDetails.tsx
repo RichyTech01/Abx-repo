@@ -109,6 +109,14 @@ export default function CategoryDetails() {
                   })
                 }
                 onAddToCart={() => handleAddToCart(item.id)}
+                isOutOfStock={
+                  item.variations?.[0]?.stock === 0 || !item.variations?.length
+                }
+                isOpen={
+                  item.store
+                    ? isStoreOpen(item.store.open_time, item.store.close_time)
+                    : false
+                }
               />
             </View>
           )}

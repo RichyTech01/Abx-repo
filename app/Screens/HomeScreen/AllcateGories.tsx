@@ -10,7 +10,9 @@ import { useState, useEffect } from "react";
 import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
 import AdminApi from "@/api/AdminApi";
+import { Dimensions } from "react-native";
 import OreAppText from "@/common/OreApptext";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 const CATEGORY_COLORS: Record<
   number,
@@ -29,6 +31,11 @@ export default function AllCategories() {
 
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const SCREEN_PADDING = 20;
+  const GAP = 16;
+  const ITEM_WIDTH =
+    (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -51,8 +58,8 @@ export default function AllCategories() {
   }, []);
 
   return (
-    <SafeAreaView className="bg-[#FFF6F2] flex-1">
-      <View className={`${Platform.OS === "android" ? "mt-[45px] " : ""}`}>
+    <ScreenWrapper>
+      <View className={``}>
         <Header title="All categories" />
       </View>
       {loading ? (
@@ -69,7 +76,7 @@ export default function AllCategories() {
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
           contentContainerStyle={{
-            paddingHorizontal: 20,
+            paddingHorizontal: SCREEN_PADDING,
             paddingTop: 42,
             paddingBottom: 20,
           }}
@@ -80,12 +87,11 @@ export default function AllCategories() {
           renderItem={({ item, index }) => {
             const isOddLast =
               categories.length % 2 !== 0 && index === categories.length - 1;
-
             return (
               <View
                 style={{
-                  width: isOddLast ? "100%" : "48%",
-                  alignItems: isOddLast ? "center" : "flex-start",
+                  width: ITEM_WIDTH,
+                  alignItems: "center",
                 }}
               >
                 <CategoryCard
@@ -94,8 +100,8 @@ export default function AllCategories() {
                   image={{ uri: item.img }}
                   title={item.name}
                   subtitle={item.description}
-                  width={180}
                   paddingY={10}
+                  width={ITEM_WIDTH}
                   onPress={() =>
                     router.push({
                       pathname: "/Screens/HomeScreen/CategoryDetails",
@@ -109,6 +115,6 @@ export default function AllCategories() {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

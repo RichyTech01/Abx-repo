@@ -1,4 +1,4 @@
-import {  FlatList, View, ActivityIndicator } from "react-native";
+import { FlatList, View, ActivityIndicator } from "react-native";
 import { useEffect, useState } from "react";
 import OreAppText from "@/common/OreApptext";
 import CategoryProduct from "@/common/CategoryProduct";
@@ -64,6 +64,7 @@ export default function AboutStore({
     }
   };
 
+  console.log("shopProduct", shopProduct?.products);
   return (
     <View>
       <OreAppText className="text-[16px] leading-[20px] text-[#2D2220] mx-auto my-[24px]  ">
@@ -99,6 +100,11 @@ export default function AboutStore({
                     })
                   }
                   onAddToCart={() => handleAddToCart(item.id)}
+                  isOutOfStock={
+                    item.variations?.[0]?.stock === 0 ||
+                    !item.variations?.length
+                  }
+                  isOpen={item.store ? isStoreOpen(item.store.open_time, item.store.close_time) : false }
                 />
               </View>
             )}
@@ -108,7 +114,7 @@ export default function AboutStore({
       )}
       <AddtoCartModal
         value={modalVisible}
-        setValue={setModalVisible}
+        setValue={setModalVisible}  
         loading={productLoading}
         data={productDetails?.variations ?? []}
         isOpen={

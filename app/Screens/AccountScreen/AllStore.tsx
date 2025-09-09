@@ -3,6 +3,7 @@ import {
   Text,
   ScrollView,
   ActivityIndicator,
+  Platform
 } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -66,7 +67,7 @@ export default function AllStore() {
       ) : (
         <ScrollView
           contentContainerStyle={{
-            paddingBottom: 20,
+            paddingBottom: Platform.OS === "ios" ? 20 : 80,
             marginHorizontal: 20,
             paddingTop: 15,
             gap: 24,

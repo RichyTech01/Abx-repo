@@ -12,7 +12,7 @@ interface CategoryCardProps {
   image: ImageSourcePropType;
   title: string;
   subtitle: string;
-  width?: number;
+  width?: number
   paddingY?: number;
   onPress: () => void
 }

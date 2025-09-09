@@ -1,4 +1,10 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import { useEffect, useState } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import ArrowRIght from "@/assets/svgs/ArrowRight.svg";
@@ -27,7 +33,7 @@ export default function Account() {
           <ProfileImg />
         </View>
 
-        <View className="mx-auto items-center">
+        <View className="mx-auto items-center  ">
           <View className="bg-[#ECF1F0] h-[30px] w-[30px] rounded-full items-center justify-center">
             <Text className="text-[14px] leading-[20px] text-[#2D2220] font-urbanist-medium">
               {user?.first_name?.charAt(0).toUpperCase()}
@@ -45,7 +51,9 @@ export default function Account() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{
+          paddingBottom: Platform.OS === "ios" ? 110 : 160,
+        }}
       >
         <View className="mx-[16px]">
           <General />
