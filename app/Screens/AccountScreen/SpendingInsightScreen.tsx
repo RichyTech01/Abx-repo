@@ -1,4 +1,5 @@
 import { View, Text, Pressable } from "react-native";
+import { useState, useEffect } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import GoBackIcon from "../../../assets/svgs/BackArrow.svg";
 import DropDownIcon from "../../../assets/svgs/SmallDropDownoIcon.svg";
@@ -7,9 +8,31 @@ import { useNavigation } from "@react-navigation/native";
 import AdjustIcon from "../../../assets/svgs/AdjustIcon.svg";
 import BudgetTracker from "@/components/AccountComps/BudgetTracker";
 import SpendingBreakDown from "@/components/AccountComps/SpendingBreakDown";
+import { SpendingBudgetResponse } from "@/types/SpendingBudgetApi";
+import SpendingBudgetApi from "@/api/SpendingBudgetApi";
 
 export default function SpendingInsightScreen() {
   const navigation = useNavigation();
+  const [insight, setInsight] = useState<SpendingBudgetResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchBudget = async () => {
+      try {
+        setLoading(true);
+        const data = await SpendingBudgetApi.getSpendingInsights();
+        setInsight(data);
+        console.log("Fetched Insight:", data);
+      } catch (error) {
+        console.error("Failed to load spending budget:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBudget();
+  }, []);
+
   return (
     <ScreenWrapper>
       <View className="flex-row items-center justify-between mx-[18px] ">
@@ -53,12 +76,12 @@ export default function SpendingInsightScreen() {
                 Current spending budget
               </Text>
               <Text className="text-[20px] leading-[21px] font-urbanist-bold text-[#181818] mt-[4px]  ">
-                €6,000
+               €{Number(insight?.amount ?? 0).toFixed(0)}
               </Text>
             </View>
           </View>
           <View>
-            <BudgetTracker />
+            <BudgetTracker spent={insight?.total_spent} />
           </View>
         </View>
         <View>

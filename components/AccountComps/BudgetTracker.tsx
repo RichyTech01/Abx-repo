@@ -2,9 +2,14 @@ import React from "react";
 import { View, Text } from "react-native";
 import { Svg, Circle, G } from "react-native-svg";
 
-const BudgetTracker = () => {
+
+type BudgetTrackerProps = {
+  spent: string;
+};
+
+const BudgetTracker = ({spent}: BudgetTrackerProps) => {
   const totalBudget = 6000;
-  const spent = 2335.2;
+  
   const leftToSpend = totalBudget - spent;
 
   // Chart configuration
@@ -72,7 +77,7 @@ const BudgetTracker = () => {
           <CircularProgress />
           <View className="absolute items-center justify-center">
             <Text className="text-[18px] leading-[21px] font-urbanist-bold text-[#181818]">
-              €{spent.toLocaleString()}
+              €{spent}
             </Text>
             <Text className="text-[14px] leading-[21px] text-[#929292] font-urbanist-semibold">
               Spent

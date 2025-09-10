@@ -1,26 +1,53 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, FlatList } from "react-native";
 import OreAppText from "@/common/OreApptext";
 import Transactioncard from "@/common/Transactioncard";
+import NoData from "@/common/NoData";
 
-export default function SpendingBudgetTransactions() {
+type Transaction = {
+  id: string;
+  amount: number | string;
+  date: string;
+  orderNumber: string;
+};
+
+type Props = {
+  transactions: Transaction[];
+};
+
+export default function SpendingBudgetTransactions({ transactions }: Props) {
   return (
-    <View className="mt-[8%] mx-[18px]   ">
-      <View className="flex-row items-center justify-between pb-[18px]  ">
-        <OreAppText className="text-[16px] leading-[20px] text-[#111827] ">
+    <View className="mt-[8%] mx-[18px]">
+      <View className="flex-row items-center justify-between pb-[18px]">
+        <OreAppText className="text-[16px] leading-[20px] text-[#111827]">
           Transactions
         </OreAppText>
         <Pressable>
-          <Text className="text-[14px] leading-[20px] text-[#374151] font-urbanist-medium  ">
+          <Text className="text-[14px] leading-[20px] text-[#374151] font-urbanist-medium">
             see all
           </Text>
         </Pressable>
       </View>
 
-      <Transactioncard
-        TotalAmount={160.0}
-        DatePlaced={"Jul 6, 2025"}
-        OrderNumber={"WU88191111"}
-      />
+      {transactions.length === 0 ? (
+        <View className=" justify-center items-center">
+          <NoData
+            title="You are yet to set your spending buget"
+            subtitle="Set a spending limit to control how you spend your resources. this ensures you save and spend responsibly. "
+          />
+        </View>
+      ) : (
+        <FlatList
+          data={transactions}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <Transactioncard
+              TotalAmount={Number(item.amount)}
+              DatePlaced={item.date}
+              OrderNumber={item.orderNumber}
+            />
+          )}
+        />
+      )}
     </View>
   );
 }

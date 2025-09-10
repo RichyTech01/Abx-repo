@@ -10,15 +10,12 @@ import Button from "@/common/Button";
 import SpendingBudgetTab from "@/common/SpendingBudgetTab";
 import SpendingBudgetTransactions from "@/components/AccountComps/SpendingBudgetTransactions";
 import { useRouter } from "expo-router";
-import SpendingBudgetApi, {
-  SpendingBudgetResponse,
-} from "@/api/SpendingBudgetApi";
-import getSpendingInsight from "@/api/SpendingBudgetApi";
+import SpendingBudgetApi from "@/api/SpendingBudgetApi";
+import { SpendingBudgetResponse } from "@/types/SpendingBudgetApi";
 
 export default function SpendingBudgetScreen() {
   const [activeTab, setActiveTab] = useState("Spending budget");
   const [budget, setBudget] = useState<SpendingBudgetResponse | null>(null);
-  const [insight, setInsight] = useState<SpendingBudgetResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -39,38 +36,22 @@ export default function SpendingBudgetScreen() {
     fetchBudget();
   }, []);
 
-
-    useEffect(() => {
-    const fetchBudget = async () => {
-      try {
-        setLoading(true);
-        const data = await getSpendingInsight.getCurrentSpendingBudget();
-        setBudget(data);
-        console.log("Fetched budget:", data);
-      } catch (error) {
-        console.error("Failed to load spending budget:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBudget();
-  }, []);
   
-
 
   return (
     <ScreenWrapper>
       <Header title="Spending budget" />
 
-      <View className="w-[80%] mx-auto px-[20px] mt-[8%]">
-        <SpendingBudgetTab
-          tabs={["Spending budget", "Spending insight"]}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          navigateTab="Spending insight"
-        />
-      </View>
+      {budget && (
+        <View className="w-[80%] mx-auto px-[20px] mt-[8%]">
+          <SpendingBudgetTab
+            tabs={["Spending budget", "Spending insight"]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            navigateTab="Spending insight"
+          />
+        </View>
+      )}
 
       <View className="mt-[8%]">
         <View className="bg-[#346E5F] rounded-[16px] py-[26px] px-[20px] w-[80%] mx-auto relative">
@@ -91,14 +72,14 @@ export default function SpendingBudgetScreen() {
           ) : (
             <View className="mt-[4px] flex-row items-center justify-between py-[8px]">
               <OreAppText className="text-[36px] leading-[48px] text-white">
-                €{budget?.amount ?? 0}
+                €{Number(budget?.amount ?? 0).toFixed(0)}
               </OreAppText>
               <View className="bg-[#FBE6C5] rounded-[8px] p-[8px] flex-row items-center">
                 <Text className="font-urbanist-semibold text-[#181818] text-[12px] leading-[16px]">
                   Amount left:{" "}
                 </Text>
                 <Text className="font-urbanist-semibold text-[#181818] text-[12px] leading-[16px]">
-                  €{budget?.amount ?? 0}
+                  €{Number(budget?.amount ?? 0).toFixed(0)}
                 </Text>
               </View>
             </View>
@@ -118,7 +99,7 @@ export default function SpendingBudgetScreen() {
           </View>
         </View>
 
-        <SpendingBudgetTransactions />
+        <SpendingBudgetTransactions transactions={budget?.transactions ?? []} />
       </View>
     </ScreenWrapper>
   );

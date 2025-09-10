@@ -1,48 +1,31 @@
-// SpendingBudgetApi.ts
 import ApiService from "./apiService";
-
-export type SpendingBudgetResponse = {
-  id?: string;
-  year: number | null;
-  month: number | null;
-  amount: string | null;
-  amount_spent: string | null;
-  balance?: string | null;
-  percent_used?: number | null;
-  transactions?: any;
-};
-
-export type SpendingInsightResponse = {
-  message?: string;
-};
+import {
+  SpendingBudgetRequest,
+  SpendingBudgetResponse,
+  SpendingInsightResponse,
+} from "@/types/SpendingBudgetApi";
 
 class SpendingBudgetApi {
   private client = ApiService.getClient();
 
+  //  Get current spending budget
   public async getCurrentSpendingBudget(): Promise<SpendingBudgetResponse> {
-    try {
-      const res = await this.client.get("/order/spending-budget/current");
-      return res.data;
-    } catch (error: any) {
-      console.error(
-        "Error fetching current spending budget:",
-        error.response?.data || error.message
-      );
-      throw error;
-    }
+    const res = await this.client.get("/order/spending-budget/current");
+    return res.data;
   }
 
+  // Get spending insights
   public async getSpendingInsights(): Promise<SpendingInsightResponse> {
-    try {
-      const res = await this.client.get("/order/budget/spending-insights");
-      return res.data;
-    } catch (error: any) {
-      console.error(
-        "Error fetching spending insights:",
-        error.response?.data || error.message
-      );
-      throw error;
-    }
+    const res = await this.client.get("/order/budget/spending-insights");
+    return res.data;
+  }
+
+  // Create monthly budget
+  public async setSpendingBudget(
+    payload: SpendingBudgetRequest
+  ): Promise<SpendingBudgetResponse> {
+    const res = await this.client.post("/order/set-spending-budget", payload);
+    return res.data;
   }
 }
 
