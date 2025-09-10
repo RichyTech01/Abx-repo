@@ -7,10 +7,16 @@ import OreAppText from "@/common/OreApptext";
 import LimitDropDown from "../../../assets/svgs/LimitDropDOwn.svg";
 import Button from "@/common/Button";
 import SetBillingCycleModal from "@/Modals/SetBillingCycleModal";
+import PaymentSuccessModal from "@/Modals/PaymentSuccessModal";
+import { useRouter } from "expo-router";
 
 export default function AdjustLimit() {
+
+  const router = useRouter();
   const [amount, setAmount] = useState("1,500");
   const [ShowModal, setShowModal] = useState(false);
+  const [ShowSuccessModal, setShowSuccessModal] = useState(false);
+
 
   return (
     <ScreenWrapper>
@@ -27,7 +33,7 @@ export default function AdjustLimit() {
             Current limit:
           </Text>
           <Text className="text-[16px] font-urbanist-bold leading-[22px] text-[#181818]  ">
-            €18,000
+            €18,000  
           </Text>
         </View>
         <Pressable
@@ -49,7 +55,18 @@ export default function AdjustLimit() {
         <Button title="Confirm limit" onPress={() => {}} />
       </View>
 
-      <SetBillingCycleModal value={ShowModal} setValue={setShowModal} />
+      <SetBillingCycleModal
+        value={ShowModal}
+        setValue={setShowModal}
+        setShowSuccessModal={setShowSuccessModal}
+      />
+      <PaymentSuccessModal
+        content="Your spending limit has been successfully adjusted."
+        tittle="Start shopping"
+        visible={ShowSuccessModal}
+        onClose={() => setShowSuccessModal((prev) => !prev)}
+        onPress={() => {router.dismiss(2); setShowSuccessModal(false);}}
+      />
     </ScreenWrapper>
   );
 }

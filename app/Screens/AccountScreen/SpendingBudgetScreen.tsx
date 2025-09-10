@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { View, Text } from "react-native";
+import { useState, useEffect } from "react";
+import { View, Text, ActivityIndicator } from "react-native";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import Header from "@/common/Header";
 import OreAppText from "@/common/OreApptext";
@@ -10,16 +10,60 @@ import Button from "@/common/Button";
 import SpendingBudgetTab from "@/common/SpendingBudgetTab";
 import SpendingBudgetTransactions from "@/components/AccountComps/SpendingBudgetTransactions";
 import { useRouter } from "expo-router";
+import SpendingBudgetApi, {
+  SpendingBudgetResponse,
+} from "@/api/SpendingBudgetApi";
+import getSpendingInsight from "@/api/SpendingBudgetApi";
 
 export default function SpendingBudgetScreen() {
   const [activeTab, setActiveTab] = useState("Spending budget");
+  const [budget, setBudget] = useState<SpendingBudgetResponse | null>(null);
+  const [insight, setInsight] = useState<SpendingBudgetResponse | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchBudget = async () => {
+      try {
+        setLoading(true);
+        const data = await SpendingBudgetApi.getCurrentSpendingBudget();
+        setBudget(data);
+        console.log("Fetched budget:", data);
+      } catch (error) {
+        console.error("Failed to load spending budget:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBudget();
+  }, []);
+
+
+    useEffect(() => {
+    const fetchBudget = async () => {
+      try {
+        setLoading(true);
+        const data = await getSpendingInsight.getCurrentSpendingBudget();
+        setBudget(data);
+        console.log("Fetched budget:", data);
+      } catch (error) {
+        console.error("Failed to load spending budget:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBudget();
+  }, []);
+  
+
 
   return (
     <ScreenWrapper>
       <Header title="Spending budget" />
 
-      <View className=" w-[80%] mx-auto px-[20px] mt-[8%]">
+      <View className="w-[80%] mx-auto px-[20px] mt-[8%]">
         <SpendingBudgetTab
           tabs={["Spending budget", "Spending insight"]}
           activeTab={activeTab}
@@ -42,19 +86,23 @@ export default function SpendingBudgetScreen() {
             Spending budget
           </Text>
 
-          <View className="mt-[4px] flex-row items-center justify-between py-[8px]">
-            <OreAppText className="text-[36px] leading-[48px] text-white">
-              €0
-            </OreAppText>
-            <View className="bg-[#FBE6C5] rounded-[8px] p-[8px] flex-row items-center">
-              <Text className="font-urbanist-semibold text-[#181818] text-[12px] leading-[16px]">
-                Amount left:{" "}
-              </Text>
-              <Text className="font-urbanist-semibold text-[#181818] text-[12px] leading-[16px]">
-                €0
-              </Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" style={{ marginTop: 20 }} />
+          ) : (
+            <View className="mt-[4px] flex-row items-center justify-between py-[8px]">
+              <OreAppText className="text-[36px] leading-[48px] text-white">
+                €{budget?.amount ?? 0}
+              </OreAppText>
+              <View className="bg-[#FBE6C5] rounded-[8px] p-[8px] flex-row items-center">
+                <Text className="font-urbanist-semibold text-[#181818] text-[12px] leading-[16px]">
+                  Amount left:{" "}
+                </Text>
+                <Text className="font-urbanist-semibold text-[#181818] text-[12px] leading-[16px]">
+                  €{budget?.amount ?? 0}
+                </Text>
+              </View>
             </View>
-          </View>
+          )}
 
           <View className="mt-[16px]">
             <Button

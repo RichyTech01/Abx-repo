@@ -16,8 +16,10 @@ import VerificationSuccessModal from "@/Modals/AuthModals/VerificationSuccessMod
 import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import { useRouter } from "expo-router";
 
 export default function VerifyAccountScreen() {
+  const router = useRouter();
   const { email } = useLocalSearchParams();
 
   const [showModal, setShowModal] = useState(false);

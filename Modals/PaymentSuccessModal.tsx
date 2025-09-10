@@ -6,7 +6,6 @@ import {
   Platform,
   View,
 } from "react-native";
-import { useRouter } from "expo-router";
 import OreAppText from "@/common/OreApptext";
 import Button from "@/common/Button";
 import SuccesLog from "@/assets/svgs/PasswordResetSuccessicon.svg";
@@ -15,13 +14,18 @@ import UrbanistText from "@/common/UrbanistText";
 type PaymentSuccessModalProps = {
   visible: boolean;
   onClose: () => void;
+  content?: string;
+  tittle?: string;
+  onPress: () => void;
 };
 
 export default function PaymentSuccessModal({
   visible,
   onClose,
+  tittle = "Click to track your order",
+  content = "You items will be delivered to you shortly. We are committed to being your shopping bestie.",
+  onPress
 }: PaymentSuccessModalProps) {
-    const router = useRouter()
 
   return (
     <Modal
@@ -44,14 +48,16 @@ export default function PaymentSuccessModal({
           >
             <SuccesLog />
             <OreAppText className="text-[20px] mx-auto leading-[28px] text-[#2D2220] mt-2 ">
-             Successful
+              Successful
             </OreAppText>
             <UrbanistText className="text-[16px] leading-[22px] text-[#2D2220] mt-[8px]  text-center w-[85%]">
-              You items will be delivered to you shortly. We are committed to
-              being your shopping bestie
+              {content}
             </UrbanistText>
             <View className=" w-full mt-[10px] ">
-              <Button title="Click to track your order" onPress={() => router.replace("/(tabs)/Orders")} />
+              <Button
+                title={tittle}
+                onPress={onPress}
+              />
             </View>
           </Pressable>
         </KeyboardAvoidingView>

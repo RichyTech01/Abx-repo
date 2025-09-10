@@ -19,8 +19,10 @@ import showToast from "@/utils/showToast";
 import OrderApi from "@/api/OrderApi";
 import { Address } from "@/types/Order";
 import PaymentSuccessModal from "@/Modals/PaymentSuccessModal";
+import { useRouter } from "expo-router";
 
 export default function CheckOut() {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [cartDetails, setCartDetails] = useState<any>(null);
@@ -294,6 +296,7 @@ export default function CheckOut() {
       <PaymentSuccessModal
         visible={showSuccessModal}
         onClose={() => setShowSuccessModal((prev) => !prev)}
+        onPress={() => router.push("/(tabs)")}
       />
 
       <CardFieldModal

@@ -4,10 +4,12 @@ import CancelModalIcon from "@/assets/svgs/CancelIcon.svg";
 import ApplyImmediatelyIcon from "@/assets/svgs/ApplyImeediatelyIcon.svg";
 import ApplyNextMonthIcon from "@/assets/svgs/ApplyNextMonthIcon.svg";
 import Button from "@/common/Button";
+import DateDropdownIcon from "@/assets/svgs/DateDropDownIcon.svg";
 
 type SetBillingCycleModalProps = {
   value: boolean;
   setValue: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowSuccessModal: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type BillingOption = "immediate" | "next_month";
@@ -32,6 +34,7 @@ const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 export default function SetBillingCycleModal({
   value,
   setValue,
+  setShowSuccessModal,
 }: SetBillingCycleModalProps) {
   const [selectedOption, setSelectedOption] =
     useState<BillingOption>("next_month");
@@ -40,7 +43,6 @@ export default function SetBillingCycleModal({
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
-
 
   const generateYears = () => {
     const currentYearValue = new Date().getFullYear();
@@ -180,7 +182,7 @@ export default function SetBillingCycleModal({
                   </Text>
                 </View>
                 <View
-                  className={`border-[2px] w-[18px] h-[18px] rounded-[11px] items-center justify-center ${
+                  className={`border-[2px] w-[18px] h-[18px] items-center justify-center rounded-[7px] ${
                     selectedOption === "immediate"
                       ? "border-[#0C513F]"
                       : "border-[#D0D5DD]"
@@ -209,7 +211,7 @@ export default function SetBillingCycleModal({
                   </Text>
                 </View>
                 <View
-                  className={`border-[2px] w-[18px] h-[18px] rounded-[10px] items-center justify-center ${
+                  className={`border-[2px] w-[18px] h-[18px] rounded-[7px] items-center justify-center ${
                     selectedOption === "next_month"
                       ? "border-[#0C513F]"
                       : "border-[#D0D5DD]"
@@ -223,27 +225,27 @@ export default function SetBillingCycleModal({
 
               {/* Calendar - Only show when "Apply next month" is selected */}
               {selectedOption === "next_month" && (
-                <View className="mt-[16px] border border-[#EAECF0] rounded-[8px] p-[16px] relative">
+                <View className="mt-[16px] border border-[#B6C1CA] rounded-[16px] p-[16px] relative  ">
                   {/* Month/Year Selector */}
-                  <View className="flex-row justify-between items-center mb-[16px] relative z-20">
+                  <View className="flex-row justify-end gap-[8px] items-center mb-[16px] relative z-20">
                     {/* Month Selector */}
                     <View className="relative">
                       <Pressable
-                        className="px-[12px] py-[8px] bg-[#F9FAFB] rounded-[8px] flex-row items-center min-w-[159px] border border-[#DCE0E5]  "
+                        className="px-[12px] py-[8px] rounded-[8px] flex-row items-center min-w-[159px] border border-[#DCE0E5]  "
                         onPress={() => {
                           setShowMonthDropdown(!showMonthDropdown);
                           setShowYearDropdown(false);
                         }}
                       >
-                        <Text className="text-[14px] font-urbanist-semibold text-[#181818] mr-[4px] flex-1">
+                        <Text className="text-[14px] font-urbanist-semibold text-[#181818] mr-[4px] flex-1 ">
                           {MONTHS[currentMonth]}
                         </Text>
-                        <Text className="text-[14px] text-[#667085]">▼</Text>
+                        <DateDropdownIcon />
                       </Pressable>
-                      
+
                       {/* Month Dropdown */}
                       {showMonthDropdown && (
-                        <View className="absolute top-[44px] left-0 right-0 bg-white rounded-[8px] border border-[#EAECF0] max-h-[200px] z-50 shadow-lg">
+                        <View className="absolute top-[44px] left-0 right-0 bg-white rounded-[8px] border border-[#EAECF0] max-h-[200px] z-50 shadow-lg  ">
                           <ScrollView>
                             {MONTHS.map((month, index) => (
                               <Pressable
@@ -275,21 +277,21 @@ export default function SetBillingCycleModal({
                     {/* Year Selector */}
                     <View className="relative">
                       <Pressable
-                        className="px-[12px] py-[8px] bg-[#F9FAFB] rounded-[6px] flex-row items-center min-w-[80px]"
+                        className="px-[12px] py-[8px] border border-[#DCE0E5] rounded-[8px] flex-row items-center min-w-[85px] "
                         onPress={() => {
                           setShowYearDropdown(!showYearDropdown);
                           setShowMonthDropdown(false);
                         }}
                       >
-                        <Text className="text-[14px] font-urbanist-semibold text-[#181818] mr-[4px] flex-1">
+                        <Text className="text-[15px] font-urbanist-medium text-[#14181F] mr-[4px] flex-1 ">
                           {currentYear}
                         </Text>
-                        <Text className="text-[14px] text-[#667085]">▼</Text>
+                        <DateDropdownIcon />
                       </Pressable>
-                      
+
                       {/* Year Dropdown */}
                       {showYearDropdown && (
-                        <View className="absolute top-[44px] left-0 right-0 bg-white rounded-[8px] border border-[#EAECF0] max-h-[200px] z-50 shadow-lg">
+                        <View className="absolute top-[44px] left-0 right-0 bg-white rounded-[8px] border border-[#EAECF0] max-h-[200px] z-50 shadow-lg ">
                           <ScrollView>
                             {years.map((year) => (
                               <Pressable
@@ -306,7 +308,7 @@ export default function SetBillingCycleModal({
                                   className={`text-[14px] ${
                                     year === currentYear
                                       ? "font-urbanist-semibold text-[#0C513F]"
-                                      : "font-urbanist-medium text-[#181818]"
+                                      : "font-urbanist-medium text-[#14181F]"
                                   }`}
                                 >
                                   {year}
@@ -381,21 +383,21 @@ export default function SetBillingCycleModal({
                   </View>
 
                   {/* Calendar Action Buttons */}
-                  <View className="flex-row justify-end mt-[16px] gap-[8px]">
+                  <View className="flex-row justify-end mt-[16px] gap-[8px] border-t border-[#DCE0E5] pt-[12px] ">
                     <Pressable
-                      className="px-[16px] py-[8px] rounded-[6px]"
+                      className="px-[16px] py-[8px] rounded-[6px] "
                       onPress={() => setValue(false)}
                     >
-                      <Text className="text-[14px] font-urbanist-medium text-[#667085]">
+                      <Text className="text-[14px] font-urbanist-medium text-[#667085]  ">
                         Cancel
                       </Text>
                     </Pressable>
 
                     <Pressable
-                      className="px-[16px] py-[8px] bg-[#0C513F] rounded-[6px]"
+                      className="px-[16px] py-[8px] bg-[#0C513F] rounded-[6px]  "
                       onPress={handleConfirm}
                     >
-                      <Text className="text-[14px] font-urbanist-semibold text-white">
+                      <Text className="text-[14px] font-urbanist-semibold text-white ">
                         Done
                       </Text>
                     </Pressable>
@@ -406,8 +408,14 @@ export default function SetBillingCycleModal({
           </ScrollView>
 
           {/* Confirm Limit Button - Always visible at bottom */}
-          <View className="mt-[20px] pt-[16px]  pb-10 ">
-           <Button title="Confirm limit" onPress={handleConfirm}/>
+          <View className="mt-[20px] pt-[16px] pb-10  ">
+            <Button
+              title="Confirm limit"
+              onPress={() => {
+                handleConfirm();
+                setShowSuccessModal((prev) => !prev);
+              }}
+            />
           </View>
         </Pressable>
       </Pressable>
