@@ -11,7 +11,7 @@ type BillingOption = "immediate" | "next_month";
 type SetBillingCycleModalProps = {
   value: boolean;
   setValue: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowSuccessModal: React.Dispatch<React.SetStateAction<boolean>>;
+  // setShowSuccessModal: React.Dispatch<React.SetStateAction<boolean>>;
   onConfirm?: (option: BillingOption, date?: Date) => void;
   initialOption?: BillingOption;
   initialDate?: Date | null;
@@ -37,7 +37,7 @@ const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 export default function SetBillingCycleModal({
   value,
   setValue,
-  setShowSuccessModal,
+  // setShowSuccessModal,
   onConfirm,
   initialOption = "next_month",
   initialDate,

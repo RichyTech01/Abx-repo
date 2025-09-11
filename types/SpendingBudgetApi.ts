@@ -1,6 +1,3 @@
-// types/SpendingBudgetApi.ts
-
-// Request body for creating a budget
 export type SpendingBudgetRequest = {
   amount: string;
   start_date: string;
@@ -14,7 +11,7 @@ export type SpendingBudgetResponse = {
   year: number;
   month: number;
   amount: string;
-  total_spent: string;
+  amount_spent: string ;
   balance: string;
   percent_used: number;
   transactions: any[];

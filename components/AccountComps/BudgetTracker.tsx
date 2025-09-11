@@ -5,12 +5,15 @@ import { Svg, Circle, G } from "react-native-svg";
 
 type BudgetTrackerProps = {
   spent: string;
+  budget: string;
 };
 
-const BudgetTracker = ({spent}: BudgetTrackerProps) => {
-  const totalBudget = 6000;
-  
-  const leftToSpend = totalBudget - spent;
+const BudgetTracker = ({ spent, budget }: BudgetTrackerProps) => {
+  const spentNum = Number(spent) || 0;
+  const budgetNum = Number(budget) || 1; 
+  const leftToSpend = budgetNum - spentNum;
+
+  const spentPercentage = (spentNum / budgetNum) * 100;
 
   // Chart configuration
   const size = 186;
@@ -18,13 +21,10 @@ const BudgetTracker = ({spent}: BudgetTrackerProps) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  // Chart segments - you can make this dynamic based on spending categories
-  const segments = [
-    { percentage: 35, color: "#8B5CF6" }, // Purple
-    { percentage: 15, color: "#F59E0B" }, // Orange
-    { percentage: 25, color: "#EF4444" }, // Red/Pink
-    { percentage: 25, color: "#3B82F6" }, // Blue
-  ];
+  const segments =
+    spentPercentage > 0
+      ? [{ percentage: spentPercentage, color: "#9E6FF7" }]
+      : [];
 
   const CircularProgress = () => {
     let currentOffset = 0;
@@ -37,7 +37,7 @@ const BudgetTracker = ({spent}: BudgetTrackerProps) => {
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#F3F4F6"
+            stroke="#EFEFEF"
             strokeWidth={strokeWidth}
             fill="transparent"
           />
@@ -45,7 +45,9 @@ const BudgetTracker = ({spent}: BudgetTrackerProps) => {
           {/* Progress segments */}
           {segments.map((segment, index) => {
             const segmentLength = (segment.percentage / 100) * circumference;
-            const strokeDasharray = `${segmentLength} ${circumference - segmentLength}`;
+            const strokeDasharray = `${segmentLength} ${
+              circumference - segmentLength
+            }`;
             const strokeDashoffset = -currentOffset;
 
             currentOffset += segmentLength;
@@ -77,7 +79,7 @@ const BudgetTracker = ({spent}: BudgetTrackerProps) => {
           <CircularProgress />
           <View className="absolute items-center justify-center">
             <Text className="text-[18px] leading-[21px] font-urbanist-bold text-[#181818]">
-              €{spent}
+              €{spentNum}
             </Text>
             <Text className="text-[14px] leading-[21px] text-[#929292] font-urbanist-semibold">
               Spent
@@ -93,12 +95,13 @@ const BudgetTracker = ({spent}: BudgetTrackerProps) => {
         </Text>
         <View className="py-[6px] px-[12px] bg-[#FDF0DC] rounded-[32px]">
           <Text className="text-[13px] leading-[21px] text-[#2D2220] font-urbanist-bold">
-            €{leftToSpend.toLocaleString()}
+            €{leftToSpend}
           </Text>
         </View>
       </View>
     </View>
   );
 };
+
 
 export default BudgetTracker;

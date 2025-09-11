@@ -10,71 +10,88 @@ import SetBillingCycleModal from "@/Modals/SetBillingCycleModal";
 import PaymentSuccessModal from "@/Modals/PaymentSuccessModal";
 import { useRouter } from "expo-router";
 import SpendingBudgetApi from "@/api/SpendingBudgetApi";
+import { useBudgetStore } from "@/store/useBudgetStore";
 
 type BillingOption = "immediate" | "next_month";
 
 export default function AdjustLimit() {
+const { budgetAmount, budgetId } = useBudgetStore();
+
   const router = useRouter();
   const [amount, setAmount] = useState("0");
   const [showModal, setShowModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [selectedBillingOption, setSelectedBillingOption] = useState<BillingOption>("immediate");
+  const [selectedBillingOption, setSelectedBillingOption] =
+    useState<BillingOption>("immediate");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Function to format the display text for the billing option button
   const getBillingOptionText = () => {
     if (selectedBillingOption === "immediate") {
       return "Apply immediately";
     } else {
       if (selectedDate) {
-        const options: Intl.DateTimeFormatOptions = { 
-          month: 'short', 
-          day: 'numeric' 
+        const options: Intl.DateTimeFormatOptions = {
+          month: "short",
+          day: "numeric",
         };
-        return `Apply on ${selectedDate.toLocaleDateString('en-US', options)}`;
+        return `Apply on ${selectedDate.toLocaleDateString("en-US", options)}`;
       }
       return "Apply next month";
     }
   };
 
-  const handleSetBudget = async () => {
-    setIsProcessing(true);
-    try {
-      // Remove commas and convert to number
-      const numericAmount = amount.replace(/,/g, '');
-      
-      let budgetData;
-      if (selectedBillingOption === "immediate") {
-        budgetData = {
-          amount: numericAmount,
-          start_date: new Date().toISOString().split('T')[0], // Today's date
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-        };
-      } else {
-        // Use selected date or next month's first day as fallback
-        const startDate = selectedDate || new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
-        budgetData = {
-          amount: numericAmount,
-          start_date: startDate.toISOString().split('T')[0],
-          month: startDate.getMonth() + 1,
-          year: startDate.getFullYear(),
-        };
-      }
+const handleSetBudget = async () => {
+  setIsProcessing(true);
+  try {
+    // Remove commas and convert to number
+    const numericAmount = amount.replace(/,/g, "");
 
-      const newBudget = await SpendingBudgetApi.setSpendingBudget(budgetData);
-      console.log("Budget created:", newBudget);
-      
-      // Show success modal
-      setShowSuccessModal(true);
-    } catch (error) {
-      console.error("Failed to create budget:", error);
-      // You might want to show an error modal here
-    } finally {
-      setIsProcessing(false);
+    let budgetData;
+    if (selectedBillingOption === "immediate") {
+      budgetData = {
+        amount: numericAmount,
+        start_date: new Date().toISOString().split("T")[0],
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+      };
+    } else {
+      // Use selected date or next month's first day as fallback
+      const startDate =
+        selectedDate ||
+        new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
+      budgetData = {
+        amount: numericAmount,
+        start_date: startDate.toISOString().split("T")[0],
+        month: startDate.getMonth() + 1,
+        year: startDate.getFullYear(),
+      };
     }
-  };
+
+    let response;
+    if (budgetAmount && budgetId) {
+      // ✅ Update existing budget
+      response = await SpendingBudgetApi.updateSpendingBudget(
+        budgetId,
+        budgetData
+      );
+      console.log("Budget updated:", response);
+    } else {
+      // ✅ Create new budget
+      response = await SpendingBudgetApi.setSpendingBudget(budgetData);
+      console.log("Budget created:", response);
+    }
+
+    // Show success modal
+    setShowSuccessModal(true);
+  } catch (error) {
+    console.error("Failed to set/update budget:", error);
+    // You might want to show an error modal here
+  } finally {
+    setIsProcessing(false);
+  }
+};
+
 
   const handleBillingCycleConfirm = (option: BillingOption, date?: Date) => {
     setSelectedBillingOption(option);
@@ -99,7 +116,7 @@ export default function AdjustLimit() {
             Current limit:{" "}
           </Text>
           <Text className="text-[16px] font-urbanist-bold leading-[22px] text-[#181818]">
-            €18,000
+            €{budgetAmount}
           </Text>
         </View>
 
@@ -119,8 +136,8 @@ export default function AdjustLimit() {
       </View>
 
       <View className="mx-[20px]">
-        <Button 
-          title={isProcessing ? "Processing..." : "Confirm limit"} 
+        <Button
+          title={isProcessing ? "Processing..." : "Confirm limit"}
           onPress={handleSetBudget}
           disabled={isProcessing}
         />
@@ -129,7 +146,7 @@ export default function AdjustLimit() {
       <SetBillingCycleModal
         value={showModal}
         setValue={setShowModal}
-        setShowSuccessModal={setShowSuccessModal}
+        // setShowSuccessModal={setShowSuccessModal}
         onConfirm={handleBillingCycleConfirm}
         initialOption={selectedBillingOption}
         initialDate={selectedDate}

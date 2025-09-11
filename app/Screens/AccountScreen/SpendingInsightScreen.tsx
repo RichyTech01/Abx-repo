@@ -2,9 +2,9 @@ import { View, Text, Pressable } from "react-native";
 import { useState, useEffect } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import GoBackIcon from "../../../assets/svgs/BackArrow.svg";
+import { useRouter } from "expo-router";
 import DropDownIcon from "../../../assets/svgs/SmallDropDownoIcon.svg";
 import OreAppText from "@/common/OreApptext";
-import { useNavigation } from "@react-navigation/native";
 import AdjustIcon from "../../../assets/svgs/AdjustIcon.svg";
 import BudgetTracker from "@/components/AccountComps/BudgetTracker";
 import SpendingBreakDown from "@/components/AccountComps/SpendingBreakDown";
@@ -12,7 +12,7 @@ import { SpendingBudgetResponse } from "@/types/SpendingBudgetApi";
 import SpendingBudgetApi from "@/api/SpendingBudgetApi";
 
 export default function SpendingInsightScreen() {
-  const navigation = useNavigation();
+  const router = useRouter();
   const [insight, setInsight] = useState<SpendingBudgetResponse | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -33,11 +33,12 @@ export default function SpendingInsightScreen() {
     fetchBudget();
   }, []);
 
+
   return (
     <ScreenWrapper>
       <View className="flex-row items-center justify-between mx-[18px] ">
         <Pressable
-          onPress={() => navigation.goBack()}
+          onPress={() => router.dismiss(1)}
           className=" h-8 w-8 items-start justify-center  "
         >
           <GoBackIcon />
@@ -53,17 +54,22 @@ export default function SpendingInsightScreen() {
         </View>
       </View>
 
+      
+
       <View className="mt-[24px] mx-[17px]  ">
         <View className="flex-row items-center justify-between ">
           <Text className="text-[16px] text-[#181818] font-urbanist-bold  ">
             Spending overview
           </Text>
-          <View className="flex-row items-center gap-[4px]  ">
+          <Pressable
+            className="flex-row items-center gap-[4px]  "
+            onPress={() => router.push("/Screens/AccountScreen/AdjustLimit")}
+          >
             <Text className="text-[14px] text-[#0C513F] font-urbanist-bold  ">
               Adjust
             </Text>
             <AdjustIcon />
-          </View>
+          </Pressable>
         </View>
 
         <View
@@ -76,16 +82,19 @@ export default function SpendingInsightScreen() {
                 Current spending budget
               </Text>
               <Text className="text-[20px] leading-[21px] font-urbanist-bold text-[#181818] mt-[4px]  ">
-               €{Number(insight?.amount ?? 0).toFixed(0)}
+                €{Number(insight?.amount ?? 0).toFixed(0)}
               </Text>
             </View>
           </View>
           <View>
-            <BudgetTracker spent={insight?.total_spent} />
+            <BudgetTracker
+              spent={insight?.total_spent}
+              budget={insight?.amount}
+            />
           </View>
         </View>
         <View>
-          <SpendingBreakDown />
+          <SpendingBreakDown transactions={insight?.transactions ?? []} />
         </View>
       </View>
     </ScreenWrapper>

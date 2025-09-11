@@ -27,6 +27,20 @@ class SpendingBudgetApi {
     const res = await this.client.post("/order/set-spending-budget", payload);
     return res.data;
   }
+
+  public async updateSpendingBudget(
+  id: string,
+  payload: {
+    amount: string;
+    start_date: string;
+    month: number;
+    year: number;
+  }
+): Promise<SpendingBudgetResponse> {
+  const res = await this.client.patch(`/order/spending-budget/${id}`, payload);
+  return res.data;
+}
+
 }
 
 export default new SpendingBudgetApi();

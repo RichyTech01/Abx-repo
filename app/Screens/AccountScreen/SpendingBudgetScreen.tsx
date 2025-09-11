@@ -1,23 +1,27 @@
-import { useState, useEffect } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
-import ScreenWrapper from "@/common/ScreenWrapper";
-import Header from "@/common/Header";
-import OreAppText from "@/common/OreApptext";
+import SpendingBudgetApi from "@/api/SpendingBudgetApi";
 import SPendingLimitIcon from "@/assets/svgs/AddspendLimitIcon.svg";
 import SPendingLimitBg from "@/assets/svgs/PartOfLimitBg.svg";
 import SecondSPendingLimitBg from "@/assets/svgs/SecondLimitBg.svg";
 import Button from "@/common/Button";
+import Header from "@/common/Header";
+import OreAppText from "@/common/OreApptext";
+import ScreenWrapper from "@/common/ScreenWrapper";
 import SpendingBudgetTab from "@/common/SpendingBudgetTab";
 import SpendingBudgetTransactions from "@/components/AccountComps/SpendingBudgetTransactions";
-import { useRouter } from "expo-router";
-import SpendingBudgetApi from "@/api/SpendingBudgetApi";
 import { SpendingBudgetResponse } from "@/types/SpendingBudgetApi";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Text, View } from "react-native";
+import { useBudgetStore } from "@/store/useBudgetStore";
 
 export default function SpendingBudgetScreen() {
   const [activeTab, setActiveTab] = useState("Spending budget");
   const [budget, setBudget] = useState<SpendingBudgetResponse | null>(null);
   const [loading, setLoading] = useState(false);
+
   const router = useRouter();
+
+  const setBudgetToStore = useBudgetStore((state) => state.setBudget);
 
   useEffect(() => {
     const fetchBudget = async () => {
@@ -25,6 +29,8 @@ export default function SpendingBudgetScreen() {
         setLoading(true);
         const data = await SpendingBudgetApi.getCurrentSpendingBudget();
         setBudget(data);
+        setBudgetToStore(String(data.amount ?? 0), data.id ?? "");
+
         console.log("Fetched budget:", data);
       } catch (error) {
         console.error("Failed to load spending budget:", error);
@@ -35,8 +41,8 @@ export default function SpendingBudgetScreen() {
 
     fetchBudget();
   }, []);
-
-  
+ 
+  const amountLeft = (budget?.amount || 0) - (budget?.amount_spent || 0);
 
   return (
     <ScreenWrapper>
@@ -79,7 +85,7 @@ export default function SpendingBudgetScreen() {
                   Amount left:{" "}
                 </Text>
                 <Text className="font-urbanist-semibold text-[#181818] text-[12px] leading-[16px]">
-                  €{Number(budget?.amount ?? 0).toFixed(0)}
+                  €{Number(amountLeft ?? 0).toFixed(0)}
                 </Text>
               </View>
             </View>
@@ -91,9 +97,11 @@ export default function SpendingBudgetScreen() {
               backgroundColor="white"
               textColor="#0C513F"
               icon={<SPendingLimitIcon />}
+              
               iconPosition="left"
               paddingVertical={10}
               borderWidth={0}
+              disabled={!!budget?.amount && budget.amount > 0}
               onPress={() => router.push("/Screens/AccountScreen/AdjustLimit")}
             />
           </View>

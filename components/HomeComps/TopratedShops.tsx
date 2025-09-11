@@ -53,7 +53,7 @@ export default function TopratedShops() {
           style={{
             textAlign: "center",
             marginTop: 16,
-            color: "#666",
+            color: "red",
             fontSize: 14,
           }}
         >

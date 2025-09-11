@@ -3,17 +3,20 @@ import {
   TouchableOpacity,
   ScrollView,
   Linking,
-} from "react-native";
+  Text
+ } from "react-native";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
 import ChatwithRepIcon from "@/assets/svgs/ChatRepIcon.svg";
 import SendEmailIcon from "@/assets/svgs/SendEmailIcon.svg";
 import CallIcon from "@/assets/svgs/CallIcon.svg";
+import Button from "@/common/Button";
+import COpyIcon from "@/assets/svgs/CopyIcon.svg"
 
 export default function Support() {
   const handleEmailPress = () => {
-    Linking.openURL("mailto:support@abx.com"); 
+    Linking.openURL("mailto:support@abx.com");
   };
 
   const handleCallPress = () => {
@@ -39,8 +42,8 @@ export default function Support() {
 
           <View className="mt-[22px] gap-[16px]">
             {/* Chat with Rep */}
-            <TouchableOpacity className="bg-[#ECF1F0] rounded-[8px] py-[13px] w-full items-center">
-              <View className="w-[70%] items-center">
+            <TouchableOpacity className="bg-[#ECF1F0] rounded-[8px] py-[13px] w-full items-center px-[28px] ">
+              <View className="w-[75%] items-center">
                 <ChatwithRepIcon />
                 <OreAppText className="text-[16px] leading-[20px] text-[#2C2C2C] mt-[16px]">
                   Chat with a Rep
@@ -50,14 +53,21 @@ export default function Support() {
                   assistance.
                 </UrbanistText>
               </View>
+              <View className="w-full mt-[8px]  ">
+                <Button
+                  title="Click to start a conversation"
+                  paddingVertical={15}
+                  onPress={() => {}}
+                />
+              </View>
             </TouchableOpacity>
 
             {/* Send Email */}
             <TouchableOpacity
               onPress={handleEmailPress}
-              className="bg-[#FDF0DC] rounded-[8px] py-[13px] w-full items-center"
+              className="bg-[#FDF0DC] rounded-[8px] py-[13px] w-full items-center px-[28px]"
             >
-              <View className="w-[70%] items-center">
+              <View className="w-[75%] items-center">
                 <SendEmailIcon />
                 <OreAppText className="text-[16px] leading-[20px] text-[#2C2C2C] mt-[16px]">
                   Send an email
@@ -66,22 +76,47 @@ export default function Support() {
                   Got a question? Email us, and we&apos;ll get back to you ASAP
                 </UrbanistText>
               </View>
+
+               <View className="w-full mt-[8px]  ">
+                <Button
+                  title="Click to start a conversation"
+                  paddingVertical={15}
+                  backgroundColor="#F4B551"
+                  borderColor="#F4B551"
+                  onPress={() => {}}
+                />
+              </View>
             </TouchableOpacity>
 
             {/* Call Us */}
             <TouchableOpacity
               onPress={handleCallPress}
-              className="bg-[#FDE2F6] rounded-[8px] py-[13px] w-full items-center"
+              className="bg-[#FDE2F6] rounded-[8px] py-[13px] w-full items-center px-[28px]  "
             >
-              <View className="w-[70%] items-center">
+              <View className="w-[75%] items-center">
                 <CallIcon />
                 <OreAppText className="text-[16px] leading-[20px] text-[#2C2C2C] mt-[16px]">
                   Call us
                 </OreAppText>
                 <UrbanistText className="text-[#424242] text-[14px] leading-[20px] text-center mt-[8px]">
-                  Need to talk? Give us a call on +442012345678 and we&apos;ll be
-                  happy to assist.
+                  Need to talk? Give us a call on +442012345678 and we&apos;ll
+                  be happy to assist.
                 </UrbanistText>
+
+             <View className="flex items-center ">
+                 <COpyIcon />
+                 <Text className="text-[12px] font-urbanist-semibold text-[#424242] leading-[16px]  ml-[8px] ">Copy number</Text>
+             </View>
+              </View>
+
+               <View className="w-full mt-[8px]  ">
+                <Button
+                  title="Click to start a conversation"
+                  paddingVertical={15}
+                  backgroundColor="#FF97E4"
+                  borderColor="#FF97E4"
+                  onPress={() => {}}
+                />
               </View>
             </TouchableOpacity>
           </View>

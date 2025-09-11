@@ -43,12 +43,16 @@ export default function BestSelling() {
       {isLoading ? (
         <ActivityIndicator size="small" style={{ paddingHorizontal: 16 }} />
       ) : error ? (
-        <Text style={{ marginTop: 16, color: "red" }}>
+        <Text
+          style={{ marginTop: 16, color: "red" }}
+          className="items-center justify-center mx-auto"
+        >
           Failed to load products
         </Text>
       ) : products.length === 0 ? (
         <Text
           style={{ marginVertical: 16, color: "#666", textAlign: "center" }}
+          className="items-center justify-center mx-auto"
         >
           No best-selling products available at the moment.
         </Text>

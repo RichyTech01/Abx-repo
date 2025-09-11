@@ -64,7 +64,10 @@ export default function RescueAndSaveProduct() {
       {isLoading ? (
         <ActivityIndicator size="small" style={{ marginTop: 16 }} />
       ) : error ? (
-        <Text style={{ marginTop: 16, color: "red" }}>
+        <Text
+          style={{ marginTop: 16, color: "red" }}
+          className="items-center justify-center mx-auto"
+        >
           Failed to load rescue and save products
         </Text>
       ) : products.length === 0 ? (

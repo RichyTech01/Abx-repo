@@ -1,9 +1,10 @@
-import { View, ScrollView, ActivityIndicator } from "react-native";
+import { View, ScrollView, ActivityIndicator, Text } from "react-native";
 import React, { useEffect, useState } from "react";
 import SectionHeader from "@/common/SectionHeader";
 import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
 import AdminApi from "@/api/AdminApi";
+
 
 const CATEGORY_COLORS: Record<
   number,
@@ -46,40 +47,47 @@ export default function Categories() {
         title="Categories"
         onPress={() => router.push("/Screens/HomeScreen/AllcateGories")}
       />
-
-      {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={"black"}
-          style={{ marginVertical: 10 }}
-        />
+      {!loading && categories.length === 0 ? (
+        <View className="items-center justify-center py-10 "> 
+        <Text className="text-red-600 font-normal text-[14px]  ">No categories found</Text>
+        </View>
       ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            gap: 10,
-            paddingVertical: 8,
-            paddingHorizontal: 20,
-          }}
-        >
-          {categories.map((item) => (
-            <CategoryCard
-              key={item.id}
-              title={item.name}
-              subtitle={item.description}
-              bgColor={item.bgColor}
-              borderColor={item.borderColor}
-              image={{ uri: item.img }}
-              onPress={() =>
-                router.push({
-                  pathname: "/Screens/HomeScreen/CategoryDetails",
-                  params: { category: item.name },
-                })
-              }
+        <View>
+          {loading ? (
+            <ActivityIndicator
+              size="small"
+              color={"black"}
+              style={{ marginVertical: 10 }}
             />
-          ))}
-        </ScrollView>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                gap: 10,
+                paddingVertical: 8,
+                paddingHorizontal: 20,
+              }}
+            >
+              {categories.map((item) => (
+                <CategoryCard
+                  key={item.id}
+                  title={item.name}
+                  subtitle={item.description}
+                  bgColor={item.bgColor}
+                  borderColor={item.borderColor}
+                  image={{ uri: item.img }}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/Screens/HomeScreen/CategoryDetails",
+                      params: { category: item.name },
+                    })
+                  }
+                />
+              ))}
+            </ScrollView>
+          )}
+        </View>
       )}
     </View>
   );
