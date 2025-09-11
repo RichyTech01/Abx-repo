@@ -1,18 +1,20 @@
 import {
   View,
-  TouchableOpacity,
   ScrollView,
   Linking,
-  Text
- } from "react-native";
+  TouchableOpacity,
+  Text,
+} from "react-native";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
 import ChatwithRepIcon from "@/assets/svgs/ChatRepIcon.svg";
 import SendEmailIcon from "@/assets/svgs/SendEmailIcon.svg";
 import CallIcon from "@/assets/svgs/CallIcon.svg";
-import Button from "@/common/Button";
-import COpyIcon from "@/assets/svgs/CopyIcon.svg"
+import CopyIcon from "@/assets/svgs/CopyIcon.svg";
+import * as Clipboard from "expo-clipboard";
+import SupportCard from "@/common/SupportCard";
+import showToast from "@/utils/showToast";
 
 export default function Support() {
   const handleEmailPress = () => {
@@ -21,6 +23,11 @@ export default function Support() {
 
   const handleCallPress = () => {
     Linking.openURL("tel:+442012345678");
+  };
+
+  const handleCopyNumber = async () => {
+    await Clipboard.setStringAsync("+442012345678");
+    showToast("success", "Copied ");
   };
 
   return (
@@ -42,83 +49,47 @@ export default function Support() {
 
           <View className="mt-[22px] gap-[16px]">
             {/* Chat with Rep */}
-            <TouchableOpacity className="bg-[#ECF1F0] rounded-[8px] py-[13px] w-full items-center px-[28px] ">
-              <View className="w-[75%] items-center">
-                <ChatwithRepIcon />
-                <OreAppText className="text-[16px] leading-[20px] text-[#2C2C2C] mt-[16px]">
-                  Chat with a Rep
-                </OreAppText>
-                <UrbanistText className="text-[#424242] text-[14px] leading-[20px] text-center mt-[8px]">
-                  Need help? Visit our Support Center for quick answers and
-                  assistance.
-                </UrbanistText>
-              </View>
-              <View className="w-full mt-[8px]  ">
-                <Button
-                  title="Click to start a conversation"
-                  paddingVertical={15}
-                  onPress={() => {}}
-                />
-              </View>
-            </TouchableOpacity>
+            <SupportCard
+              icon={<ChatwithRepIcon />}
+              title="Chat with a Rep"
+              description="Need help? Visit our Support Center for quick answers and assistance."
+              buttonText="Click to start a conversation"
+              backgroundColor="#ECF1F0"
+              buttonColor="#346E5F"
+              onPress={() => {}}
+            />
 
             {/* Send Email */}
-            <TouchableOpacity
+            <SupportCard
+              icon={<SendEmailIcon />}
+              title="Send an email"
+              description="Got a question? Email us, and we'll get back to you ASAP."
+              buttonText="Click to start a conversation"
+              backgroundColor="#FDF0DC"
+              buttonColor="#F4B551"
               onPress={handleEmailPress}
-              className="bg-[#FDF0DC] rounded-[8px] py-[13px] w-full items-center px-[28px]"
-            >
-              <View className="w-[75%] items-center">
-                <SendEmailIcon />
-                <OreAppText className="text-[16px] leading-[20px] text-[#2C2C2C] mt-[16px]">
-                  Send an email
-                </OreAppText>
-                <UrbanistText className="text-[#424242] text-[14px] leading-[20px] text-center mt-[8px]">
-                  Got a question? Email us, and we&apos;ll get back to you ASAP
-                </UrbanistText>
-              </View>
+            />
 
-               <View className="w-full mt-[8px]  ">
-                <Button
-                  title="Click to start a conversation"
-                  paddingVertical={15}
-                  backgroundColor="#F4B551"
-                  borderColor="#F4B551"
-                  onPress={() => {}}
-                />
-              </View>
-            </TouchableOpacity>
-
-            {/* Call Us */}
-            <TouchableOpacity
+            <SupportCard
+              icon={<CallIcon />}
+              title="Call us"
+              description="Need to talk? Give us a call on +442012345678 and we'll be happy to assist."
+              buttonText="Click to start a conversation"
+              backgroundColor="#FDE2F6"
+              buttonColor="#FF97E4"
               onPress={handleCallPress}
-              className="bg-[#FDE2F6] rounded-[8px] py-[13px] w-full items-center px-[28px]  "
-            >
-              <View className="w-[75%] items-center">
-                <CallIcon />
-                <OreAppText className="text-[16px] leading-[20px] text-[#2C2C2C] mt-[16px]">
-                  Call us
-                </OreAppText>
-                <UrbanistText className="text-[#424242] text-[14px] leading-[20px] text-center mt-[8px]">
-                  Need to talk? Give us a call on +442012345678 and we&apos;ll
-                  be happy to assist.
-                </UrbanistText>
-
-             <View className="flex items-center ">
-                 <COpyIcon />
-                 <Text className="text-[12px] font-urbanist-semibold text-[#424242] leading-[16px]  ml-[8px] ">Copy number</Text>
-             </View>
-              </View>
-
-               <View className="w-full mt-[8px]  ">
-                <Button
-                  title="Click to start a conversation"
-                  paddingVertical={15}
-                  backgroundColor="#FF97E4"
-                  borderColor="#FF97E4"
-                  onPress={() => {}}
-                />
-              </View>
-            </TouchableOpacity>
+              extraContent={
+                <TouchableOpacity
+                  className="flex-row items-center"
+                  onPress={handleCopyNumber}
+                >
+                  <CopyIcon />
+                  <Text className="text-[12px] font-urbanist-semibold text-[#424242] leading-[16px] ml-[8px]">
+                    Copy number
+                  </Text>
+                </TouchableOpacity>
+              }
+            />
           </View>
         </View>
       </ScrollView>
