@@ -33,7 +33,6 @@ export default function SpendingInsightScreen() {
     fetchBudget();
   }, []);
 
-
   return (
     <ScreenWrapper>
       <View className="flex-row items-center justify-between mx-[18px] ">
@@ -53,8 +52,6 @@ export default function SpendingInsightScreen() {
           <DropDownIcon />
         </View>
       </View>
-
-      
 
       <View className="mt-[24px] mx-[17px]  ">
         <View className="flex-row items-center justify-between ">
@@ -82,7 +79,10 @@ export default function SpendingInsightScreen() {
                 Current spending budget
               </Text>
               <Text className="text-[20px] leading-[21px] font-urbanist-bold text-[#181818] mt-[4px]  ">
-                €{Number(insight?.amount ?? 0).toFixed(0)}
+                €
+                {Number(insight?.amount ?? 0).toLocaleString(undefined, {
+                  minimumFractionDigits: 0,
+                })}
               </Text>
             </View>
           </View>

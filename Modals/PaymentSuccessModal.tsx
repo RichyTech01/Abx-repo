@@ -36,7 +36,7 @@ export default function PaymentSuccessModal({
     >
       <Pressable
         className="flex-1 justify-center items-center bg-black/30"
-        onPress={onClose}
+        // onPress={onClose}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}

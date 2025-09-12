@@ -82,7 +82,10 @@ export default function SpendingBudgetScreen() {
           ) : (
             <View className="mt-[4px] flex-row items-center justify-between py-[8px]">
               <OreAppText className="text-[36px] leading-[48px] text-white">
-                €{Number(budget?.amount ?? 0).toFixed(0)}
+                €
+                {Number(budget?.amount ?? 0).toLocaleString(undefined, {
+                  minimumFractionDigits: 0,
+                })}
               </OreAppText>
               <View className="bg-[#FBE6C5] rounded-[8px] p-[8px] flex-row items-center">
                 <Text className="font-urbanist-semibold text-[#181818] text-[12px] leading-[16px]">

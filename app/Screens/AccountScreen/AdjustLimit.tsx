@@ -154,7 +154,8 @@ export default function AdjustLimit() {
         visible={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
         onPress={() => {
-          router.dismiss(2);
+          router.dismissAll();
+          router.replace("/(tabs)");
           setShowSuccessModal(false);
         }}
       />
