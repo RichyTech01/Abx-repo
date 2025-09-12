@@ -4,8 +4,8 @@ import { Svg, Circle, G } from "react-native-svg";
 
 
 type BudgetTrackerProps = {
-  spent: string;
-  budget: string;
+  spent: string | undefined;
+  budget: string | undefined;
 };
 
 const BudgetTracker = ({ spent, budget }: BudgetTrackerProps) => {

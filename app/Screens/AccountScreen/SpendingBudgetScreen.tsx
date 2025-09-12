@@ -8,7 +8,6 @@ import OreAppText from "@/common/OreApptext";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import SpendingBudgetTab from "@/common/SpendingBudgetTab";
 import SpendingBudgetTransactions from "@/components/AccountComps/SpendingBudgetTransactions";
-import { SpendingBudgetResponse } from "@/types/SpendingBudgetApi";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
@@ -16,22 +15,24 @@ import { useBudgetStore } from "@/store/useBudgetStore";
 
 export default function SpendingBudgetScreen() {
   const [activeTab, setActiveTab] = useState("Spending budget");
-  const [budget, setBudget] = useState<SpendingBudgetResponse | null>(null);
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
-  const setBudgetToStore = useBudgetStore((state) => state.setBudget);
+  const { budget, setBudget } = useBudgetStore();
 
   useEffect(() => {
     const fetchBudget = async () => {
       try {
         setLoading(true);
         const data = await SpendingBudgetApi.getCurrentSpendingBudget();
-        setBudget(data);
-        setBudgetToStore(String(data.amount ?? 0), data.id ?? "");
-
-        console.log("Fetched budget:", data);
+        const normalized = {
+          ...data,
+          amount: Number(data.amount ?? 0),
+          amount_spent: Number(data.amount_spent ?? 0),
+          balance: Number(data.balance ?? 0),
+        };
+        setBudget(String(data.amount ?? 0), data.id ?? "", data);
       } catch (error) {
         console.error("Failed to load spending budget:", error);
       } finally {
@@ -39,10 +40,13 @@ export default function SpendingBudgetScreen() {
       }
     };
 
-    fetchBudget();
+    if (!budget) {
+      fetchBudget();
+    }
   }, []);
- 
-  const amountLeft = (budget?.amount || 0) - (budget?.amount_spent || 0);
+
+  const amountLeft =
+    Number(budget?.amount ?? 0) - Number(budget?.amount_spent ?? 0);
 
   return (
     <ScreenWrapper>
@@ -97,11 +101,10 @@ export default function SpendingBudgetScreen() {
               backgroundColor="white"
               textColor="#0C513F"
               icon={<SPendingLimitIcon />}
-              
               iconPosition="left"
               paddingVertical={10}
               borderWidth={0}
-              disabled={!!budget?.amount && budget.amount > 0}
+              disabled={Number(budget?.amount ?? 0) > 0}
               onPress={() => router.push("/Screens/AccountScreen/AdjustLimit")}
             />
           </View>

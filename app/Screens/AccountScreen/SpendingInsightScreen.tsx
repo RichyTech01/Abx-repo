@@ -8,12 +8,12 @@ import OreAppText from "@/common/OreApptext";
 import AdjustIcon from "../../../assets/svgs/AdjustIcon.svg";
 import BudgetTracker from "@/components/AccountComps/BudgetTracker";
 import SpendingBreakDown from "@/components/AccountComps/SpendingBreakDown";
-import { SpendingBudgetResponse } from "@/types/SpendingBudgetApi";
+import { SpendingInsightResponse } from "@/types/SpendingBudgetApi";
 import SpendingBudgetApi from "@/api/SpendingBudgetApi";
 
 export default function SpendingInsightScreen() {
   const router = useRouter();
-  const [insight, setInsight] = useState<SpendingBudgetResponse | null>(null);
+  const [insight, setInsight] = useState<SpendingInsightResponse | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

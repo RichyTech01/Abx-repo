@@ -11,11 +11,12 @@ import PaymentSuccessModal from "@/Modals/PaymentSuccessModal";
 import { useRouter } from "expo-router";
 import SpendingBudgetApi from "@/api/SpendingBudgetApi";
 import { useBudgetStore } from "@/store/useBudgetStore";
+import showToast from "@/utils/showToast";
 
 type BillingOption = "immediate" | "next_month";
 
 export default function AdjustLimit() {
-const { budgetAmount, budgetId } = useBudgetStore();
+  const { budgetAmount, budgetId, setBudget } = useBudgetStore();
 
   const router = useRouter();
   const [amount, setAmount] = useState("0");
@@ -41,57 +42,52 @@ const { budgetAmount, budgetId } = useBudgetStore();
     }
   };
 
-const handleSetBudget = async () => {
-  setIsProcessing(true);
-  try {
-    // Remove commas and convert to number
-    const numericAmount = amount.replace(/,/g, "");
+  const handleSetBudget = async () => {
+    setIsProcessing(true);
+    try {
+      // Remove commas and convert to number
+      const numericAmount = amount.replace(/,/g, "");
 
-    let budgetData;
-    if (selectedBillingOption === "immediate") {
-      budgetData = {
-        amount: numericAmount,
-        start_date: new Date().toISOString().split("T")[0],
-        month: new Date().getMonth() + 1,
-        year: new Date().getFullYear(),
-      };
-    } else {
-      // Use selected date or next month's first day as fallback
-      const startDate =
-        selectedDate ||
-        new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
-      budgetData = {
-        amount: numericAmount,
-        start_date: startDate.toISOString().split("T")[0],
-        month: startDate.getMonth() + 1,
-        year: startDate.getFullYear(),
-      };
+      let budgetData;
+      if (selectedBillingOption === "immediate") {
+        budgetData = {
+          amount: numericAmount,
+          start_date: new Date().toISOString().split("T")[0],
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+        };
+      } else {
+        // Use selected date or next month's first day as fallback
+        const startDate =
+          selectedDate ||
+          new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
+        budgetData = {
+          amount: numericAmount,
+          start_date: startDate.toISOString().split("T")[0],
+          month: startDate.getMonth() + 1,
+          year: startDate.getFullYear(),
+        };
+      }
+
+      let response;
+      if (budgetAmount && budgetId) {
+        response = await SpendingBudgetApi.updateSpendingBudget(
+          budgetId,
+          budgetData
+        );
+      } else {
+        response = await SpendingBudgetApi.setSpendingBudget(budgetData);
+      }
+      setBudget(String(response.amount ?? 0), response.id ?? "", response);
+
+      setShowSuccessModal(true);
+    } catch (error: any) {
+      console.error("Failed to set/update budget:", error);
+      showToast("error", error)
+    } finally {
+      setIsProcessing(false);
     }
-
-    let response;
-    if (budgetAmount && budgetId) {
-      // ✅ Update existing budget
-      response = await SpendingBudgetApi.updateSpendingBudget(
-        budgetId,
-        budgetData
-      );
-      console.log("Budget updated:", response);
-    } else {
-      // ✅ Create new budget
-      response = await SpendingBudgetApi.setSpendingBudget(budgetData);
-      console.log("Budget created:", response);
-    }
-
-    // Show success modal
-    setShowSuccessModal(true);
-  } catch (error) {
-    console.error("Failed to set/update budget:", error);
-    // You might want to show an error modal here
-  } finally {
-    setIsProcessing(false);
-  }
-};
-
+  };
 
   const handleBillingCycleConfirm = (option: BillingOption, date?: Date) => {
     setSelectedBillingOption(option);
