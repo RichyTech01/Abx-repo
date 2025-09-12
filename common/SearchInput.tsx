@@ -2,16 +2,16 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   TextInput,
-  StyleSheet,
-  Text,
   TouchableOpacity,
   ScrollView,
   Image,
 } from "react-native";
-import { useRouter } from "expo-router"; // Expo Router
+import { useRouter } from "expo-router";
 import Seacrchicon from "@/assets/svgs/SearchIcon.svg";
 import StoreApi from "@/api/StoreApi";
 import UrbanistText from "./UrbanistText";
+import { LoadingSpinner } from "./LoadingSpinner";
+import { Keyboard } from "react-native";
 
 interface SearchInputProps {
   placeholder?: string;
@@ -25,9 +25,8 @@ export default function SearchInput({
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
 
-  const router = useRouter(); // Use Expo Router
+  const router = useRouter();
 
-  // Debounce the search
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (query.length > 0) {
@@ -46,7 +45,7 @@ export default function SearchInput({
       setLoading(true);
       const res = await StoreApi.searchMarketplace(searchQuery);
       setResults(res.products || []);
-      setShowResults(res.products?.length > 0);
+      setShowResults(true);
     } catch (error) {
       console.error("Search error:", error);
       setResults([]);
@@ -57,25 +56,26 @@ export default function SearchInput({
   };
 
   const handleSelectItem = (item: any) => {
+    Keyboard.dismiss();
     setShowResults(false);
-    setQuery(item.item_name);
+    setQuery("");
 
-    // Navigate to product details page using router
     router.push({
-      pathname: "/Screens/HomeScreen/ProductDetails", // Your product detail route
-      params: { id: item.id.toString() }, // Pass product ID
+      pathname: "/Screens/HomeScreen/ProductDetails",
+      params: { id: item.id.toString() },
     });
   };
 
   return (
-    <View style={{ zIndex: 1000, position: "relative" }}>
-      <View style={styles.container}>
-        <View style={styles.icon}>
+    <View className="relative z-50">
+      {/* Input box */}
+      <View className="flex-row items-center bg-[#f2f2f2] rounded-[10px] px-5 py-3 mb-1">
+        <View className="mr-2">
           <Seacrchicon />
         </View>
 
         <TextInput
-          style={styles.input}
+          className="flex-1 text-[14px] text-black font-urbanist"
           placeholder={placeholder}
           placeholderTextColor="#656565"
           value={query}
@@ -84,75 +84,44 @@ export default function SearchInput({
         />
       </View>
 
-      {loading && <Text style={{ marginTop: 5 }}>Searching...</Text>}
-
+      {/* Dropdown */}
       {showResults && (
-        <ScrollView
-          style={[styles.modal, { position: "absolute", top: 60, left: 0, right: 0 }]}
-          nestedScrollEnabled
-          keyboardShouldPersistTaps="handled"
-        >
-          {results.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.resultItem}
-              onPress={() => handleSelectItem(item)}
-              className="flex-row items-center gap-[8px]"
+        <View className="absolute top-[60px] left-0 right-0 max-h-[250px] border border-[#F1EAE7] bg-white rounded-[10px] py-[18px] shadow-md px-[23.01px]">
+          {loading ? (
+            <View className="py-10 items-center justify-center">
+              <LoadingSpinner />
+            </View>
+          ) : results.length > 0 ? (
+            <ScrollView
+              nestedScrollEnabled
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: 8 }}
             >
-              <Image
-                source={{ uri: item?.prod_image_url }}
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 8,
-                  marginRight: 8,
-                }}
-              />
-              <UrbanistText className="text-[#121212] text-[12px] leading-[16px]">
-                {item.item_name}
+              {results.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => handleSelectItem(item)}
+                  className="flex-row items-center px- py-2 gap-2 "
+                >
+                  <Image
+                    source={{ uri: item?.prod_image_url }}
+                    className="w-[22px] h-[22px] rounded-[8px] mr-2"
+                  />
+                  <UrbanistText className="text-[#121212] text-[12px] leading-[16px]">
+                    {item.item_name}
+                  </UrbanistText>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          ) : (
+            <View className="py-4 items-center">
+              <UrbanistText className="text-[12px] text-[#999]">
+                No results found
               </UrbanistText>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+            </View>
+          )}
+        </View>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f2f2f2",
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    marginBottom: 5,
-  },
-  icon: {
-    marginRight: 8,
-  },
-  input: {
-    flex: 1,
-    fontSize: 14,
-    color: "#000",
-    fontFamily: "UrbanistRegular",
-  },
-  modal: {
-    maxHeight: 200,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    paddingVertical: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-    zIndex: 1000,
-  },
-  resultItem: {
-    padding: 10,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-});

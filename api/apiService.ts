@@ -24,6 +24,8 @@ class ApiService {
           config.headers["Authorization"] = `Bearer ${accessToken}`;
         }
 
+        console.log("X-Cart-ID attached?", cartId)
+
         if (cartId) {
           config.headers["X-Cart-ID"] = cartId;
         }

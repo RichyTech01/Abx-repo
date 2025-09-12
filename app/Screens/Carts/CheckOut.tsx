@@ -20,6 +20,7 @@ import OrderApi from "@/api/OrderApi";
 import { Address } from "@/types/Order";
 import PaymentSuccessModal from "@/Modals/PaymentSuccessModal";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CheckOut() {
   const router = useRouter();
@@ -141,12 +142,15 @@ export default function CheckOut() {
         console.error("Payment failed:", error);
         showToast("error", error.message || "Payment failed.");
       } else {
-        console.log("Payment succeeded:", paymentIntent);
-        showToast("success", "Payment completed successfully!");
-        setShowPaymentModal(false);
-        setShowSuccessModal((prev) => !prev);
-        setClientSecret(null);
-        setCardDetails(null);
+        if (paymentIntent?.status === "Succeeded") {
+          console.log("Payment succeeded:", paymentIntent);
+          await AsyncStorage.removeItem("cartId");
+          showToast("success", "Payment completed successfully!");
+          setShowPaymentModal(false);
+          setShowSuccessModal((prev) => !prev);
+          setClientSecret(null);
+          setCardDetails(null);
+        }
       }
     } catch (err: any) {
       console.error("Payment error:", err);

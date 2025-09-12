@@ -56,7 +56,7 @@ export default function PaymentSuccessModal({
             <View className=" w-full mt-[10px] ">
               <Button
                 title={tittle}
-                onPress={onPress}
+                onPress={() => {onClose();onPress()}}
               />
             </View>
           </Pressable>
