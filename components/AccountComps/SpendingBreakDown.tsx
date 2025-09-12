@@ -1,4 +1,3 @@
-// SpendingBreakDown.tsx
 import { View, Text, FlatList } from "react-native";
 import NoData from "@/common/NoData";
 

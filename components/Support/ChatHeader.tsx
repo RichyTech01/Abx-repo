@@ -1,0 +1,28 @@
+import { View, Text, Pressable } from "react-native";
+import React from "react";
+import ChatDetailIcon from "@/assets/svgs/ChatDetailsIcon.svg";
+
+export default function ChatHeader() {
+  return (
+    <View className="bg-white border-b border-[#F1EAE7] mt-[5%] py-[15px] px-[16px]  flex-row items-center justify-between ">
+      <View className="flex-row items-center gap-[16px] ">
+        <View className="bg-blue-300 h-[30px] w-[30px] rounded-full "></View>
+        <View className="flex-col gap-[4px] ">
+          <Text className="text-[14px] leading-[20px] font-urbanist-medium text-[#2D2220] ">
+            Henry Osas
+          </Text>
+          <Text className="text-[14px] leading-[20px] font-urbanist-semibold text-[#2D2220] ">
+            Support center rep - ABX097456
+          </Text>
+        </View>
+      </View>
+
+      <Pressable
+        onPress={() => {}}
+        className="items-end justify-center h-10 w-10 "
+      >
+        <ChatDetailIcon />
+      </Pressable>
+    </View>
+  );
+}

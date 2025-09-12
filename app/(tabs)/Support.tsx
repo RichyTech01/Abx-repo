@@ -14,9 +14,11 @@ import CallIcon from "@/assets/svgs/CallIcon.svg";
 import CopyIcon from "@/assets/svgs/CopyIcon.svg";
 import * as Clipboard from "expo-clipboard";
 import SupportCard from "@/common/SupportCard";
+import { useRouter } from "expo-router";
 import showToast from "@/utils/showToast";
 
 export default function Support() {
+  const router = useRouter()
   const handleEmailPress = () => {
     Linking.openURL("mailto:support@abx.com");
   };
@@ -56,7 +58,7 @@ export default function Support() {
               buttonText="Click to start a conversation"
               backgroundColor="#ECF1F0"
               buttonColor="#346E5F"
-              onPress={() => {}}
+              onPress={() => router.push("/Screens/Support/ChatScreen")}
             />
 
             {/* Send Email */}
