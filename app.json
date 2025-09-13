@@ -1,27 +1,38 @@
 {
   "expo": {
-    "name": "abx-mobile-application",
-    "slug": "abx-mobile-application",
-    "version": "1.0.0",
+    "name": "abx-mobile",
+    "slug": "abx-mobile-app",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/Images/MainLogo.png",
     "scheme": "abxmobileapplication",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
-     "extra": {
-      "GET_ADDRESS_API_KEY": "LmRcb8Qk50mEojODY5sv3w46906"
+    "splash": {
+      "image": "./assets/Images/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#0C513F"
+    },
+    "newArchEnabled": true,
+    "extra": {
+      "GET_ADDRESS_API_KEY": "LmRcb8Qk50mEojODY5sv3w46906",
+      "router": {},
+      "eas": {
+        "projectId": "8e52f21a-83fe-434f-ab77-05345693e72a"
+      }
     },
     "ios": {
       "supportsTablet": true,
-       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "We need your location to show nearby stores."
-      }
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to show nearby stores.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.henry23.abxmobileapp"
     },
     "android": {
         "permissions": ["ACCESS_FINE_LOCATION"],
       "adaptiveIcon": {
-        "foregroundImage": "",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/Images/MainLogo.png",
+        "backgroundColor": "#0C513F"
       },
       "edgeToEdgeEnabled": true
     },
@@ -35,16 +46,16 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/Images/MainLogo.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "image": "./assets/Images/splash.png",
+          "resizeMode": "cover",
+          "backgroundColor": "#0C513F"
         }
       ],
       "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+     }
+   }
   }
-}
+
