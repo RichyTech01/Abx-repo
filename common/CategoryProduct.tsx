@@ -34,7 +34,7 @@ export default function CategoryProduct({
   isOpen 
 }: CategoryProductProps) {
 
-console.log("outofstock and open ", isOutOfStock, isOpen);
+// console.log("outofstock and open ", isOutOfStock, isOpen);
   return (
     <TouchableOpacity
       onPress={onPress}

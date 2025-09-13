@@ -21,7 +21,7 @@ export function useClosestStores() {
     queryFn: async () => {
       try {
         const data = await StoreApi.getNearestStores(latitude!, longitude!);
-        console.log(latitude, longitude);
+        // console.log(latitude, longitude);
         return Array.isArray(data) ? data : data.results || [];
       } catch (err: any) {
         console.log("Error fetching stores:", err.response || err.message);

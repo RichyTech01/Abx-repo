@@ -1,4 +1,5 @@
 import "./global.css";
+// import { STRIPE_PUBLISHABLE_KEY } from "@env";
 import { useEffect, useState } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -26,7 +27,10 @@ import { Manrope_600SemiBold } from "@expo-google-fonts/manrope";
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
+const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+
 export default function RootLayout() {
+  console.log(STRIPE_PUBLISHABLE_KEY)
   const [fontsLoaded] = useFonts({
     OrelegaOne: OrelegaOne_400Regular,
     UrbanistRegular: Urbanist_400Regular,
@@ -54,7 +58,7 @@ export default function RootLayout() {
   if (!fontsLoaded || isLoggedIn === null) return null;
 
   return (
-    <StripeProvider publishableKey="pk_test_51RARqlRueoJLqZydZsbUAZa0wbo6okPcMTKWWKIVgRYTH1wHSSmC3GChQf2oInN5bbKo4LeXtXITxIUmT36tTa8v00Fy0PMDMN">
+    <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
           <StatusBar style="dark" backgroundColor="#fff" />

@@ -7,7 +7,6 @@
     "icon": "./assets/Images/MainLogo.png",
     "scheme": "abxmobileapplication",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
      "extra": {
       "GET_ADDRESS_API_KEY": "LmRcb8Qk50mEojODY5sv3w46906"
     },

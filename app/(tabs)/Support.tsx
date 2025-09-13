@@ -58,7 +58,7 @@ export default function Support() {
               buttonText="Click to start a conversation"
               backgroundColor="#ECF1F0"
               buttonColor="#346E5F"
-              onPress={() => router.push("/Screens/Support/ChatScreen")}
+              onPress={() => router.push("/Screens/Support/SupportChatScreen")}
             />
 
             {/* Send Email */}

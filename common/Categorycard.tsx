@@ -27,7 +27,6 @@ export default function CategoryCard({
   paddingY = 20,
   onPress
 }: CategoryCardProps) {
-  console.log(image);
   return (
     <Pressable
       className="rounded-[16px] px-[10px] items-center"

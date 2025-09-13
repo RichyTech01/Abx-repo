@@ -29,7 +29,7 @@ export default function VariationCard({
   const quantity = existingItem ? existingItem.quantity : 0;
 
   // console.log("VariationCard - Item.id:", item.id);
-  console.log("VariationCard - Cart items:", cartItems);
+  // console.log("VariationCard - Cart items:", cartItems);
   // console.log("VariationCard - Found existingItem:", existingItem);
   // console.log("VariationCard - Quantity:", quantity);
 

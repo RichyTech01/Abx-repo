@@ -64,7 +64,7 @@ export default function RescueAndSave() {
           edible)
         </UrbanistText>
 
-        <View className="mx-[20px]  items-center  mt-[16px]  ">
+        <View className="mx-[20px]  mt-[16px]  ">
           <SearchInput />
         </View>
 

@@ -8,6 +8,7 @@ import NotificationApi from "@/api/NotificationApi";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import NoData from "@/common/NoData";
 import { useRouter } from "expo-router";
+import showToast from "@/utils/showToast";
 
 export default function NotificationScreen() {
   const router = useRouter();
@@ -29,8 +30,15 @@ export default function NotificationScreen() {
 
   const handleMarkAllAsRead = async () => {
     try {
+      const unread = notifications.filter((n) => !n.is_read);
+
+      if (unread.length === 0) {
+        showToast("info","📭 All notifications are already read");
+        return;
+      }
+
       await Promise.all(
-        notifications.map((n) =>
+        unread.map((n) =>
           NotificationApi.markAsReadPartial(n.id, {
             title: n.title,
             message: n.message,
@@ -39,9 +47,10 @@ export default function NotificationScreen() {
           })
         )
       );
-      fetchNotifications(); 
+
+      fetchNotifications();
     } catch (err) {
-      console.error(" Error marking all as read", err);
+      console.error("❌ Error marking all as read", err);
     }
   };
 
