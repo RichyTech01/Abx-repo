@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, ScrollView } from "react-native";
 import { useState, useEffect } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import GoBackIcon from "../../../assets/svgs/BackArrow.svg";
@@ -22,7 +22,7 @@ export default function SpendingInsightScreen() {
         setLoading(true);
         const data = await SpendingBudgetApi.getSpendingInsights();
         setInsight(data);
-        console.log("Fetched Insight:", data);
+        // console.log("Fetched Insight:", data);
       } catch (error) {
         console.error("Failed to load spending budget:", error);
       } finally {
@@ -53,50 +53,52 @@ export default function SpendingInsightScreen() {
         </View>
       </View>
 
-      <View className="mt-[24px] mx-[17px]  ">
-        <View className="flex-row items-center justify-between ">
-          <Text className="text-[16px] text-[#181818] font-urbanist-bold  ">
-            Spending overview
-          </Text>
-          <Pressable
-            className="flex-row items-center gap-[4px]  "
-            onPress={() => router.push("/Screens/AccountScreen/AdjustLimit")}
-          >
-            <Text className="text-[14px] text-[#0C513F] font-urbanist-bold  ">
-              Adjust
+      <ScrollView contentContainerStyle={{paddingBottom: 100}}>
+        <View className="mt-[24px] mx-[17px]  ">
+          <View className="flex-row items-center justify-between ">
+            <Text className="text-[16px] text-[#181818] font-urbanist-bold  ">
+              Spending overview
             </Text>
-            <AdjustIcon />
-          </Pressable>
-        </View>
+            <Pressable
+              className="flex-row items-center gap-[4px]  "
+              onPress={() => router.push("/Screens/AccountScreen/AdjustLimit")}
+            >
+              <Text className="text-[14px] text-[#0C513F] font-urbanist-bold  ">
+                Adjust
+              </Text>
+              <AdjustIcon />
+            </Pressable>
+          </View>
 
-        <View
-          className="bg-white rounded-[16px] p-[20px] mt-[16px]  shadow-sm "
-          style={{ shadowColor: "#0000000D", elevation: 2 }}
-        >
-          <View className="">
-            <View className=" ">
-              <Text className="font-urbanist-medium text-[14px] leading-[21px] text-[#929292]   ">
-                Current spending budget
-              </Text>
-              <Text className="text-[20px] leading-[21px] font-urbanist-bold text-[#181818] mt-[4px]  ">
-                €
-                {Number(insight?.amount ?? 0).toLocaleString(undefined, {
-                  minimumFractionDigits: 0,
-                })}
-              </Text>
+          <View
+            className="bg-white rounded-[16px] p-[20px] mt-[16px]  shadow-sm "
+            style={{ shadowColor: "#0000000D", elevation: 2 }}
+          >
+            <View className="">
+              <View className=" ">
+                <Text className="font-urbanist-medium text-[14px] leading-[21px] text-[#929292]   ">
+                  Current spending budget
+                </Text>
+                <Text className="text-[20px] leading-[21px] font-urbanist-bold text-[#181818] mt-[4px]  ">
+                  €
+                  {Number(insight?.amount ?? 0).toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                  })}
+                </Text>
+              </View>
+            </View>
+            <View>
+              <BudgetTracker
+                spent={insight?.total_spent}
+                budget={insight?.amount}
+              />
             </View>
           </View>
           <View>
-            <BudgetTracker
-              spent={insight?.total_spent}
-              budget={insight?.amount}
-            />
+            <SpendingBreakDown transactions={insight?.transactions ?? []} />
           </View>
         </View>
-        <View>
-          <SpendingBreakDown transactions={insight?.transactions ?? []} />
-        </View>
-      </View>
+      </ScrollView>
     </ScreenWrapper>
   );
 }

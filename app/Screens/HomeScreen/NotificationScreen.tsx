@@ -1,9 +1,4 @@
-import {
-  View,
-  Text,
-  Pressable,
-  FlatList,
-} from "react-native";
+import { View, Text, Pressable, FlatList } from "react-native";
 import { useEffect, useState } from "react";
 import Header from "@/common/Header";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -15,7 +10,7 @@ import NoData from "@/common/NoData";
 import { useRouter } from "expo-router";
 
 export default function NotificationScreen() {
-  const router = useRouter()
+  const router = useRouter();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +18,7 @@ export default function NotificationScreen() {
     try {
       setLoading(true);
       const data = await NotificationApi.getNotifications(1);
-      console.log("🔍 Notifications API response:", data);
+      // console.log("🔍 Notifications API response:", data);
       setNotifications(data.results || []);
     } catch (err) {
       console.error("❌ Error fetching notifications", err);
@@ -35,11 +30,18 @@ export default function NotificationScreen() {
   const handleMarkAllAsRead = async () => {
     try {
       await Promise.all(
-        notifications.map((n) => NotificationApi.markAsRead(n.id))
+        notifications.map((n) =>
+          NotificationApi.markAsReadPartial(n.id, {
+            title: n.title,
+            message: n.message,
+            notification_type: n.notification_type,
+            data: n.data,
+          })
+        )
       );
-      fetchNotifications();
+      fetchNotifications(); 
     } catch (err) {
-      console.error("❌ Error marking all as read", err);
+      console.error(" Error marking all as read", err);
     }
   };
 
@@ -51,7 +53,7 @@ export default function NotificationScreen() {
     <ScreenWrapper>
       <Header title="Notifications" />
 
-      <View className="mt-[22px]">
+      <View className="mt-[22px]   ">
         {notifications.length > 0 && (
           <Pressable
             onPress={handleMarkAllAsRead}
@@ -67,15 +69,17 @@ export default function NotificationScreen() {
           </Pressable>
         )}
 
-        <View className="mx-[20px] mt-[16px] ">
+        <View className="mx-[20px] mt-[16px] h-screen">
           {loading ? (
-            <LoadingSpinner/>
+            <LoadingSpinner />
           ) : notifications.length === 0 ? (
             <NoData
               title="No notificationsF"
               subtitle="We will keep you updated when you have a notification. "
               buttonTitle="Explore ABX stores"
-              onButtonPress={() => router.push("/Screens/AccountScreen/AllStore")}
+              onButtonPress={() =>
+                router.push("/Screens/AccountScreen/AllStore")
+              }
             />
           ) : (
             <FlatList

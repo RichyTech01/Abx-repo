@@ -83,7 +83,7 @@ export default function AdjustLimit() {
       setShowSuccessModal(true);
     } catch (error: any) {
       console.error("Failed to set/update budget:", error);
-      showToast("error", error)
+      showToast("error", error);
     } finally {
       setIsProcessing(false);
     }
@@ -135,7 +135,7 @@ export default function AdjustLimit() {
         <Button
           title={isProcessing ? "Processing..." : "Confirm limit"}
           onPress={handleSetBudget}
-          disabled={isProcessing}
+          disabled={isProcessing || Number(amount.replace(/,/g, "")) <= 0}
         />
       </View>
 
@@ -154,7 +154,7 @@ export default function AdjustLimit() {
         visible={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
         onPress={() => {
-          router.dismissAll();
+          router.dismiss(2);
           router.replace("/(tabs)");
           setShowSuccessModal(false);
         }}

@@ -148,9 +148,9 @@ export default function SetBillingCycleModal({
   };
 
   const handleConfirm = () => {
-    console.log("Selected option:", selectedOption);
+    // console.log("Selected option:", selectedOption);
     if (selectedOption === "next_month") {
-      console.log("Selected date:", selectedDate);
+      // console.log("Selected date:", selectedDate);
     }
     
     // Call the parent's onConfirm callback
