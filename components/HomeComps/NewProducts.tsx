@@ -48,7 +48,10 @@ export default function NewProducts() {
           Failed to load new products
         </Text>
       ) : products.length === 0 ? (
-        <Text className="items-center justify-center" style={{ marginTop: 16, color: "#666", textAlign: "center" }}>
+        <Text
+          className="items-center justify-center"
+          style={{ marginTop: 16, color: "#666", textAlign: "center" }}
+        >
           No new products available at the moment.
         </Text>
       ) : (
@@ -61,26 +64,33 @@ export default function NewProducts() {
             paddingVertical: 8,
           }}
         >
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              productId={product.id.toString()}
-              productName={product.item_name}
-              priceRange={`€${product.min_price} - €${product.max_price}`}
-              saleText="Sale 50%"
-              isOutOfStock={
-                product.variations?.[0]?.stock === 0 ||
-                !product.variations?.length
-              }
-              isShopOpen={true}
-              rating={4.9}
-              sizes={product.variations?.length ?? 0}
-              onAddToCart={() => handleAddToCart(product.id)}
-              ProductImg={{ uri: product.prod_image_url }}
-              store_open={product.store?.open_time}
-              store_close={product.store?.close_time}
-            />
-          ))}
+          {products.map((product) => {
+            const discountPercent = product.variations?.length
+              ? Math.max(
+                  ...product.variations.map((v) => Number(v.discount_per ?? 0))
+                )
+              : null;
+
+            return (
+              <ProductCard
+                key={product.id}
+                productId={product.id.toString()}
+                productName={product.item_name}
+                priceRange={`€${product.min_price} - €${product.max_price}`}
+                isShopOpen={true}
+                rating={4.9}
+                onAddToCart={() => handleAddToCart(product.id)}
+                ProductImg={{ uri: product.prod_image_url }}
+                store_open={product.store?.open_time}
+                store_close={product.store?.close_time}
+                discountPercent={
+                  discountPercent && discountPercent > 0
+                    ? discountPercent.toString()
+                    : null
+                }
+              />
+            );
+          })}
         </ScrollView>
       )}
 

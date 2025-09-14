@@ -17,6 +17,7 @@ import { ShopProductType } from "@/types/store";
 import CategoryProduct from "@/common/CategoryProduct";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
+import NoData from "@/common/NoData";
 
 export default function RescueAndSave() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function RescueAndSave() {
       StoreApi.getPublishedProducts({
         page: 1,
         published: true,
+        discounted_product: true,
       }),
   });
 
@@ -70,22 +72,26 @@ export default function RescueAndSave() {
 
         <View>
           {isLoading ? (
-            <View className="flex-1 items-center justify-center py-10">
+            <View className="flex-1 items-center justify-center py-10  ">
               <ActivityIndicator size="large" color="#000" />
             </View>
           ) : products?.length === 0 ? (
-            <View className="flex-1 items-center justify-center">
-              <Text>No products found.</Text>
+            <View className="py-[10%] items-center justify-center">
+              <NoData
+                title="No Discounted Product"
+                subtitle="Looks like you dont have any discounted Product yet, no worries, we've got plenty discounted product waiting for you"
+              />
             </View>
           ) : (
             <FlatList
               data={products}
               keyExtractor={(item) => item.id.toString()}
               numColumns={2}
+              className="h-screen "
               contentContainerStyle={{
                 paddingHorizontal: SCREEN_PADDING,
                 paddingTop: 16,
-                paddingBottom: 40,
+                paddingBottom: 80,
               }}
               columnWrapperStyle={{
                 justifyContent: "space-between",

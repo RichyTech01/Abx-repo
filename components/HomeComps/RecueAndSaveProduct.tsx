@@ -29,6 +29,7 @@ export default function RescueAndSaveProduct() {
       StoreApi.getPublishedProducts({
         page: 1,
         published: true,
+        discounted_product: true,
       }),
   });
 
@@ -42,12 +43,15 @@ export default function RescueAndSaveProduct() {
   if (error) {
     showToast("error", (error as Error).message || "Failed to load product");
   }
+
   const products = (data?.results ?? []).slice(0, 4);
 
   const handleAddToCart = (id: number) => {
     setSelectedProductId(id);
     setModalVisible(true);
   };
+
+  console.log("single", products[0]);
 
   return (
     <View className={`${Platform.OS === "ios" ? "mb-16" : "mb-28"} mb-16`}>
@@ -56,7 +60,7 @@ export default function RescueAndSaveProduct() {
         onPress={() => router.push("/Screens/AccountScreen/RescueAndSave")}
       />
 
-      <Text className="mx-[20px] text-[#2D2220] text-[10px] leading-[14px] font-urbanist ">
+      <Text className="mx-[20px] text-[#2D2220] text-[10px] leading-[14px] font-urbanist">
         (These are products that are near their expiration date but still
         edible)
       </Text>
@@ -84,25 +88,29 @@ export default function RescueAndSaveProduct() {
             paddingVertical: 8,
           }}
         >
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              productId={product.id.toString()}
-              productName={product.item_name}
-              priceRange={`€${product.min_price} - €${product.max_price}`}
-              isOutOfStock={
-                product.variations?.[0]?.stock === 0 ||
-                !product.variations?.length
-              }
-              isShopOpen={true}
-              rating={4.9}
-              sizes={product.variations?.length ?? 0}
-              onAddToCart={() => handleAddToCart(product.id)}
-              ProductImg={{ uri: product.prod_image_url }}
-              store_open={product.store?.open_time}
-              store_close={product.store?.close_time}
-            />
-          ))}
+          {products.map((product) => {
+            const firstVariation = product.variations?.[0];
+
+            return (
+              <ProductCard
+                key={product.id}
+                productId={product.id.toString()}
+                productName={product.item_name}
+                priceRange={`€${product.min_price} - €${product.max_price}`}
+                isOutOfStock={
+                  firstVariation?.stock === 0 || !product.variations?.length
+                }
+                isShopOpen={true}
+                rating={4.9}
+                sizes={product.variations?.length ?? 0}
+                onAddToCart={() => handleAddToCart(product.id)}
+                ProductImg={{ uri: product.prod_image_url }}
+                store_open={product.store?.open_time}
+                store_close={product.store?.close_time}
+                discountPercent={firstVariation?.discount_per}
+              />
+            );
+          })}
         </ScrollView>
       )}
 

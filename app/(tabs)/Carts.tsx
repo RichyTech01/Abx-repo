@@ -16,6 +16,7 @@ import showToast from "@/utils/showToast";
 import { useFocusEffect } from "@react-navigation/native";
 import NoData from "@/common/NoData";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
+import { useCartStore } from "@/store/useCartStore";
 
 export default function Carts() {
   const router = useRouter();
@@ -100,6 +101,7 @@ export default function Carts() {
     try {
       await OrderApi.removeFromCart(cartItemId);
       setCartItems((prev) => prev.filter((item) => item.id !== cartItemId));
+      showToast("success", "Cart removed Succefully")
     } catch (err) {
       console.error("Failed to remove item:", err);
     } finally {

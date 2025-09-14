@@ -30,7 +30,6 @@ const queryClient = new QueryClient();
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
 
 export default function RootLayout() {
-  console.log(STRIPE_PUBLISHABLE_KEY)
   const [fontsLoaded] = useFonts({
     OrelegaOne: OrelegaOne_400Regular,
     UrbanistRegular: Urbanist_400Regular,

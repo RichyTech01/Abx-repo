@@ -300,7 +300,7 @@ export default function CheckOut() {
       <PaymentSuccessModal
         visible={showSuccessModal}
         onClose={() => setShowSuccessModal((prev) => !prev)}
-        onPress={() => router.push("/(tabs)")}
+        onPress={() => router.push("/(tabs)/Orders")}
       />
 
       <CardFieldModal

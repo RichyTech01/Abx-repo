@@ -102,7 +102,7 @@ class StoreApi {
     published?: boolean;
     search?: string;
   }): Promise<any> {
-    const res = await this.client.get<any>("/store/products", {
+    const res = await this.client.get<any>("/store/all-products", {
       params: filters,
     });
     return res.data;

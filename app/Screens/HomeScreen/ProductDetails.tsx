@@ -8,6 +8,7 @@ import {
   Image,
   ActivityIndicator,
   StatusBar,
+  Pressable,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -49,6 +50,7 @@ export default function ProductDetails() {
   // const SCREEN_PADDING = 20;
   // const GAP = 16;
   // const ITEM_WIDTH =
+
   //   (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
 
   return (
@@ -93,9 +95,12 @@ export default function ProductDetails() {
                 </View>
 
                 <View className="mt-[18px] gap-[20px] mx-[7px]">
-                  <TouchableOpacity className="flex-row items-center gap-[8.5px] bg-[#F2F2F2] rounded-[8px] p-[11px] justify-center">
+                  <TouchableOpacity
+                    className="flex-row items-center gap-[8.5px] bg-[#F2F2F2] rounded-[8px] p-[11px] justify-center "
+                    onPress={() => setShowModal(!showModal)}
+                  >
                     <UrbanistText className="text-[#424242] ">
-                      Select size: 4
+                      Select size:
                     </UrbanistText>
                     <DropDownIcon />
                   </TouchableOpacity>
@@ -181,9 +186,9 @@ export default function ProductDetails() {
                 </View>
 
                 <View className="mt-[24px]  ">
-                  <Text className="text-[#424242] text-[16px] font-urbanist-semibold mx-[16px] ">
+                  {/* <Text className="text-[#424242] text-[16px] font-urbanist-semibold mx-[16px] ">
                     Other items from this store
-                  </Text>
+                  </Text> */}
                   <View className="mt-[10px]   ">
                     {/* <FlatList
                       data={productData.variations}

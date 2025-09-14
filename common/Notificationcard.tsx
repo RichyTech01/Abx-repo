@@ -18,7 +18,7 @@ export default function Notificationcard({
 }: NotificationCardProps) {
   return (
     <View
-      className={`border border-[#E4E7EC] py-[12px] px-[16px] bg-white rounded-[4px] ${
+      className={`border border-[#E4E7EC] py-[12px] px-[16px] bg-white rounded-[4px] mt-[7px] ${
         isRead ? "opacity-50" : "opacity-100"
       }`}
     >

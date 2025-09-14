@@ -16,7 +16,7 @@ import { isStoreOpen } from "@/utils/storeStatus";
 type ProductCardProps = {
   productName: string;
   priceRange: string;
-  saleText?: string;
+  discountPercent?: string | null;
   isOutOfStock?: boolean;
   isShopOpen?: boolean;
   rating?: number;
@@ -31,11 +31,9 @@ type ProductCardProps = {
 export default function ProductCard({
   productName,
   priceRange,
-  saleText = "Sale 50%",
-  isOutOfStock = false,
-  isShopOpen = true,
+  discountPercent,
   rating = 0,
-  sizes = 0,
+  // sizes = 0,
   onAddToCart,
   ProductImg,
   store_open,
@@ -45,19 +43,20 @@ export default function ProductCard({
   const router = useRouter();
   const isOpen = isStoreOpen(store_open, store_close);
   return (
-    <View className="bg-white border border-[#E6E6E6] p-[10px] w-[254px] rounded-[8px]">
+    <View className="bg-white border border-[#E6E6E6] p-[10px] w-[254px] rounded-[8px]  ">
       <View className="flex-row items-center justify-between">
-        <View
-          className="py-[2px] px-[8px] rounded-[4px]"
-          style={{
-            backgroundColor: isOutOfStock ? "#F04438" : "#F4B551",
-          }}
-        >
-          <Text className="text-[12px] leading-[16px] font-urbanist text-white">
-            {isOutOfStock ? "Out of stock" : saleText}
-          </Text>
-        </View>
+        {/* Discount / Stock Badge */}
+        {discountPercent ? (
+          <View className="py-[2px] px-[8px] rounded-[4px] bg-[#F4B551]">
+            <Text className="text-[12px] leading-[16px] font-urbanist text-white">
+              Sale {discountPercent}%
+            </Text>
+          </View>
+        ) : (
+          <View style={{ width: 1 }} />
+        )}
 
+        {/* Shop status */}
         <Text
           className="text-[12px] leading-[16px] font-urbanist"
           style={{
@@ -71,15 +70,15 @@ export default function ProductCard({
       {/* Product Image */}
       <Pressable
         className="mx-auto pt-[18px] pb-[13px] w-full "
-        disabled={isOutOfStock || !isOpen}
+        disabled={!isOpen}
         onPress={() =>
           router.push(`/Screens/HomeScreen/ProductDetails?id=${productId}`)
         }
       >
         <Image
           source={ProductImg}
-          style={{ opacity: isOutOfStock || !isOpen ? 0.5 : 1 }}
-          className="h-[130px] w-full rounded-[8px] "
+          style={{ opacity: !isOpen ? 0.5 : 1 }}
+          className="h-[130px] w-full rounded-[8px]  "
         />
       </Pressable>
 
@@ -103,12 +102,16 @@ export default function ProductCard({
             </Text>
           </View>
           {/* Sizes */}
-          <View className="p-[4px] bg-[#F2F2F2] rounded-[8px] flex-row items-center gap-[8.5px] mt-[8px]">
+          <Pressable
+            className="p-[4px] bg-[#F2F2F2] rounded-[8px] flex-row items-center gap-[8.5px] mt-[8px]"
+            onPress={onAddToCart}
+            disabled={isOpen === false}
+          >
             <Text className="text-[12px] leading-[16px] text-[#424242] font-urbanist">
-              Sizes: {sizes}
+              Sizes
             </Text>
             <DropDownArrow />
-          </View>
+          </Pressable>
         </View>
       </View>
 
@@ -118,7 +121,7 @@ export default function ProductCard({
           label="Add to cart"
           icon={<Carticon />}
           onPress={onAddToCart}
-          disabled={isOutOfStock || isOpen === false}
+          disabled={isOpen === false}
         />
       </View>
     </View>

@@ -3,6 +3,7 @@ import {
   ImageSourcePropType,
   Image,
   TouchableOpacity,
+  Pressable
 } from "react-native";
 import UrbanistText from "./UrbanistText";
 import DropDownArrow from "@/assets/svgs/DropDownArrow";
@@ -17,7 +18,7 @@ interface CategoryProductProps {
   rating?: number;
   sizes?: number;
   onPress?: () => void;
-  onAddToCart: () => void; 
+  onAddToCart: () => void;
   isOutOfStock: boolean;
   isOpen: boolean;
 }
@@ -30,19 +31,18 @@ export default function CategoryProduct({
   sizes,
   onPress,
   onAddToCart,
-  isOutOfStock, 
-  isOpen 
+  isOpen,
 }: CategoryProductProps) {
-
-// console.log("outofstock and open ", isOutOfStock, isOpen);
+  // console.log("outofstock and open ", isOutOfStock, isOpen);
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={isOutOfStock || !isOpen}
-      activeOpacity={0.8}
-      className="bg-white border border-[#E6E6E6] rounded-[8px] p-[10px] w-full"
-    >
-      <Image source={image} className="h-[94px] w-full rounded-[4px]   " />
+    <View  className="bg-white border border-[#E6E6E6] rounded-[8px] p-[10px] w-full">
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.8}
+        disabled={!isOpen}
+      >
+        <Image source={image} className="h-[94px] w-full rounded-[4px]   " />
+      </TouchableOpacity>
 
       <View className="mt-[8px]">
         <UrbanistText
@@ -64,26 +64,26 @@ export default function CategoryProduct({
         </View>
 
         {/* {sizes !== undefined && ( */}
-        <View className="bg-[#F2F2F2] p-[4px] rounded-[8px] flex-row items-center justify-center max-w-[69px] gap-[4px]">
+        <Pressable className="bg-[#F2F2F2] p-[4px] rounded-[8px] flex-row items-center justify-center max-w-[69px] gap-[4px]"  onPress={onAddToCart}>
           <UrbanistText className="text-[#424242] text-[12px] leading-[16px]">
-            Sizes: {sizes}
+            Sizes:
           </UrbanistText>
           <DropDownArrow />
-        </View>
+        </Pressable>
         {/* )} */}
 
         <View className="mt-[8px]">
           <Button
             fontClassName="font-urbanist-medium"
-            onPress={onAddToCart} 
+            onPress={onAddToCart}
             icon={<Carticon stroke="#FFFFFF" />}
             title="Add to cart"
             iconPosition="left"
             paddingVertical={9}
-            disabled={isOutOfStock || !isOpen}
+            disabled={!isOpen}
           />
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }

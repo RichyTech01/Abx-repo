@@ -57,7 +57,6 @@ export default function VariationCard({
         await OrderApi.addToCart({ product_id: item.id });
         showToast("success", "Product added to cart!");
       }
-      // ✅ Refresh shared cart state
       await onCartUpdate();
     } catch (err) {
       console.error("Failed to increase quantity:", err);
@@ -89,9 +88,9 @@ export default function VariationCard({
   };
 
   return (
-    <View className="border border-[#F1EAE7] rounded-[8px] px-[15px] py-[10px] flex-row items-center justify-between mb-[12px]">
-      {/* Product Info */}
-      <View className="flex-row items-center gap-[16px]">
+    <View className={`border border-[#F1EAE7] rounded-[8px] px-[15px] py-[10px] flex-row items-center justify-between mb-[12px] `}>
+      
+      <View className={`flex-row items-center gap-[16px]   ${item.stock === 0 && "opacity-30" }`}>
         <Image
           source={{ uri: item.pd_image_url }}
           className="w-[60px] h-[52px] rounded-[4px] bg-gray-200"
@@ -110,13 +109,13 @@ export default function VariationCard({
       </View>
 
       {/* Cart Actions */}
-      <View className="flex-row items-center">
+      <View className={`flex-row items-center  ${item.stock === 0 && "opacity-30" } `}>
         <Pressable
           className={`w-[35px] ${
-            quantity === 0 || !isOpen ? "bg-[#86A89F]" : "bg-[#0C513F]"
+            quantity === 0 || !isOpen  ? "bg-[#86A89F]" : "bg-[#0C513F]"
           } h-[35px] rounded-[8px] bg-[#0C513F] items-center justify-center`}
           onPress={handleDecrease}
-          disabled={updating || quantity === 0}
+          disabled={updating || quantity === 0 || item.stock === 0}
         >
           <View className="bg-white h-[2px] w-[11.67px]" />
         </Pressable>
@@ -130,10 +129,10 @@ export default function VariationCard({
 
         <Pressable
           className={`w-[35px] ${
-            !isOpen ? "bg-[#86A89F]" : "bg-[#0C513F]"
+            !isOpen ||  item.stock === 0 ? "bg-[#86A89F]" : "bg-[#0C513F]"
           } h-[35px] rounded-[8px] bg-[#0C513F] items-center justify-center`}
           onPress={handleIncrease}
-          disabled={updating || !isOpen}
+          disabled={updating || !isOpen || item.stock === 0}
         >
           <AddtoCartIcon />
         </Pressable>

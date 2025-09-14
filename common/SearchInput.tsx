@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import Seacrchicon from "@/assets/svgs/SearchIcon.svg";
@@ -28,14 +29,16 @@ export default function SearchInput({
   const router = useRouter();
 
   useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    setShowResults(true);
     const delayDebounce = setTimeout(() => {
-      if (query.length > 0) {
-        searchMarketplace(query);
-      } else {
-        setResults([]);
-        setShowResults(false);
-      }
-    }, 500);
+      searchMarketplace(query);
+    }, 300);
 
     return () => clearTimeout(delayDebounce);
   }, [query]);
@@ -43,13 +46,13 @@ export default function SearchInput({
   const searchMarketplace = async (searchQuery: string) => {
     try {
       setLoading(true);
+      setResults([]);
+      setShowResults(true);
       const res = await StoreApi.searchMarketplace(searchQuery);
       setResults(res.products || []);
-      setShowResults(true);
     } catch (error) {
       console.error("Search error:", error);
       setResults([]);
-      setShowResults(false);
     } finally {
       setLoading(false);
     }
@@ -69,7 +72,7 @@ export default function SearchInput({
   return (
     <View className="relative z-50">
       {/* Input box */}
-      <View className="flex-row items-center bg-[#f2f2f2] rounded-[10px] px-5 py-3 mb-1">
+      <View className="flex-row items-center bg-[#f2f2f2] rounded-[10px] px-5 py-3 mb-1 border border-[#D7D7D7]  ">
         <View className="mr-2">
           <Seacrchicon />
         </View>
@@ -86,7 +89,18 @@ export default function SearchInput({
 
       {/* Dropdown */}
       {showResults && (
-        <View className="absolute top-[60px] left-0 right-0 max-h-[250px] border border-[#F1EAE7] bg-white rounded-[10px] py-[18px] shadow-md px-[23.01px]">
+        <View
+          className={`absolute  left-0 right-0 max-h-[250px] border border-[#F1EAE7] bg-white py-[18px] shadow-sm shadow-[#624C39] px-[23.01px] ${
+            Platform.OS === "ios" ? "top-[60]" : "top-[70]"
+          } `}
+          style={{
+            shadowColor: "rgba(98, 76, 57, 0.1)",
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 1 },
+            elevation: 5,
+          }}
+        >
           {loading ? (
             <View className="py-10 items-center justify-center">
               <LoadingSpinner />
@@ -97,17 +111,25 @@ export default function SearchInput({
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingBottom: 8 }}
             >
-              {results.map((item) => (
+              {results.map((item, index) => (
                 <TouchableOpacity
                   key={item.id}
                   onPress={() => handleSelectItem(item)}
-                  className="flex-row items-center px- py-2 gap-2 "
+                  className={`flex-row items-center gap-2 px-[10px] ${
+                    index === 0
+                      ? "bg-[#FDF0DC] px-[10px] mb-2 py-[5px] rounded-[8px]"
+                      : "px- py-2"
+                  }`}
                 >
                   <Image
                     source={{ uri: item?.prod_image_url }}
                     className="w-[22px] h-[22px] rounded-[8px] mr-2"
                   />
-                  <UrbanistText className="text-[#121212] text-[12px] leading-[16px]">
+                  <UrbanistText
+                    className={`text-[12px] leading-[16px] ${
+                      "text-[#121212]"
+                    }`}
+                  >
                     {item.item_name}
                   </UrbanistText>
                 </TouchableOpacity>
