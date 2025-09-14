@@ -36,7 +36,6 @@ export default function BestSelling() {
     setModalVisible(true);
   };
 
-  console.log("best", products[1]);
 
   return (
     <View>

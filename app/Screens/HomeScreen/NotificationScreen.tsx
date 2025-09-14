@@ -9,11 +9,23 @@ import { LoadingSpinner } from "@/common/LoadingSpinner";
 import NoData from "@/common/NoData";
 import { useRouter } from "expo-router";
 import showToast from "@/utils/showToast";
+import { useNotificationStore } from "@/store/useNotificationStore";
 
 export default function NotificationScreen() {
+  const { fetchUnreadCount, markAllAsRead } = useNotificationStore();
+
   const router = useRouter();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+  fetchUnreadCount();
+}, []);
+
+const handleMarkAllAsRead = async () => {
+  await markAllAsRead();
+  fetchUnreadCount();
+};
 
   const fetchNotifications = async () => {
     try {
@@ -28,31 +40,31 @@ export default function NotificationScreen() {
     }
   };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      const unread = notifications.filter((n) => !n.is_read);
+  // const handleMarkAllAsRead = async () => {
+  //   try {
+  //     const unread = notifications.filter((n) => !n.is_read);
 
-      if (unread.length === 0) {
-        showToast("info","📭 All notifications are already read");
-        return;
-      }
+  //     if (unread.length === 0) {
+  //       showToast("info","📭 All notifications are already read");
+  //       return;
+  //     }
 
-      await Promise.all(
-        unread.map((n) =>
-          NotificationApi.markAsReadPartial(n.id, {
-            title: n.title,
-            message: n.message,
-            notification_type: n.notification_type,
-            data: n.data,
-          })
-        )
-      );
+  //     await Promise.all(
+  //       unread.map((n) =>
+  //         NotificationApi.markAsReadPartial(n.id, {
+  //           title: n.title,
+  //           message: n.message,
+  //           notification_type: n.notification_type,
+  //           data: n.data,
+  //         })
+  //       )
+  //     );
 
-      fetchNotifications();
-    } catch (err) {
-      console.error("❌ Error marking all as read", err);
-    }
-  };
+  //     fetchNotifications();
+  //   } catch (err) {
+  //     console.error("❌ Error marking all as read", err);
+  //   }
+  // };
 
   useEffect(() => {
     fetchNotifications();

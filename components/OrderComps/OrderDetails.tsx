@@ -25,7 +25,7 @@ export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await OrderApi.getCustomerOrderById(orderId); 
+        const res = await OrderApi.getCustomerOrderById(orderId);
         setOrder(res);
       } catch (err) {
         console.error("Failed to fetch order details:", err);
@@ -203,11 +203,11 @@ export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
           </View>
         </View>
 
-        {/* Confirm button */}
         <View className="mt-[8%]">
           <Button
             title="Click to confirm item delivery"
             onPress={handleConfirmDelivery}
+            disabled={order.status !== "shipped"}
           />
         </View>
       </ScrollView>

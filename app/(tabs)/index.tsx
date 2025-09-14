@@ -5,12 +5,11 @@ import {
   Platform,
   ScrollView,
   Pressable,
-  BackHandler,
   StatusBar,
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 
 import NotificationIcon from "@/assets/svgs/NotificationIcon";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";
@@ -26,44 +25,25 @@ import SpendingLimit from "@/components/HomeComps/SpendingLimit";
 import RescueAndSave from "@/components/HomeComps/RescueAndSave";
 import RecueAndSaveProduct from "@/components/HomeComps/RecueAndSaveProduct";
 import { useUserStore } from "@/store/useUserStore";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useNotificationStore } from "@/store/useNotificationStore";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function Home() {
-  const navigation = useNavigation();
   const router = useRouter();
-  const [query, setQuery] = useState("");
 
   const { user, loading, fetchUser } = useUserStore();
-  
+
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
 
+  const { unreadCount, fetchUnreadCount } = useNotificationStore();
+
   useFocusEffect(
     useCallback(() => {
-      // Prevent hardware back button on Android
-      const backAction = () => {
-        // Return true to prevent default back action
-        return true;
-      };
-      
-      const backHandler = BackHandler.addEventListener(
-        "hardwareBackPress",
-        backAction
-      );
-
-      return () => backHandler.remove();
+      fetchUnreadCount();
     }, [])
   );
-
-  // Additional effect to ensure gesture is disabled when component mounts
-  useEffect(() => {
-    // Disable swipe gesture for the current screen
-    navigation.setOptions({ 
-      gestureEnabled: false,
-      headerShown: false
-    });
-  }, [navigation]);
 
   return (
     <SafeAreaView className="bg-[#FFF6F2] flex-1">
@@ -87,6 +67,14 @@ export default function Home() {
               router.push("/Screens/HomeScreen/NotificationScreen")
             }
           >
+            {" "}
+            {unreadCount > 0 && (
+              <View className="absolute -top-1 -right-1 bg-red-500 rounded-full px-1.5">
+                <Text className="text-white text-xs font-bold">
+                  {unreadCount}
+                </Text>
+              </View>
+            )}
             <NotificationIcon />
           </Pressable>
           <Pressable
@@ -101,11 +89,7 @@ export default function Home() {
 
       {/* Search input */}
       <View className="mx-[20px] mt-[24px]">
-        <SearchInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Ask ABX AI or search for food items of your choice"
-        />
+        <SearchInput placeholder="Ask ABX AI or search for food items of your choice" />
       </View>
 
       {/* Scrollable content */}
