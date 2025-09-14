@@ -29,14 +29,17 @@
       "bundleIdentifier": "com.henry23.abxmobileapp"
     },
     "android": {
-        "permissions": ["ACCESS_FINE_LOCATION"],
+      "permissions": [
+        "ACCESS_FINE_LOCATION"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/Images/MainLogo.png",
         "backgroundColor": "#0C513F"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.henry23.abxmobileapp"
     },
-    "web": {  
+    "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
@@ -55,7 +58,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-     }
-   }
+    }
   }
-
+}
