@@ -1,4 +1,3 @@
-// utils/mqttClient.ts
 import mqtt, { MqttClient, IClientOptions } from "mqtt";
 import { Notification, MessageCallback } from "@/types/NotificationType";
 import { MQTT_USERNAME, MQTT_PASSWORD, MQTT_BROKER } from '@env';

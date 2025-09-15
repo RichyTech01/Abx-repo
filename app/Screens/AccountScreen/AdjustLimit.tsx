@@ -45,7 +45,6 @@ export default function AdjustLimit() {
   const handleSetBudget = async () => {
     setIsProcessing(true);
     try {
-      // Remove commas and convert to number
       const numericAmount = amount.replace(/,/g, "");
 
       let budgetData;

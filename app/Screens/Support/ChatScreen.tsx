@@ -1,10 +1,12 @@
 import { View } from 'react-native';
 import React, { useState, useCallback } from 'react';
-import { GiftedChat } from 'react-native-gifted-chat';
+import { GiftedChat, IMessage } from 'react-native-gifted-chat';
 import ScreenWrapper from '@/common/ScreenWrapper';
+import OreAppText from '@/common/OreApptext';
+import ChatHeader from '@/components/Support/ChatHeader';
 
 export default function ChatScreen() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<IMessage[]>([]);
 
   const onSend = useCallback((newMessages = []) => {
     setMessages(prev => GiftedChat.append(prev, newMessages));
@@ -12,12 +14,16 @@ export default function ChatScreen() {
 
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* <GiftedChat
+    <ScreenWrapper >
+      <View>
+        <OreAppText className='mx-auto text-[20px] leading-[28px] text-[#2D2220] '>Customer support</OreAppText>
+        <ChatHeader />
+      </View>
+      <GiftedChat
         messages={messages}
-        onSend={onSend}
+        // onSend={onSend}
         user={{ _id: 1 }}
-      /> */}
-    </View>
+      />
+    </ScreenWrapper>
   );
 }
