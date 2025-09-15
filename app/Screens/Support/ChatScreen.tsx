@@ -5,6 +5,7 @@ import ScreenWrapper from '@/common/ScreenWrapper';
 import OreAppText from '@/common/OreApptext';
 import ChatHeader from '@/components/Support/ChatHeader';
 
+
 export default function ChatScreen() {
   const [messages, setMessages] = useState<IMessage[]>([]);
 

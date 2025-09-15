@@ -6,14 +6,17 @@ import {
   Platform,
 } from "react-native";
 import { useState, useEffect } from "react";
-import { useConfirmPayment } from "@stripe/stripe-react-native";
+import {
+  useStripe,
+  initPaymentSheet,
+  presentPaymentSheet,
+} from "@stripe/stripe-react-native";
 import Header from "@/common/Header";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
 import Button from "@/common/Button";
 import AddDeliveryAddressModal from "@/Modals/AddDeliveryAddressModal";
 import OrderSummaryCartItem from "@/common/OrderSummaryCartItem";
-import CardFieldModal from "@/Modals/CardFieldModal";
 import { useUserStore } from "@/store/useUserStore";
 import showToast from "@/utils/showToast";
 import OrderApi from "@/api/OrderApi";
@@ -25,16 +28,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function CheckOut() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [cartDetails, setCartDetails] = useState<any>(null);
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [address, setAddress] = useState<Address | null>(null);
-  const [cardDetails, setCardDetails] = useState<any>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
 
   const { user, fetchUser } = useUserStore();
-  const { confirmPayment } = useConfirmPayment();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const fetchAddress = async () => {
     try {
@@ -81,6 +81,7 @@ export default function CheckOut() {
     try {
       setLoadingPayment(true);
 
+      // Get payment intent from your backend
       const res = await OrderApi.initiatePayment({
         total_price: cartDetails?.grand_total,
       });
@@ -96,65 +97,64 @@ export default function CheckOut() {
         return;
       }
 
-      // Store client secret and show payment modal
-      setClientSecret(clientSecret);
-      setShowPaymentModal(true);
-      showToast(
-        "success",
-        "Payment initiated. Please enter your card details."
-      );
-    } catch (err: any) {
-      console.error("Payment initiation error:", err.response?.data || err);
-      showToast(
-        "error",
-        err.response?.data?.message || "Payment initiation failed."
-      );
-    } finally {
-      setLoadingPayment(false);
-    }
-  };
-
-  const handlePayment = async () => {
-    if (!cardDetails?.complete) {
-      showToast("error", "Please enter complete card details.");
-      return;
-    }
-    if (!clientSecret) {
-      showToast("error", "Payment session expired. Please try again.");
-      return;
-    }
-
-    try {
-      setLoadingPayment(true);
-
-      // Process payment with Stripe
-      const { error, paymentIntent } = await confirmPayment(clientSecret, {
-        paymentMethodType: "Card",
-        paymentMethodData: {
-          billingDetails: {
-            email: user?.email,
-            name: `${user?.first_name} ${user?.last_name}`,
+      // Initialize the Payment Sheet
+      const { error: initError } = await initPaymentSheet({
+        merchantDisplayName: "ABX Store",
+        paymentIntentClientSecret: clientSecret,
+        defaultBillingDetails: {
+          name: `${user?.first_name} ${user?.last_name}`,
+          email: user?.email,
+        },
+        primaryButtonLabel: "Pay Now",
+        appearance: {
+          colors: {
+            primary: "#0C513F",
+            background: "#FFFFFF",
+            componentBackground: "#FFFFFF",
+            componentBorder: "#F1EAE7",
+            componentDivider: "#F1EAE7",
+            primaryText: "#2D2220",
+            secondaryText: "#535353",
+            componentText: "#2C2C2C",
+            placeholderText: "#999999",
+          },
+          primaryButton: {
+            colors: {
+              background: "#0C513F",
+              text: "#FFFFFF",
+            },
           },
         },
       });
+      if (initError) {
+        console.error("Payment sheet initialization failed:", initError);
+        showToast("error", "Payment setup failed. Please try again.");
+        return;
+      }
 
-      if (error) {
-        console.error("Payment failed:", error);
-        showToast("error", error.message || "Payment failed.");
-      } else {
-        if (paymentIntent?.status === "Succeeded") {
-          console.log("Payment succeeded:", paymentIntent);
-          await AsyncStorage.removeItem("cartId");
-          showToast("success", "Payment completed successfully!");
-          setShowPaymentModal(false);
-          setShowSuccessModal((prev) => !prev);
-          setClientSecret(null);
-          setCardDetails(null);
+      // Present the Payment Sheet
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (presentError) {
+        if (presentError.code === "Canceled") {
+          showToast("info", "Payment canceled.");
+        } else {
+          console.error("Payment failed:", presentError);
+          showToast("error", presentError.message || "Payment failed.");
         }
+      } else {
+        // Payment succeeded
+        console.log("Payment succeeded!");
+        await AsyncStorage.removeItem("cartId");
+        showToast("success", "Payment completed successfully!");
+        setShowSuccessModal(true);
       }
     } catch (err: any) {
       console.error("Payment error:", err);
-      showToast("error", "Payment processing failed.");
+      showToast(
+        "error",
+        err.response?.data?.message || "Payment processing failed."
+      );
     } finally {
       setLoadingPayment(false);
     }
@@ -301,15 +301,6 @@ export default function CheckOut() {
         visible={showSuccessModal}
         onClose={() => setShowSuccessModal((prev) => !prev)}
         onPress={() => router.push("/(tabs)/Orders")}
-      />
-
-      <CardFieldModal
-        visible={showPaymentModal}
-        onClose={() => setShowPaymentModal((prev) => !prev)}
-        cardDetails={cardDetails}
-        setCardDetails={setCardDetails}
-        handlePayment={handlePayment}
-        loadingPayment={loadingPayment}
       />
     </SafeAreaView>
   );
