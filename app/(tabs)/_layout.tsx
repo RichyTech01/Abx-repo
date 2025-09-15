@@ -100,7 +100,7 @@ export default function TabLayout() {
             <TabIconWithBorder focused={focused}>
               <CartTabIcon
                 fill={focused ? "#0C513F" : "none"}
-                stroke={focused ? "none" : "#0C513F"}
+                stroke={focused ? "none" : "#929292"}
               />
             </TabIconWithBorder>
           ),
@@ -136,7 +136,7 @@ export default function TabLayout() {
             <TabIconWithBorder focused={focused}>
               <AccounTabBarIcon
                 fill={focused ? "#0C513F" : "none"}
-                stroke={focused ? "none" : "#0C513F"}
+                stroke={focused ? "none" : "#929292"}
               />
             </TabIconWithBorder>
           ),

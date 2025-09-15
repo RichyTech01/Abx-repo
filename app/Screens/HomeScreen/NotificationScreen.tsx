@@ -10,12 +10,13 @@ import { LoadingSpinner } from "@/common/LoadingSpinner";
 import NoData from "@/common/NoData";
 import { useRouter } from "expo-router";
 import showToast from "@/utils/showToast";
-import MQTTClient from "@/utils/mqttClient";
 import { useUserStore } from "@/store/useUserStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import type { Notification } from "@/types/NotificationType";
 
 export default function NotificationScreen() {
   const { user, fetchUser } = useUserStore();
+  const { setHasNewNotifications } = useNotificationStore();
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,20 +25,23 @@ export default function NotificationScreen() {
     if (!user) fetchUser();
   }, [user, fetchUser]);
 
-  const userId = user?.id; 
-
   const fetchNotifications = async () => {
     try {
       setLoading(true);
       const data = await NotificationApi.getNotifications(1);
       setNotifications(data.results || []);
+      
+      // Update notification status
+      const hasUnread = data.results?.some((n: any) => !n.is_read) || false;
+      setHasNewNotifications(hasUnread);
     } catch (err) {
       console.error("❌ Error fetching notifications", err);
     } finally {
       setLoading(false);
     }
   };
-      const unread = notifications.filter((n) => !n.is_read);
+
+  const unread = notifications.filter((n) => !n.is_read);
 
   const handleMarkAllAsRead = async () => {
     try {
@@ -60,39 +64,12 @@ export default function NotificationScreen() {
       );
 
       fetchNotifications();
+      // Update the dot indicator
+      setHasNewNotifications(false);
     } catch (err) {
       console.error("❌ Error marking all as read", err);
     }
   };
-
-  // Handle new MQTT messages
-  const handleNewNotification = useCallback((newNotification: Notification) => {
-    console.log("🔔 Handling new real-time notification:", newNotification);
-    
-    setNotifications(prev => {
-      const exists = prev.some(n => n.id === newNotification.id);
-      if (exists) {
-        return prev;
-      }
-      return [newNotification, ...prev];
-    });
-    
-    showToast("success", `📢 ${newNotification.title}`);
-  }, []);
-
-  // Connect to MQTT when component mounts
-  useEffect(() => {
-    if (userId) {
-      console.log("🚀 Connecting to MQTT for user:", userId);
-      MQTTClient.connect(String(userId), handleNewNotification);
-    }
-
-    // Cleanup: disconnect when component unmounts
-    return () => {
-      console.log("🧹 Cleaning up MQTT connection");
-      MQTTClient.disconnect();
-    };
-  }, [userId, handleNewNotification]);
 
   // Fetch notifications when screen comes into focus
   useFocusEffect(
@@ -115,7 +92,7 @@ export default function NotificationScreen() {
           <Pressable
             onPress={handleMarkAllAsRead}
             className="items-center mx-[20px] flex-row justify-end"
-             disabled={unread.length === 0}
+            disabled={unread.length === 0}
           >
             <MarkIcon />
             <Text

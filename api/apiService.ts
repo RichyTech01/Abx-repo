@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { InternalAxiosRequestConfig } from "axios";
+import { router } from "expo-router";
 import showToast from "@/utils/showToast";
+import MQTTClient from "@/utils/mqttClient";
 
 class ApiService {
   private client;
@@ -14,7 +16,6 @@ class ApiService {
       },
     });
 
-  
     this.client.interceptors.request.use(
       async (config: InternalAxiosRequestConfig) => {
         const accessToken = await AsyncStorage.getItem("accessToken");
@@ -23,7 +24,6 @@ class ApiService {
         if (accessToken) {
           config.headers["Authorization"] = `Bearer ${accessToken}`;
         }
-
 
         if (cartId) {
           config.headers["X-Cart-ID"] = cartId;
@@ -34,16 +34,25 @@ class ApiService {
       (error) => Promise.reject(error)
     );
 
-    // ✅ Response Interceptor (Handle expired session)
     this.client.interceptors.response.use(
       (response) => response,
       async (error) => {
         if (error?.response?.status === 401) {
+          console.log("🚪 Session expired - logging out user");
+          
           // Clear session storage
-          await AsyncStorage.removeItem("accessToken");
-          await AsyncStorage.removeItem("cartId");
+          await AsyncStorage.multiRemove([
+            "accessToken", 
+          ]);
 
-          showToast("info", "Session expired: cleared tokens");
+          // Disconnect MQTT immediately
+          MQTTClient.disconnect();
+
+          // Show toast and navigate to login
+          showToast("error", "Session expired. Please log in again.");
+          
+          // Navigate to login screen (replace to prevent back navigation)
+          router.replace("/(auth)/onboarding");
         }
 
         return Promise.reject(error);

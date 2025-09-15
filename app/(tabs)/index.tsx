@@ -31,22 +31,27 @@ import { useCartStore } from "@/store/useCartStore";
 import NotificationApi from "@/api/NotificationApi";
 import OrderApi from "@/api/OrderApi";
 import NotificationBadge from "@/common/NotificationBadge";
+import NotificationDot from "@/common/NotificationDot";
 
 export default function Home() {
   const router = useRouter();
   const { user, loading, fetchUser } = useUserStore();
-  const { unreadCount, setUnreadCount } = useNotificationStore();
+  const {
+    hasNewNotifications,
+    setHasNewNotifications,
+    markNotificationsAsSeen,
+  } = useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
-  // Fetch unread notification count
-  const fetchUnreadCount = async () => {
+  // Check if there are unread notifications
+  const fetchNotificationStatus = async () => {
     try {
       const data = await NotificationApi.getNotifications(1);
       const notifications = data.results || [];
-      const unread = notifications.filter((n: any) => !n.is_read).length;
-      setUnreadCount(unread);
+      const hasUnread = notifications.some((n: any) => !n.is_read);
+      setHasNewNotifications(hasUnread);
     } catch (err) {
-      console.error("Error fetching notification count:", err);
+      console.error("Error fetching notification status:", err);
     }
   };
 
@@ -61,13 +66,19 @@ export default function Home() {
     }
   };
 
+  const handleNotificationPress = () => {
+    // Mark as seen when user navigates to notification screen
+    markNotificationsAsSeen();
+    router.push("/Screens/HomeScreen/NotificationScreen");
+  };
+
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchUnreadCount();
+      fetchNotificationStatus();
       fetchCartCount();
     }, [])
   );
@@ -89,14 +100,10 @@ export default function Home() {
         )}
 
         <View className="flex-row items-center gap-[20px]">
-          <Pressable
-            onPress={() =>
-              router.push("/Screens/HomeScreen/NotificationScreen")
-            }
-          >
-            <NotificationBadge count={unreadCount}>
+          <Pressable onPress={handleNotificationPress}>
+            <NotificationDot show={hasNewNotifications}>
               <NotificationIcon />
-            </NotificationBadge>
+            </NotificationDot>
           </Pressable>
           <Pressable
             className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center"

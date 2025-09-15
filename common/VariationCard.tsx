@@ -6,12 +6,14 @@ import showToast from "@/utils/showToast";
 import { CartItem } from "@/types/carts";
 import { useCartOperations } from "@/hooks/useCartOperations";
 
+
 type VariationCardProps = {
   item: ProductVariation;
   cartItems: CartItem[];
   onCartUpdate: () => Promise<void>;
   isOpen?: boolean;
 };
+
 
 export default function VariationCard({
   item,

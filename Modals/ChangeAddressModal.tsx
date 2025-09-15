@@ -37,16 +37,34 @@ export default function ChangeAddressModal({
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<any[]>([]);
 
-  // Pre-fill with default address when modal opens
+  // Store original values to compare against
+  const [originalValues, setOriginalValues] = useState({
+    postCode: "",
+    city: "",
+    address: "",
+  });
+
   useEffect(() => {
     if (defaultAddress) {
-      setPostCode(defaultAddress.post_code || "");
-      setCity(defaultAddress.city || "");
-      setAddress(defaultAddress.addr || "");
+      const values = {
+        postCode: defaultAddress.post_code || "",
+        city: defaultAddress.city || "",
+        address: defaultAddress.addr || "",
+      };
+
+      setPostCode(values.postCode);
+      setCity(values.city);
+      setAddress(values.address);
+
+      // Store original values for comparison
+      setOriginalValues(values);
+    } else {
+      // If no default address, allow saving when all fields are filled
+      const emptyValues = { postCode: "", city: "", address: "" };
+      setOriginalValues(emptyValues);
     }
   }, [defaultAddress, visible]);
 
-  /** 🔹 Fetch postcode suggestions */
   const fetchSuggestions = async (term: string) => {
     if (!term) {
       setSuggestions([]);
@@ -85,10 +103,43 @@ export default function ChangeAddressModal({
     setSuggestions([]);
   };
 
+  /** 🔹 Check if form has been edited */
+  const isFormEdited = () => {
+    return (
+      postCode !== originalValues.postCode ||
+      city !== originalValues.city ||
+      address !== originalValues.address
+    );
+  };
+
+  /** 🔹 Check if form is valid and edited */
+  const canSave = () => {
+    const isValid = postCode.trim() && city.trim() && address.trim();
+    const isEdited = isFormEdited();
+
+    // If no original address exists (new address), just check if valid
+    const hasOriginalAddress =
+      originalValues.postCode || originalValues.city || originalValues.address;
+
+    if (!hasOriginalAddress) {
+      return isValid; 
+    }
+
+    return isValid && isEdited; 
+  };
+
   /** 🔹 Save new address */
   const handleSave = async () => {
     if (!postCode || !city || !address) {
       showToast("error", "Please fill in all required fields");
+      return;
+    }
+
+    if (
+      !isFormEdited() &&
+      (originalValues.postCode || originalValues.city || originalValues.address)
+    ) {
+      showToast("info", "No changes made to save");
       return;
     }
 
@@ -116,7 +167,7 @@ export default function ChangeAddressModal({
       visible={visible}
       onRequestClose={onClose}
     >
-      <Pressable className="flex-1 justify-center items-center bg-black/30">
+      <Pressable className="flex-1 justify-center items-center bg-black/30" onPress={onClose}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="w-[90%]"
@@ -199,7 +250,7 @@ export default function ChangeAddressModal({
                 title={"Save changes"}
                 onPress={handleSave}
                 loading={loading}
-                disabled={loading}
+                disabled={loading || !canSave()}
                 paddingVertical={8}
               />
             </View>
