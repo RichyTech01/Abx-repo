@@ -12,59 +12,62 @@ import showToast from "@/utils/showToast";
 import { useNotificationStore } from "@/store/useNotificationStore";
 
 export default function NotificationScreen() {
-  const { fetchUnreadCount, markAllAsRead } = useNotificationStore();
-
   const router = useRouter();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-  fetchUnreadCount();
-}, []);
-
-const handleMarkAllAsRead = async () => {
-  await markAllAsRead();
-  fetchUnreadCount();
-};
+  const { setUnreadCount } = useNotificationStore();
 
   const fetchNotifications = async () => {
     try {
       setLoading(true);
       const data = await NotificationApi.getNotifications(1);
-      // console.log("🔍 Notifications API response:", data);
-      setNotifications(data.results || []);
+      const notificationsList = data.results || [];
+      setNotifications(notificationsList);
+
+      const unreadCount = notificationsList.filter(
+        (n: any) => !n.is_read
+      ).length;
+      setUnreadCount(unreadCount);
     } catch (err) {
-      console.error("❌ Error fetching notifications", err);
+      console.error(" Error fetching notifications", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // const handleMarkAllAsRead = async () => {
-  //   try {
-  //     const unread = notifications.filter((n) => !n.is_read);
+  const handleMarkAllAsRead = async () => {
+    try {
+      const unread = notifications.filter((n) => !n.is_read);
 
-  //     if (unread.length === 0) {
-  //       showToast("info","📭 All notifications are already read");
-  //       return;
-  //     }
+      if (unread.length === 0) {
+        showToast("info", "📭 All notifications are already read");
+        return;
+      }
 
-  //     await Promise.all(
-  //       unread.map((n) =>
-  //         NotificationApi.markAsReadPartial(n.id, {
-  //           title: n.title,
-  //           message: n.message,
-  //           notification_type: n.notification_type,
-  //           data: n.data,
-  //         })
-  //       )
-  //     );
+      await Promise.all(
+        unread.map((n) =>
+          NotificationApi.markAsReadPartial(n.id, {
+            title: n.title,
+            message: n.message,
+            notification_type: n.notification_type,
+            data: n.data,
+          })
+        )
+      );
 
-  //     fetchNotifications();
-  //   } catch (err) {
-  //     console.error("❌ Error marking all as read", err);
-  //   }
-  // };
+      // Update local state and store
+      const updatedNotifications = notifications.map((n) => ({
+        ...n,
+        is_read: true,
+      }));
+      setNotifications(updatedNotifications);
+      setUnreadCount(0);
+
+      showToast("success", "✅ All notifications marked as read");
+    } catch (err) {
+      console.error("❌ Error marking all as read", err);
+    }
+  };
 
   useEffect(() => {
     fetchNotifications();
@@ -74,7 +77,7 @@ const handleMarkAllAsRead = async () => {
     <ScreenWrapper>
       <Header title="Notifications" />
 
-      <View className="mt-[22px]   ">
+      <View className="mt-[22px]">
         {notifications.length > 0 && (
           <Pressable
             onPress={handleMarkAllAsRead}
@@ -95,7 +98,7 @@ const handleMarkAllAsRead = async () => {
             <LoadingSpinner />
           ) : notifications.length === 0 ? (
             <NoData
-              title="No notificationsF"
+              title="No notifications"
               subtitle="We will keep you updated when you have a notification. "
               buttonTitle="Explore ABX stores"
               onButtonPress={() =>

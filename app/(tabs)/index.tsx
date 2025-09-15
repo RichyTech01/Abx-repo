@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
 import NotificationIcon from "@/assets/svgs/NotificationIcon";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";
@@ -26,19 +27,31 @@ import RescueAndSave from "@/components/HomeComps/RescueAndSave";
 import RecueAndSaveProduct from "@/components/HomeComps/RecueAndSaveProduct";
 import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
-import { useFocusEffect } from "@react-navigation/native";
+import NotificationApi from "@/api/NotificationApi";
+import NotificationBadge from "@/common/NotificationBadge";
 
 export default function Home() {
   const router = useRouter();
-
   const { user, loading, fetchUser } = useUserStore();
+  const { unreadCount, setUnreadCount } = useNotificationStore();
+
+  // Fetch unread notification count
+  const fetchUnreadCount = async () => {
+    try {
+      const data = await NotificationApi.getNotifications(1);
+      const notifications = data.results || [];
+      const unread = notifications.filter((n: any) => !n.is_read).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      console.error("Error fetching notification count:", err);
+    }
+  };
 
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
 
-  const { unreadCount, fetchUnreadCount } = useNotificationStore();
-
+  // Refresh notification count when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchUnreadCount();
@@ -67,15 +80,9 @@ export default function Home() {
               router.push("/Screens/HomeScreen/NotificationScreen")
             }
           >
-            {" "}
-            {unreadCount > 0 && (
-              <View className="absolute -top-1 -right-1 bg-red-500 rounded-full px-1.5">
-                <Text className="text-white text-xs font-bold">
-                  {unreadCount}
-                </Text>
-              </View>
-            )}
-            <NotificationIcon />
+            <NotificationBadge count={unreadCount}>
+              <NotificationIcon />
+            </NotificationBadge>
           </Pressable>
           <Pressable
             className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center"

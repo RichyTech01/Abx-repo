@@ -16,9 +16,9 @@ export interface Product {
 // The variation (what user is actually buying)
 export interface VariationItem {
   id: number;
-  weight: string;         // "2"
-  price: string;          // "10.00"
-  display_price: string;  // "12.00"
+  weight: string;        
+  price: string;         
+  display_price: string;  
   discount_price: string | null;
   stock: number;
   product: Product;
