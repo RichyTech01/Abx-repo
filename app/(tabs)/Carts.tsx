@@ -21,7 +21,7 @@ import { useCartStore } from "@/store/useCartStore";
 export default function Carts() {
   const router = useRouter();
 
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const { cartItems, setCartItems } = useCartStore(); 
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
@@ -36,10 +36,11 @@ export default function Carts() {
       setLoading(true);
       const res = await OrderApi.getCart();
 
-      setCartItems(res.cart?.items || []);
+      const items = res.cart?.items || [];
+      setCartItems(items);
     } catch (err) {
       console.error("Failed to fetch cart:", err);
-      setCartItems([]);
+      setCartItems([]); 
     } finally {
       setLoading(false);
     }
@@ -68,20 +69,21 @@ export default function Carts() {
 
     try {
       await OrderApi.updateCart(cartItemId, { action });
-      setCartItems((prev) =>
-        prev.map((item) => {
-          if (item.id === cartItemId) {
-            const newQty =
-              action === "increase" ? item.quantity + 1 : item.quantity - 1;
-            return {
-              ...item,
-              quantity: newQty,
-              total_item_price: newQty * parseFloat(item.item.price),
-            };
-          }
-          return item;
-        })
-      );
+      
+      // Update store
+      const newQty = action === "increase" ? item.quantity + 1 : item.quantity - 1;
+      const updatedItems = cartItems.map((cartItem) => {
+        if (cartItem.id === cartItemId) {
+          return {
+            ...cartItem,
+            quantity: newQty,
+            total_item_price: newQty * parseFloat(cartItem.item.price),
+          };
+        }
+        return cartItem;
+      });
+      setCartItems(updatedItems);
+
     } catch (err) {
       console.error(`Failed to ${action} quantity:`, err);
     } finally {
@@ -100,8 +102,12 @@ export default function Carts() {
 
     try {
       await OrderApi.removeFromCart(cartItemId);
-      setCartItems((prev) => prev.filter((item) => item.id !== cartItemId));
-      showToast("success", "Cart removed Succefully")
+      
+      // Update store
+      const updatedItems = cartItems.filter((item) => item.id !== cartItemId);
+      setCartItems(updatedItems);
+      
+      showToast("success", "Cart removed Successfully");
     } catch (err) {
       console.error("Failed to remove item:", err);
     } finally {
@@ -114,7 +120,7 @@ export default function Carts() {
   };
 
   const total = cartItems.reduce(
-    (acc, item) => acc + parseFloat(item.total_item_price),
+    (acc, item) => acc + parseFloat(String(item.total_item_price)),
     0
   );
 

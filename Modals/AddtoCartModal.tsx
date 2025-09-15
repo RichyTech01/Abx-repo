@@ -16,6 +16,7 @@ import { ProductVariation } from "@/types/store";
 import VariationCard from "@/common/VariationCard";
 import OrderApi from "@/api/OrderApi";
 
+
 type AddtoCartModalProps = {
   value: boolean;
   setValue: React.Dispatch<React.SetStateAction<boolean>>;
@@ -121,7 +122,7 @@ export default function AddtoCartModal({
             <Button
               title="Proceed to checkout"
               variant="outline"
-              disabled={!isOpen}
+              disabled={!isOpen || cartItems.length === 0}
               onPress={() => {
                 setValue(!value);
                 router.push("/Screens/Carts/CheckOut");

@@ -14,9 +14,13 @@ type CartState = {
   removeItem: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
+  // Computed getter for cart count
+  getCartCount: () => number;
+  // Computed getter for total cart value
+  getTotalValue: () => number;
 };
 
-export const useCartStore = create<CartState>((set) => ({
+export const useCartStore = create<CartState>((set, get) => ({
   cartItems: [],
   setCartItems: (items) => set({ cartItems: items }),
   addItem: (item) =>
@@ -34,4 +38,11 @@ export const useCartStore = create<CartState>((set) => ({
       ),
     })),
   clearCart: () => set({ cartItems: [] }),
+  
+  // Get total number of items in cart
+  getCartCount: () => get().cartItems.length,
+  
+  // Get total value of cart
+  getTotalValue: () => 
+    get().cartItems.reduce((acc, item) => acc + parseFloat(String(item.total_item_price)), 0),
 }));

@@ -27,13 +27,16 @@ import RescueAndSave from "@/components/HomeComps/RescueAndSave";
 import RecueAndSaveProduct from "@/components/HomeComps/RecueAndSaveProduct";
 import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
+import { useCartStore } from "@/store/useCartStore";
 import NotificationApi from "@/api/NotificationApi";
+import OrderApi from "@/api/OrderApi";
 import NotificationBadge from "@/common/NotificationBadge";
 
 export default function Home() {
   const router = useRouter();
   const { user, loading, fetchUser } = useUserStore();
   const { unreadCount, setUnreadCount } = useNotificationStore();
+  const { cartItems, setCartItems } = useCartStore();
 
   // Fetch unread notification count
   const fetchUnreadCount = async () => {
@@ -47,14 +50,25 @@ export default function Home() {
     }
   };
 
+  // Fetch cart items count
+  const fetchCartCount = async () => {
+    try {
+      const res = await OrderApi.getCart();
+      const items = res.cart?.items || [];
+      setCartItems(items);
+    } catch (err) {
+      console.error("Error fetching cart:", err);
+    }
+  };
+
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
 
-  // Refresh notification count when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchUnreadCount();
+      fetchCartCount();
     }, [])
   );
 
@@ -88,8 +102,9 @@ export default function Home() {
             className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center"
             onPress={() => router.push("/Carts")}
           >
-            <View className=""></View>
-            <MaincartIcon />
+            <NotificationBadge count={cartItems.length}>
+              <MaincartIcon />
+            </NotificationBadge>
           </Pressable>
         </View>
       </View>

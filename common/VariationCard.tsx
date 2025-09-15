@@ -1,11 +1,10 @@
 import { View, Image, Pressable } from "react-native";
-import { useState } from "react";
 import UrbanistText from "@/common/UrbanistText";
 import AddtoCartIcon from "@/assets/svgs/AddToCartIcon.svg";
 import { ProductVariation } from "@/types/store";
 import showToast from "@/utils/showToast";
-import OrderApi from "@/api/OrderApi";
-import { CartItem  } from "@/types/carts";
+import { CartItem } from "@/types/carts";
+import { useCartOperations } from "@/hooks/useCartOperations";
 
 type VariationCardProps = {
   item: ProductVariation;
@@ -20,7 +19,8 @@ export default function VariationCard({
   onCartUpdate,
   isOpen,
 }: VariationCardProps) {
-  const [updating, setUpdating] = useState(false);
+  const { updating, addToCart, updateCartQuantity, removeFromCart } =
+    useCartOperations();
 
   const existingItem = cartItems.find(
     (ci) => String(ci.item?.id) === String(item.id)
@@ -28,69 +28,53 @@ export default function VariationCard({
 
   const quantity = existingItem ? existingItem.quantity : 0;
 
-  // console.log("VariationCard - Item.id:", item.id);
-  // console.log("VariationCard - Cart items:", cartItems);
-  // console.log("VariationCard - Found existingItem:", existingItem);
-  // console.log("VariationCard - Quantity:", quantity);
-
   const handleIncrease = async () => {
     if (isOpen === false) {
       showToast("info", "Shop is closed");
       return;
     }
 
-    if (updating) return;
-
     if (quantity >= item.stock) {
       showToast("info", "Out of stock!");
       return;
     }
 
-    setUpdating(true);
+    let success = false;
+    if (existingItem) {
+      success = await updateCartQuantity(existingItem.id, "increase");
+    } else {
+      success = await addToCart(item.id);
+    }
 
-    try {
-      if (existingItem) {
-        // Update existing item
-        await OrderApi.updateCart(existingItem.id, { action: "increase" });
-      } else {
-        // Add new item
-        await OrderApi.addToCart({ product_id: item.id });
-        showToast("success", "Product added to cart!");
-      }
+    if (success) {
       await onCartUpdate();
-    } catch (err) {
-      console.error("Failed to increase quantity:", err);
-      showToast("error", "Failed to update cart");
-    } finally {
-      setUpdating(false);
     }
   };
 
   const handleDecrease = async () => {
-    if (updating || !existingItem) return;
+    if (!existingItem) return;
 
-    setUpdating(true);
+    let success = false;
+    if (quantity > 1) {
+      success = await updateCartQuantity(existingItem.id, "decrease");
+    } else {
+      success = await removeFromCart(existingItem.id);
+    }
 
-    try {
-      if (quantity > 1) {
-        await OrderApi.updateCart(existingItem.id, { action: "decrease" });
-      } else {
-        await OrderApi.removeFromCart(existingItem.id);
-        showToast("success", "Product removed from cart");
-      }
+    if (success) {
       await onCartUpdate();
-    } catch (err) {
-      console.error("Failed to decrease quantity:", err);
-      showToast("error", "Failed to update cart");
-    } finally {
-      setUpdating(false);
     }
   };
 
   return (
-    <View className={`border border-[#F1EAE7] rounded-[8px] px-[15px] py-[10px] flex-row items-center justify-between mb-[12px] `}>
-      
-      <View className={`flex-row items-center gap-[16px]   ${item.stock === 0 && "opacity-30" }`}>
+    <View
+      className={`border border-[#F1EAE7] rounded-[8px] px-[15px] py-[10px] flex-row items-center justify-between mb-[12px] `}
+    >
+      <View
+        className={`flex-row items-center gap-[16px]   ${
+          item.stock === 0 && "opacity-30"
+        }`}
+      >
         <Image
           source={{ uri: item.pd_image_url }}
           className="w-[60px] h-[52px] rounded-[4px] bg-gray-200"
@@ -109,10 +93,14 @@ export default function VariationCard({
       </View>
 
       {/* Cart Actions */}
-      <View className={`flex-row items-center  ${item.stock === 0 && "opacity-30" } `}>
+      <View
+        className={`flex-row items-center  ${
+          item.stock === 0 && "opacity-30"
+        } `}
+      >
         <Pressable
           className={`w-[35px] ${
-            quantity === 0 || !isOpen  ? "bg-[#86A89F]" : "bg-[#0C513F]"
+            quantity === 0 || !isOpen ? "bg-[#86A89F]" : "bg-[#0C513F]"
           } h-[35px] rounded-[8px] bg-[#0C513F] items-center justify-center`}
           onPress={handleDecrease}
           disabled={updating || quantity === 0 || item.stock === 0}
@@ -129,7 +117,7 @@ export default function VariationCard({
 
         <Pressable
           className={`w-[35px] ${
-            !isOpen ||  item.stock === 0 ? "bg-[#86A89F]" : "bg-[#0C513F]"
+            !isOpen || item.stock === 0 ? "bg-[#86A89F]" : "bg-[#0C513F]"
           } h-[35px] rounded-[8px] bg-[#0C513F] items-center justify-center`}
           onPress={handleIncrease}
           disabled={updating || !isOpen || item.stock === 0}
