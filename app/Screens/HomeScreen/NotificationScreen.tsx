@@ -1,5 +1,6 @@
 import { View, Text, Pressable, FlatList } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import Header from "@/common/Header";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import MarkIcon from "@/assets/svgs/MarkIcon.svg";
@@ -9,31 +10,34 @@ import { LoadingSpinner } from "@/common/LoadingSpinner";
 import NoData from "@/common/NoData";
 import { useRouter } from "expo-router";
 import showToast from "@/utils/showToast";
-import { useNotificationStore } from "@/store/useNotificationStore";
+import MQTTClient from "@/utils/mqttClient";
+import { useUserStore } from "@/store/useUserStore";
+import type { Notification } from "@/types/NotificationType";
 
 export default function NotificationScreen() {
+  const { user, fetchUser } = useUserStore();
   const router = useRouter();
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
-  const { setUnreadCount } = useNotificationStore();
+  
+  useEffect(() => {
+    if (!user) fetchUser();
+  }, [user, fetchUser]);
+
+  const userId = user?.id; 
 
   const fetchNotifications = async () => {
     try {
       setLoading(true);
       const data = await NotificationApi.getNotifications(1);
-      const notificationsList = data.results || [];
-      setNotifications(notificationsList);
-
-      const unreadCount = notificationsList.filter(
-        (n: any) => !n.is_read
-      ).length;
-      setUnreadCount(unreadCount);
+      setNotifications(data.results || []);
     } catch (err) {
-      console.error(" Error fetching notifications", err);
+      console.error("❌ Error fetching notifications", err);
     } finally {
       setLoading(false);
     }
   };
+      const unread = notifications.filter((n) => !n.is_read);
 
   const handleMarkAllAsRead = async () => {
     try {
@@ -55,20 +59,49 @@ export default function NotificationScreen() {
         )
       );
 
-      // Update local state and store
-      const updatedNotifications = notifications.map((n) => ({
-        ...n,
-        is_read: true,
-      }));
-      setNotifications(updatedNotifications);
-      setUnreadCount(0);
-
-      showToast("success", "✅ All notifications marked as read");
+      fetchNotifications();
     } catch (err) {
       console.error("❌ Error marking all as read", err);
     }
   };
 
+  // Handle new MQTT messages
+  const handleNewNotification = useCallback((newNotification: Notification) => {
+    console.log("🔔 Handling new real-time notification:", newNotification);
+    
+    setNotifications(prev => {
+      const exists = prev.some(n => n.id === newNotification.id);
+      if (exists) {
+        return prev;
+      }
+      return [newNotification, ...prev];
+    });
+    
+    showToast("success", `📢 ${newNotification.title}`);
+  }, []);
+
+  // Connect to MQTT when component mounts
+  useEffect(() => {
+    if (userId) {
+      console.log("🚀 Connecting to MQTT for user:", userId);
+      MQTTClient.connect(String(userId), handleNewNotification);
+    }
+
+    // Cleanup: disconnect when component unmounts
+    return () => {
+      console.log("🧹 Cleaning up MQTT connection");
+      MQTTClient.disconnect();
+    };
+  }, [userId, handleNewNotification]);
+
+  // Fetch notifications when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+    }, [])
+  );
+
+  // Initial fetch
   useEffect(() => {
     fetchNotifications();
   }, []);
@@ -82,6 +115,7 @@ export default function NotificationScreen() {
           <Pressable
             onPress={handleMarkAllAsRead}
             className="items-center mx-[20px] flex-row justify-end"
+             disabled={unread.length === 0}
           >
             <MarkIcon />
             <Text
@@ -117,6 +151,7 @@ export default function NotificationScreen() {
                   isRead={item.is_read}
                 />
               )}
+              showsVerticalScrollIndicator={false}
             />
           )}
         </View>
