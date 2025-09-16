@@ -1,10 +1,11 @@
 import mqtt, { MqttClient, IClientOptions } from "mqtt";
 import { Notification, MessageCallback } from "@/types/NotificationType";
-import { MQTT_USERNAME, MQTT_PASSWORD, MQTT_BROKER } from '@env';
 
+  const MQTT_USERNAME = process.env.EXPO_PUBLIC_MQTT_USERNAME;
+  const MQTT_PASSWORD = process.env.EXPO_PUBLIC_MQTT_PASSWORD;
+  const MQTT_BROKER = process.env.EXPO_PUBLIC_MQTT_BROKER;
 
-console.log("ka",MQTT_BROKER)
-
+  
 class MQTTClient {
   private client: MqttClient | null = null;
   private isConnected: boolean = false;
@@ -53,7 +54,7 @@ class MQTTClient {
 
     try {
       console.log("🔌 Connecting to MQTT broker...", brokerUrl);
-      this.client = mqtt.connect(brokerUrl, options);
+      this.client = mqtt.connect(String(brokerUrl), options);
       this.messageCallback = onMessageCallback;
 
       this.client.on("connect", () => {

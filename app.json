@@ -15,6 +15,7 @@
     "newArchEnabled": true,
     "extra": {
       "GET_ADDRESS_API_KEY": "LmRcb8Qk50mEojODY5sv3w46906",
+
       "router": {},
       "eas": {
         "projectId": "8e52f21a-83fe-434f-ab77-05345693e72a"
@@ -29,9 +30,7 @@
       "bundleIdentifier": "com.henry23.abxmobileapp"
     },
     "android": {
-      "permissions": [
-        "ACCESS_FINE_LOCATION"
-      ],
+      "permissions": ["ACCESS_FINE_LOCATION"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/Images/MainLogo.png",
         "backgroundColor": "#0C513F"

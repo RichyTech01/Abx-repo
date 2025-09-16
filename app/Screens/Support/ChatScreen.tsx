@@ -1,21 +1,27 @@
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  ScrollView, 
-  Image, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Image,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView
-} from 'react-native';
-import React, { useState, useRef } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import ScreenWrapper from '@/common/ScreenWrapper';
-import OreAppText from '@/common/OreApptext';
-import ChatHeader from '@/components/Support/ChatHeader';
+  SafeAreaView,
+  Pressable,
+} from "react-native";
+import React, { useState, useRef } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import * as MediaLibrary from "expo-media-library";
+import ScreenWrapper from "@/common/ScreenWrapper";
+import OreAppText from "@/common/OreApptext";
+import ChatHeader from "@/components/Support/ChatHeader";
+import SupportImg from "@/assets/svgs/SupportImg.svg";
+import UrbanistText from "@/common/UrbanistText";
+import ChatSendIcon from "@/assets/svgs/ChatSendIcon.svg"
+import PickImageIcon from "@/assets/svgs/PickImageIcon.svg"
 
 interface Message {
   id: string;
@@ -25,32 +31,67 @@ interface Message {
   timestamp: Date;
 }
 
+interface GalleryImage {
+  id: string;
+  uri: string;
+}
+
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
+      id: "1",
       text: "Hi there. I am a new customer on ABX and I do not know how to carry out a transaction properly",
       isUser: true,
-      timestamp: new Date('2024-01-01T08:20:00')
+      timestamp: new Date("2024-01-01T08:20:00"),
     },
     {
-      id: '2',
+      id: "2",
       text: "Hi there! I'm Henry Osas from the support team. I saw your message about ABX and I'm here to help. Could you let me know what part you'd like some clarity on? Happy to explain!",
       isUser: false,
-      timestamp: new Date('2024-01-01T08:23:00')
+      timestamp: new Date("2024-01-01T08:23:00"),
     },
     {
-      id: '3',
+      id: "3",
       text: "Hi there! I'm Henry Osas from the support team. I saw your message about ABX and I'm here to help. Could you let me know what part you'd like some clarity on? Happy to explain!",
       isUser: false,
-      timestamp: new Date('2024-01-01T08:23:00')
-    }
+      timestamp: new Date("2024-01-01T08:23:00"),
+    },
   ]);
 
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState("");
   const [showImagePicker, setShowImagePicker] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [isTyping, setIsTyping] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Load gallery images
+  const loadGalleryImages = async () => {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "We need gallery permissions to show your photos."
+      );
+      return;
+    }
+
+    try {
+      const assets = await MediaLibrary.getAssetsAsync({
+        mediaType: "photo",
+        first: 20,
+        sortBy: "creationTime",
+      });
+
+      const images = assets.assets.map((asset) => ({
+        id: asset.id,
+        uri: asset.uri,
+      }));
+
+      setGalleryImages(images);
+    } catch (error) {
+      console.log("Error loading gallery:", error);
+    }
+  };
 
   const sendMessage = () => {
     if (inputText.trim()) {
@@ -58,52 +99,38 @@ export default function ChatScreen() {
         id: Date.now().toString(),
         text: inputText.trim(),
         isUser: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      
-      setMessages(prev => [...prev, newMessage]);
-      setInputText('');
-      
-      // Scroll to bottom
+
+      setMessages((prev) => [...prev, newMessage]);
+      setInputText("");
+
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
   };
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'We need camera roll permissions to select images.');
-      return;
-    }
+  const selectImageFromGallery = (imageUri: string) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      image: imageUri,
+      isUser: true,
+      timestamp: new Date(),
+    };
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        image: result.assets[0].uri,
-        isUser: true,
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, newMessage]);
-      setShowImagePicker(false);
-    }
+    setMessages((prev) => [...prev, newMessage]);
+    setShowImagePicker(false);
   };
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'We need camera permissions to take photos.');
+
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "We need camera permissions to take photos."
+      );
       return;
     }
 
@@ -118,19 +145,26 @@ export default function ChatScreen() {
         id: Date.now().toString(),
         image: result.assets[0].uri,
         isUser: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      
-      setMessages(prev => [...prev, newMessage]);
+
+      setMessages((prev) => [...prev, newMessage]);
       setShowImagePicker(false);
     }
   };
 
+  const toggleImagePicker = async () => {
+    if (!showImagePicker) {
+      // await loadGalleryImages();
+    }
+    setShowImagePicker(!showImagePicker);
+  };
+
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -138,203 +172,189 @@ export default function ChatScreen() {
     if (message.isUser) {
       return (
         <View key={message.id} className="mb-4">
-          <View className="flex-row justify-end">
-            <View className="bg-[#1B5E20] max-w-[280px] rounded-[20px] px-4 py-3">
+          <View className="flex-row justify-end items-end">
+            <View
+              className={`  bg-[#0C513F] rounded-br-[8px] mr-2 ${
+                message.image
+                  ? "w-[70%] p-[3px] rounded-[8px] rounded-br-none  "
+                  : " max-w-[90%] px-4 py-2 rounded-[16px] "
+              } `}
+            >
               {message.text && (
-                <Text className="text-white text-[16px] leading-[22px]">
+                <Text className="text-white text-[14px] leading-[20px] font-urbanist mb-1">
                   {message.text}
                 </Text>
               )}
               {message.image && (
-                <Image 
-                  source={{ uri: message.image }} 
-                  className="w-[200px] h-[200px] rounded-[12px]"
-                  resizeMode="cover"
-                />
+                <View className="relative ">
+                  <Image
+                    source={{ uri: message.image }}
+                    className=" h-[200px] rounded-[12px] mb-1"
+                    resizeMode="cover"
+                  />
+                </View>
               )}
+              <Text
+                className={` ${
+                  message.image ? "absolute bottom-0 mb-3 mr-3" : ""
+                } text-white text-[14px] leading-[20px] font-urbanist-medium self-end mt-[8px]`}
+              >
+                {formatTime(message.timestamp)}
+              </Text>
             </View>
-          </View>
-          <View className="flex-row justify-end items-center mt-1 mr-2">
-            <Text className="text-[12px] text-[#666] mr-2">
-              {formatTime(message.timestamp)}
-            </Text>
-            <View className="bg-[#1B5E20] w-4 h-4 rounded-full items-center justify-center">
-              <Text className="text-white text-[10px] font-bold">C</Text>
+            <View className="bg-[#AEC5BF] w-[30px] h-[30px] rounded-full items-center justify-center mb-1">
+              <Text className="text-[#2D2220] text-[10px] font-urbanist-medium  ">
+                C
+              </Text>
             </View>
           </View>
         </View>
       );
     } else {
+      // Support Bubbles
+
       return (
         <View key={message.id} className="mb-4">
-          <View className="flex-row">
-            <View className="w-8 h-8 rounded-full bg-[#E57373] mr-3 mt-1 items-center justify-center">
-              <View className="w-6 h-6 rounded-full bg-[#D32F2F]" />
+          <View className="flex-row items-end">
+            <View className="w-[30px] h-[30px] rounded-full mr-2 mb-1 items-center justify-center">
+              <SupportImg />
             </View>
-            <View className="bg-white max-w-[280px] rounded-[20px] px-4 py-3 border border-[#F1EAE7]">
-              <Text className="text-[#2D2220] text-[16px] leading-[22px]">
+            <View className=" max-w-[90%] rounded-[20px] rounded-bl-none px-4 py-2 border border-[#0C513F]">
+              <Text className="text-[#2D2220] text-[16px] leading-[22px] mb-1">
                 {message.text}
               </Text>
+              <Text className="text-[#2D2220] text-[14px] font-urbanist self-end mt-[8px] ">
+                {formatTime(message.timestamp)}
+              </Text>
             </View>
-          </View>
-          <View className="flex-row items-center mt-1 ml-11">
-            <Text className="text-[12px] text-[#666]">
-              {formatTime(message.timestamp)}
-            </Text>
           </View>
         </View>
       );
     }
   };
 
-  const ImagePickerModal = () => {
-    if (!showImagePicker) return null;
-
-    // Sample food images for the gallery
-    const sampleImages = [
-      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&h=150&fit=crop',
-      'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=150&h=150&fit=crop',
-      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=150&h=150&fit=crop',
-      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=150&h=150&fit=crop',
-      'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=150&h=150&fit=crop',
-      'https://images.unsplash.com/photo-1563379091339-03246963d96c?w=150&h=150&fit=crop',
-    ];
-
-    return (
-      <View className="absolute inset-0 bg-black/50 justify-end">
-        <View className="bg-white rounded-t-[20px] p-4">
-          <View className="flex-row justify-center mb-4">
-            <TouchableOpacity
-              onPress={() => setShowImagePicker(false)}
-              className="w-12 h-1 bg-[#E0E0E0] rounded-full"
-            />
-          </View>
-          
-          <View className="flex-row mb-4">
-            <TouchableOpacity 
-              onPress={() => {/* Gallery selected by default */}}
-              className="flex-1 items-center border-b-2 border-[#1B5E20] pb-2"
-            >
-              <Text className="text-[#1B5E20] font-semibold">Gallery</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={takePhoto}
-              className="flex-1 items-center pb-2"
-            >
-              <Text className="text-[#666]">Take a picture</Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView 
-            contentContainerStyle={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between'
-            }}
-            className="max-h-[400px]"
-          >
-            {sampleImages.concat(sampleImages, sampleImages).map((imageUrl, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => {
-                  const newMessage: Message = {
-                    id: Date.now().toString(),
-                    image: imageUrl,
-                    isUser: true,
-                    timestamp: new Date()
-                  };
-                  setMessages(prev => [...prev, newMessage]);
-                  setShowImagePicker(false);
-                }}
-                className="w-[30%] aspect-square mb-2 rounded-lg overflow-hidden"
-              >
-                <Image
-                  source={{ uri: imageUrl }}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </View>
-    );
-  };
-
   return (
-    <SafeAreaView className="flex-1 bg-[#FAF8F7]">
-      <ScreenWrapper>
-        <View className="flex-1">
-          {/* Header */}
-          <View>
-            <OreAppText className='mx-auto text-[20px] leading-[28px] text-[#2D2220] font-semibold'>
-              Customer support
-            </OreAppText>
-            <ChatHeader />
-          </View>
+    <ScreenWrapper>
+      <View className="flex-1">
+        {/* Header */}
+        <View>
+          <OreAppText className="mx-auto text-[20px] leading-[28px] text-[#2D2220] font-semibold">
+            Customer support
+          </OreAppText>
+          <ChatHeader />
+        </View>
 
-          {/* Date Header */}
-          <View className="items-center py-4">
-            <Text className="text-[#666] text-[14px]">Today</Text>
-          </View>
-
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1"
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+          className="flex-1 bg-white"
+        >
+          {/* Messages with Today header */}
+          <ScrollView
+            ref={scrollViewRef}
+            className="flex-1 px-4"
+            showsVerticalScrollIndicator={false}
           >
-            {/* Messages */}
-            <ScrollView
-              ref={scrollViewRef}
-              className="flex-1 px-4"
-              showsVerticalScrollIndicator={false}
-            >
-              {messages.map(renderMessage)}
-              
-              {/* Typing Indicator */}
-              {isTyping && (
-                <View className="mb-4">
-                  <View className="flex-row items-center">
-                    <View className="w-8 h-8 rounded-full bg-[#E57373] mr-3 items-center justify-center">
-                      <View className="w-6 h-6 rounded-full bg-[#D32F2F]" />
-                    </View>
-                    <Text className="text-[#666] text-[14px] italic">Typing</Text>
-                  </View>
-                </View>
-              )}
-            </ScrollView>
+            {/* Today Header - scrolls with content */}
+            <View className="items-center py-4">
+              <UrbanistText className="text-[#000000] text-[16px]   ">
+                Today
+              </UrbanistText>
+            </View>
 
-            {/* Input Area */}
-            <View className="px-4 pb-4 pt-2">
-              <View className="bg-white rounded-full border border-[#E5E7EB] flex-row items-center px-4 py-2">
-                <TextInput
-                  value={inputText}
-                  onChangeText={setInputText}
-                  placeholder="Send a message"
-                  placeholderTextColor="#9CA3AF"
-                  className="flex-1 text-[16px] py-2"
-                  multiline
-                  maxLength={500}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowImagePicker(true)}
-                  className="ml-2 p-2"
-                >
-                  <Ionicons name="attach" size={20} color="#666" />
+            {messages.map(renderMessage)}
+
+            {/* Typing Indicator - centered */}
+            {isTyping && (
+              <View className="mb-4 items-center">
+                <View className="flex-row items-center">
+                  <View className="w-[30px] h-[30px] rounded-full  mr-2 items-center justify-center">
+                    <SupportImg />
+                  </View>
+                  <Text className="text-[#666] text-[14px] italic">Typing</Text>
+                </View>
+              </View>
+            )}
+          </ScrollView>
+
+          {/* Image Gallery - above input */}
+          {showImagePicker && (
+            <View className="bg-white border-t border-[#F1EAE7] max-h-[300px]">
+              <View className="flex-row border-b border-[#F1EAE7]">
+                <TouchableOpacity className="flex-1 items-center border-b-2 border-[#1B5E20] py-3">
+                  <Text className="text-[#1B5E20] font-semibold">Gallery</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={sendMessage}
-                  className="ml-2 bg-[#1B5E20] w-8 h-8 rounded-full items-center justify-center"
-                  disabled={!inputText.trim()}
+                  onPress={takePhoto}
+                  className="flex-1 items-center py-3"
                 >
-                  <Ionicons name="send" size={16} color="white" />
+                  <Text className="text-[#666]">Take a picture</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
 
-        <ImagePickerModal />
-      </ScreenWrapper>
-    </SafeAreaView>
+              <ScrollView
+                contentContainerStyle={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  padding: 8,
+                }}
+                className="flex-1"
+              >
+                {galleryImages.map((image,) => (
+                  <TouchableOpacity
+                    key={image.id}
+                    onPress={() => selectImageFromGallery(image.uri)}
+                    className="w-[31%] aspect-square m-1 rounded-lg overflow-hidden"
+                  >
+                    <Image
+                      source={{ uri: image.uri }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Input Area */}
+          <View className="px-4 pb-4 pt-2 bg-[#FAF8F7]">
+            <View className="bg-transparent rounded-[8px] border border-[#0C513F] flex-row items-center px-[31px] py-[16px] ">
+              <TextInput
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Send a message"
+                placeholderTextColor="#929292"
+                className="flex-1 text-[16px] py-2 font-urbanist"
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                onPress={toggleImagePicker}
+                className="ml-2 p-2"
+              >
+                <PickImageIcon />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={sendMessage}
+                className="ml-4  w-[19px] h-[19px]  items-center justify-center"
+                disabled={!inputText.trim()}
+              >
+                <ChatSendIcon />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+
+      {/* Overlay to close gallery when clicking outside */}
+      {showImagePicker && (
+        <Pressable
+          className="absolute inset-0 bg-transparent"
+          onPress={() => setShowImagePicker(false)}
+          style={{ zIndex: -1 }}
+        />
+      )}
+    </ScreenWrapper>
   );
 }

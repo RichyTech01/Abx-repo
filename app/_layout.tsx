@@ -30,11 +30,14 @@ import { useNotificationStore } from "@/store/useNotificationStore";
 import showToast from "@/utils/showToast";
 import type { Notification } from "@/types/NotificationType";
 
+
+
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 const STRIPE_PUBLISHABLE_KEY =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
+
 
 // Global MQTT Handler Component
 function GlobalMQTTHandler() {
@@ -94,6 +97,8 @@ export default function RootLayout() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("accessToken");
+      console.log("🔑 Token:", token); // Add this
+    console.log("📱 Fonts loaded:", fontsLoaded); 
       setIsLoggedIn(!!token);
 
       if (fontsLoaded) {
@@ -102,6 +107,8 @@ export default function RootLayout() {
     };
     checkAuth();
   }, [fontsLoaded]);
+  console.log("🏠 Current state - isLoggedIn:", isLoggedIn, "fontsLoaded:", fontsLoaded);
+
 
   if (!fontsLoaded || isLoggedIn === null) return null;
 
@@ -116,7 +123,6 @@ export default function RootLayout() {
 
           <Stack
             screenOptions={{
-              // Global screen options
               headerShown: false,
             }}
           >
