@@ -8,20 +8,16 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
-  Pressable,
 } from "react-native";
 import React, { useState, useRef } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import * as MediaLibrary from "expo-media-library";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import OreAppText from "@/common/OreApptext";
 import ChatHeader from "@/components/Support/ChatHeader";
 import SupportImg from "@/assets/svgs/SupportImg.svg";
 import UrbanistText from "@/common/UrbanistText";
-import ChatSendIcon from "@/assets/svgs/ChatSendIcon.svg"
-import PickImageIcon from "@/assets/svgs/PickImageIcon.svg"
+import ChatSendIcon from "@/assets/svgs/ChatSendIcon.svg";
+import PickImageIcon from "@/assets/svgs/PickImageIcon.svg";
 
 interface Message {
   id: string;
@@ -50,48 +46,12 @@ export default function ChatScreen() {
       isUser: false,
       timestamp: new Date("2024-01-01T08:23:00"),
     },
-    {
-      id: "3",
-      text: "Hi there! I'm Henry Osas from the support team. I saw your message about ABX and I'm here to help. Could you let me know what part you'd like some clarity on? Happy to explain!",
-      isUser: false,
-      timestamp: new Date("2024-01-01T08:23:00"),
-    },
   ]);
 
   const [inputText, setInputText] = useState("");
   const [showImagePicker, setShowImagePicker] = useState(false);
-  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [isTyping, setIsTyping] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
-
-  // Load gallery images
-  const loadGalleryImages = async () => {
-    const { status } = await MediaLibrary.requestPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission needed",
-        "We need gallery permissions to show your photos."
-      );
-      return;
-    }
-
-    try {
-      const assets = await MediaLibrary.getAssetsAsync({
-        mediaType: "photo",
-        first: 20,
-        sortBy: "creationTime",
-      });
-
-      const images = assets.assets.map((asset) => ({
-        id: asset.id,
-        uri: asset.uri,
-      }));
-
-      setGalleryImages(images);
-    } catch (error) {
-      console.log("Error loading gallery:", error);
-    }
-  };
 
   const sendMessage = () => {
     if (inputText.trim()) {
@@ -111,16 +71,32 @@ export default function ChatScreen() {
     }
   };
 
-  const selectImageFromGallery = (imageUri: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      image: imageUri,
-      isUser: true,
-      timestamp: new Date(),
-    };
+  // Open gallery
+  const pickImageFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "We need gallery permissions to show your photos."
+      );
+      return;
+    }
 
-    setMessages((prev) => [...prev, newMessage]);
-    setShowImagePicker(false);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        image: result.assets[0].uri,
+        isUser: true,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, newMessage]);
+    }
   };
 
   const takePhoto = async () => {
@@ -279,41 +255,23 @@ export default function ChatScreen() {
 
           {/* Image Gallery - above input */}
           {showImagePicker && (
-            <View className="bg-white border-t border-[#F1EAE7] max-h-[300px]">
-              <View className="flex-row border-b border-[#F1EAE7]">
-                <TouchableOpacity className="flex-1 items-center border-b-2 border-[#1B5E20] py-3">
-                  <Text className="text-[#1B5E20] font-semibold">Gallery</Text>
+            <View className="bg-white border-t border-x border-[#F1EAE7] items-center pt-[16px] pb-[5%]  rounded-t-[16px]  ">
+              <View className="flex-row b overflow-hidden w-[60% max-w-[250px]">
+                <TouchableOpacity
+                  className="flex-1 items-center border-b border-[#1B5E20] py-[8px] px-[10px] "
+                  onPress={pickImageFromGallery}
+                >
+                  <UrbanistText className="text-[#1B5E20] text-[16px] leading-[22px]">
+                    Gallery
+                  </UrbanistText>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={takePhoto}
                   className="flex-1 items-center py-3"
                 >
-                  <Text className="text-[#666]">Take a picture</Text>
+                  <Text className="text-[#929292]">Take a picture</Text>
                 </TouchableOpacity>
               </View>
-
-              <ScrollView
-                contentContainerStyle={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  padding: 8,
-                }}
-                className="flex-1"
-              >
-                {galleryImages.map((image,) => (
-                  <TouchableOpacity
-                    key={image.id}
-                    onPress={() => selectImageFromGallery(image.uri)}
-                    className="w-[31%] aspect-square m-1 rounded-lg overflow-hidden"
-                  >
-                    <Image
-                      source={{ uri: image.uri }}
-                      className="w-full h-full"
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
             </View>
           )}
 
@@ -346,15 +304,6 @@ export default function ChatScreen() {
           </View>
         </KeyboardAvoidingView>
       </View>
-
-      {/* Overlay to close gallery when clicking outside */}
-      {showImagePicker && (
-        <Pressable
-          className="absolute inset-0 bg-transparent"
-          onPress={() => setShowImagePicker(false)}
-          style={{ zIndex: -1 }}
-        />
-      )}
     </ScreenWrapper>
   );
 }
