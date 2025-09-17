@@ -36,6 +36,11 @@ export default function ChangeAddressModal({
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [errors, setErrors] = useState<{
+    postCode?: string;
+    city?: string;
+    address?: string;
+  }>({});
 
   // Store original values to compare against
   const [originalValues, setOriginalValues] = useState({
@@ -122,15 +127,23 @@ export default function ChangeAddressModal({
       originalValues.postCode || originalValues.city || originalValues.address;
 
     if (!hasOriginalAddress) {
-      return isValid; 
+      return isValid;
     }
 
-    return isValid && isEdited; 
+    return isValid && isEdited;
   };
 
   /** 🔹 Save new address */
   const handleSave = async () => {
-    if (!postCode || !city || !address) {
+    const newErrors: typeof errors = {};
+
+    if (!postCode.trim()) newErrors.postCode = "Postcode is required";
+    if (!city.trim()) newErrors.city = "City is required";
+    if (!address.trim()) newErrors.address = "Address is required";
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
       showToast("error", "Please fill in all required fields");
       return;
     }
@@ -167,7 +180,10 @@ export default function ChangeAddressModal({
       visible={visible}
       onRequestClose={onClose}
     >
-      <Pressable className="flex-1 justify-center items-center bg-black/30" onPress={onClose}>
+      <Pressable
+        className="flex-1 justify-center items-center bg-black/30"
+        onPress={onClose}
+      >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="w-[90%]"
@@ -188,7 +204,10 @@ export default function ChangeAddressModal({
                   const limitedText = text.substring(0, 10);
                   setPostCode(limitedText);
                   fetchSuggestions(limitedText);
+                  if (errors.postCode)
+                    setErrors({ ...errors, postCode: undefined });
                 }}
+                error={errors.postCode}
               />
 
               {/* Suggestions dropdown */}
@@ -235,13 +254,23 @@ export default function ChangeAddressModal({
                 label="City"
                 placeholder="Enter your city"
                 value={city}
-                onChangeText={setCity}
+                onChangeText={(text) => {
+                  setCity(text);
+                  if (errors.city) setErrors({ ...errors, city: undefined });
+                }}
+                error={errors.city}
               />
+
               <CustomTextInput
                 label="Home Address"
                 placeholder="Clearly state your address"
                 value={address}
-                onChangeText={setAddress}
+                onChangeText={(text) => {
+                  setAddress(text);
+                  if (errors.address)
+                    setErrors({ ...errors, address: undefined });
+                }}
+                error={errors.address}
               />
             </View>
 

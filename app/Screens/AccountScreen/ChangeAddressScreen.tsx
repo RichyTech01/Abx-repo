@@ -11,7 +11,6 @@ export default function ChangeAddressScreen() {
   const { user, fetchUser } = useUserStore();
   const [showModal, setShowModal] = useState(false);
 
-  // get default address
   const defaultAddress = useMemo(() => {
     if (user?.address?.length) {
       return (

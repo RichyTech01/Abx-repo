@@ -16,9 +16,21 @@ import * as Clipboard from "expo-clipboard";
 import SupportCard from "@/common/SupportCard";
 import { useRouter } from "expo-router";
 import showToast from "@/utils/showToast";
+import SupportApi from "@/api/SupportApi";
 
 export default function Support() {
   const router = useRouter()
+
+  const handleStartSession = async () => {
+  try {
+    const response = await SupportApi.startChatSession();
+    console.log("chat", response); // ✅ this will run
+    return response; // return after logging
+  } catch (error) {
+    console.error("Failed to start chat session:", error);
+  }
+};
+
   const handleEmailPress = () => {
     Linking.openURL("mailto:support@abx.com");
   };
@@ -58,7 +70,7 @@ export default function Support() {
               buttonText="Click to start a conversation"
               backgroundColor="#ECF1F0"
               buttonColor="#346E5F"
-              onPress={() => router.push("/Screens/Support/ChatScreen")}
+              onPress={()=> router.push("/Screens/Support/ChatScreen")}
             />
 
             {/* Send Email */}

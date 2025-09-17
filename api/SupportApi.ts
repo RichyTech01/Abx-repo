@@ -24,6 +24,12 @@ class SupportApi {
     return res.data;
   }
 
+   //  Start a new chat session
+  public async startChatSession() {
+    const res = await this.client.post("/support/chat-session/start");
+    return res.data;
+  }
+
   //  Get a single session by ID
   public async getSessionById(sessionId: string) {
     const res = await this.client.get(`/api/support/admin/sessions/${sessionId}`);
@@ -57,11 +63,7 @@ class SupportApi {
     return res.data;
   }
 
-  //  Start a new chat session
-  public async startChatSession() {
-    const res = await this.client.post("/api/support/chat-session/start");
-    return res.data;
-  }
+ 
 }
 
 export default new SupportApi();

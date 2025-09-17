@@ -60,7 +60,6 @@ function GlobalMQTTHandler() {
 
   // Connect to MQTT when user is available
   useEffect(() => {
-    // Fetch user if not available
     if (!user) {
       fetchUser();
       return;

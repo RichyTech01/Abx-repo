@@ -5,7 +5,7 @@ import {
   TextInput,
   StyleSheet,
   TextInputProps,
-  Pressable
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -13,12 +13,14 @@ type CustomTextInputProps = TextInputProps & {
   label?: string;
   isPassword?: boolean;
   placeholder?: string;
+  error?: string; // 👈 add this
 };
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
   label,
   isPassword = false,
   placeholder,
+  error,
   style,
   ...props
 }) => {
@@ -27,14 +29,22 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
 
   return (
     <View>
-      <Text className="text-[14px] font-urbanist-medium leading-[20px] text-[#2D2220]">
-        {label}
-      </Text>
+      {label && (
+        <Text className="text-[14px] font-urbanist-medium leading-[20px] text-[#2D2220]">
+          {label}
+        </Text>
+      )}
 
       <View
         style={[
           styles.inputWrapper,
-          { borderColor: isFocused ? "#0C513F" : "#F1EAE7" },
+          {
+            borderColor: error
+              ? "red" // 👈 red if error
+              : isFocused
+              ? "#0C513F" // 👈 green if focused
+              : "#F1EAE7", // 👈 default
+          },
         ]}
         className="mt-[8px]"
       >
@@ -53,7 +63,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           <Pressable
             onPress={() => setSecureText(!secureText)}
             style={styles.iconWrapper}
-            className=" h-full w-8 items-end justify-center"
+            className="h-full w-8 items-end justify-center"
           >
             <Ionicons
               name={secureText ? "eye-off-outline" : "eye-outline"}
@@ -63,6 +73,13 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           </Pressable>
         )}
       </View>
+
+      {/* 👇 Show error message if available */}
+      {error && (
+        <Text style={styles.errorText} className="mt-1">
+          {error}
+        </Text>
+      )}
     </View>
   );
 };
@@ -84,6 +101,10 @@ const styles = StyleSheet.create({
   },
   iconWrapper: {
     marginLeft: 8,
+  },
+  errorText: {
+    fontSize: 12,
+    color: "red",
   },
 });
 

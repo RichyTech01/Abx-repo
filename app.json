@@ -25,18 +25,14 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We need your location to show nearby stores.",
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "This app uses the camera to let you take photos for chat.",
-        "NSPhotoLibraryUsageDescription": "This app accesses your photo library to let you share images in chat."
+        "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.henry23.abxmobileapp"
     },
     "android": {
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "CAMERA"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/Images/MainLogo.png",
@@ -65,13 +61,6 @@
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos to let you share them in chat."
-        }
-      ],
-      [
-        "expo-media-library",
-        {
-          "photosPermission": "Allow abx mobile to access your photos.",
-          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos."
         }
       ]
     ],

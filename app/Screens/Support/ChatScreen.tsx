@@ -53,6 +53,7 @@ export default function ChatScreen() {
   const [isTyping, setIsTyping] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
 
+  
   const sendMessage = () => {
     if (inputText.trim()) {
       const newMessage: Message = {
@@ -71,33 +72,32 @@ export default function ChatScreen() {
     }
   };
 
-  // Open gallery
-  const pickImageFromGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission needed",
-        "We need gallery permissions to show your photos."
-      );
-      return;
-    }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.8,
-    });
+// Open gallery
+const pickImageFromGallery = async () => {
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== "granted") {
+    Alert.alert("Permission needed", "We need gallery permissions to show your photos.");
+    return;
+  }
 
-    if (!result.canceled && result.assets[0]) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        image: result.assets[0].uri,
-        isUser: true,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, newMessage]);
-    }
-  };
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    quality: 0.8,
+  });
+
+  if (!result.canceled && result.assets[0]) {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      image: result.assets[0].uri,
+      isUser: true,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, newMessage]);
+  }
+};
+
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -257,10 +257,7 @@ export default function ChatScreen() {
           {showImagePicker && (
             <View className="bg-white border-t border-x border-[#F1EAE7] items-center pt-[16px] pb-[5%]  rounded-t-[16px]  ">
               <View className="flex-row b overflow-hidden w-[60% max-w-[250px]">
-                <TouchableOpacity
-                  className="flex-1 items-center border-b border-[#1B5E20] py-[8px] px-[10px] "
-                  onPress={pickImageFromGallery}
-                >
+                <TouchableOpacity className="flex-1 items-center border-b border-[#1B5E20] py-[8px] px-[10px] " onPress={pickImageFromGallery} >
                   <UrbanistText className="text-[#1B5E20] text-[16px] leading-[22px]">
                     Gallery
                   </UrbanistText>

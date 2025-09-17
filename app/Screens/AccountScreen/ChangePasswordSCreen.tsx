@@ -14,14 +14,29 @@ export default function ChangePasswordScreen() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{
+    currentPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+  }>({});
 
-  const disable = !currentPassword || !newPassword || !confirmPassword
+  const disable = !currentPassword || !newPassword || !confirmPassword;
 
   const handleSave = async () => {
-    if (newPassword !== confirmPassword ) {
-      showToast("error", "New passwords do not match!");
-      return;
+    const newErrors: typeof errors = {};
+
+    if (!currentPassword.trim())
+      newErrors.currentPassword = "Enter your current password";
+    if (!newPassword.trim()) newErrors.newPassword = "Enter a new password";
+    if (!confirmPassword.trim())
+      newErrors.confirmPassword = "Confirm your new password";
+    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
     }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) return; 
 
     setLoading(true);
     try {
@@ -35,11 +50,15 @@ export default function ChangePasswordScreen() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      setErrors({});
     } catch (err: any) {
-      Alert.alert(
-        "Error",
-        err.response?.data?.non_field_errors?.[0] || "Something went wrong"
-      );
+      const errorMessage =
+        err.response?.data?.non_field_errors?.[0] ||
+        err.response?.data?.message ||
+        "Something went wrong while changing password";
+
+      console.log("Change password error:", errorMessage);
+      showToast("error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -59,21 +78,36 @@ export default function ChangePasswordScreen() {
               placeholder="Enter current password"
               isPassword
               value={currentPassword}
-              onChangeText={setCurrentPassword}
+              onChangeText={(text) => {
+                setCurrentPassword(text);
+                if (errors.currentPassword)
+                  setErrors({ ...errors, currentPassword: undefined });
+              }}
+              error={errors.currentPassword}
             />
             <CustomTextInput
               label="New password"
               placeholder="Enter new password"
               isPassword
               value={newPassword}
-              onChangeText={setNewPassword}
+              onChangeText={(text) => {
+                setNewPassword(text);
+                if (errors.newPassword)
+                  setErrors({ ...errors, newPassword: undefined });
+              }}
+              error={errors.newPassword}
             />
             <CustomTextInput
               label="Confirm new password"
               placeholder="Confirm new password"
               isPassword
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              onChangeText={(text) => {
+                setConfirmPassword(text);
+                if (errors.confirmPassword)
+                  setErrors({ ...errors, confirmPassword: undefined });
+              }}
+              error={errors.confirmPassword}
             />
           </View>
 
