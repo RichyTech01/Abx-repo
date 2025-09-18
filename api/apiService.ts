@@ -38,21 +38,27 @@ class ApiService {
       (response) => response,
       async (error) => {
         if (error?.response?.status === 401) {
-          console.log("🚪 Session expired - logging out user");
-          
-          // Clear session storage
-          await AsyncStorage.multiRemove([
-            "accessToken", 
-          ]);
+          // Check if user was actually logged in
+          const wasLoggedIn = await AsyncStorage.getItem("accessToken");
 
-          // Disconnect MQTT immediately
-          MQTTClient.disconnect();
+          if (wasLoggedIn) {
+            console.log("🚪 Session expired - logging out user");
 
-          // Show toast and navigate to login
-          showToast("error", "Session expired. Please log in again.");
-          
-          // Navigate to login screen (replace to prevent back navigation)
-          router.replace("/(auth)/onboarding");
+            // Clear session storage
+            await AsyncStorage.multiRemove(["accessToken"]);
+
+            // Disconnect MQTT immediately
+            MQTTClient.disconnect();
+
+            // Show toast only if user was actually logged in
+            showToast("error", "Session expired. Please log in again.");
+
+            router.replace("/(auth)/onboarding");
+          } else {
+            console.log(
+              "🔇 401 received but user already logged out - ignoring"
+            );
+          }
         }
 
         return Promise.reject(error);

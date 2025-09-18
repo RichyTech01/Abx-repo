@@ -39,7 +39,8 @@
         "backgroundColor": "#0C513F"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.henry23.abxmobileapp"
+      "package": "com.henry23.abxmobileapp",
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "bundler": "metro",

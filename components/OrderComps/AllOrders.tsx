@@ -57,6 +57,7 @@ export default function AllOrders() {
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item, section }) => {
             const expanded = expandedSections.includes(section.title);
             const index = section.data.indexOf(item);

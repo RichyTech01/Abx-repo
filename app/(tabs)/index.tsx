@@ -32,6 +32,7 @@ import NotificationApi from "@/api/NotificationApi";
 import OrderApi from "@/api/OrderApi";
 import NotificationBadge from "@/common/NotificationBadge";
 import NotificationDot from "@/common/NotificationDot";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 export default function Home() {
   const router = useRouter();
@@ -67,7 +68,6 @@ export default function Home() {
   };
 
   const handleNotificationPress = () => {
-    // Mark as seen when user navigates to notification screen
     markNotificationsAsSeen();
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
@@ -84,12 +84,10 @@ export default function Home() {
   );
 
   return (
-    <SafeAreaView className="bg-[#FFF6F2] flex-1">
+    <ScreenWrapper>
       <View
         className="mx-[20px] flex-row items-center justify-between mt-2"
-        style={{
-          paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-        }}
+        
       >
         {loading ? (
           <ActivityIndicator size="small" color="#000" />
@@ -149,6 +147,6 @@ export default function Home() {
           <RecueAndSaveProduct />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

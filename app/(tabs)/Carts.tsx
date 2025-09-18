@@ -17,17 +17,28 @@ import { useFocusEffect } from "@react-navigation/native";
 import NoData from "@/common/NoData";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useCartStore } from "@/store/useCartStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Carts() {
   const router = useRouter();
 
-  const { cartItems, setCartItems } = useCartStore(); 
+  const { cartItems, setCartItems } = useCartStore();
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
+  const wasLoggedIn = AsyncStorage.getItem("accessToken");
+
   useFocusEffect(
     useCallback(() => {
-      fetchCart();
+      const checkLoginAndFetch = async () => {
+        const wasLoggedIn = await AsyncStorage.getItem("accessToken");
+
+        if (wasLoggedIn) {
+          fetchCart();
+        }
+      };
+
+      checkLoginAndFetch();
     }, [])
   );
 
@@ -40,7 +51,7 @@ export default function Carts() {
       setCartItems(items);
     } catch (err) {
       console.error("Failed to fetch cart:", err);
-      setCartItems([]); 
+      setCartItems([]);
     } finally {
       setLoading(false);
     }
@@ -69,9 +80,10 @@ export default function Carts() {
 
     try {
       await OrderApi.updateCart(cartItemId, { action });
-      
+
       // Update store
-      const newQty = action === "increase" ? item.quantity + 1 : item.quantity - 1;
+      const newQty =
+        action === "increase" ? item.quantity + 1 : item.quantity - 1;
       const updatedItems = cartItems.map((cartItem) => {
         if (cartItem.id === cartItemId) {
           return {
@@ -83,7 +95,6 @@ export default function Carts() {
         return cartItem;
       });
       setCartItems(updatedItems);
-
     } catch (err) {
       console.error(`Failed to ${action} quantity:`, err);
     } finally {
@@ -102,11 +113,11 @@ export default function Carts() {
 
     try {
       await OrderApi.removeFromCart(cartItemId);
-      
+
       // Update store
       const updatedItems = cartItems.filter((item) => item.id !== cartItemId);
       setCartItems(updatedItems);
-      
+
       showToast("success", "Cart removed Successfully");
     } catch (err) {
       console.error("Failed to remove item:", err);

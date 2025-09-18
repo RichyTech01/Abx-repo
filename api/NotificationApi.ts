@@ -29,8 +29,9 @@ class NotificationApi {
       `/notifications/${id}/mark-read/`,
       data
     );
-    return res.data;
+    return res.data;                                                                                                                                                     
   }
 }
 
 export default new NotificationApi();
+                                                                                               

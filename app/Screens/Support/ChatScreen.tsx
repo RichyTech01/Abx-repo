@@ -19,6 +19,7 @@ import UrbanistText from "@/common/UrbanistText";
 import ChatSendIcon from "@/assets/svgs/ChatSendIcon.svg";
 import PickImageIcon from "@/assets/svgs/PickImageIcon.svg";
 
+
 interface Message {
   id: string;
   text?: string;
@@ -211,7 +212,7 @@ const pickImageFromGallery = async () => {
 
   return (
     <ScreenWrapper>
-      <View className="flex-1">
+      <View className="flex-1  ">
         {/* Header */}
         <View>
           <OreAppText className="mx-auto text-[20px] leading-[28px] text-[#2D2220] font-semibold">
@@ -221,8 +222,8 @@ const pickImageFromGallery = async () => {
         </View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
           className="flex-1 bg-white"
         >
           {/* Messages with Today header */}
@@ -273,7 +274,7 @@ const pickImageFromGallery = async () => {
           )}
 
           {/* Input Area */}
-          <View className="px-4 pb-4 pt-2 bg-[#FAF8F7]">
+          <View className="px-4 pb- pt-2 bg-[#FAF8F7]">
             <View className="bg-transparent rounded-[8px] border border-[#0C513F] flex-row items-center px-[31px] py-[16px] ">
               <TextInput
                 value={inputText}

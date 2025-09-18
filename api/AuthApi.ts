@@ -39,14 +39,6 @@ class AuthApi {
     return res.data;
   }
 
-  // Change password
-  // public async changePassword(data: {
-  //   current_password: string;
-  //   new_password: string;
-  // }) {
-  //   const res = await this.client.put("/auth/change-password", data);
-  //   return res.data;
-  // }
 
   public async changePassword(data: {
     current_password: string;

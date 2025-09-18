@@ -45,8 +45,7 @@ export default function FavouriteStore() {
   return (
     <ScreenWrapper>
       <View
-        className={`${Platform.OS === "android" ? "mt-[45px]" : ""} pb-[15px]`}
-      >
+        >
         <HeaderWithSearchInput label="Your favorite stores" />
       </View>
 

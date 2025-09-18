@@ -1,16 +1,23 @@
 import React from "react";
-import { SafeAreaView, StatusBar, Platform, StyleSheet, StyleProp, ViewStyle } from "react-native";
+import { StyleSheet, StyleProp, ViewStyle } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type ScreenWrapperProps = {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  edges?: Array<'top' | 'right' | 'bottom' | 'left'>;
 };
 
-const ScreenWrapper: React.FC<ScreenWrapperProps> = ({ children, style }) => {
-  const statusBarHeight = Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0;
-
+const ScreenWrapper: React.FC<ScreenWrapperProps> = ({ 
+  children, 
+  style, 
+  edges = ['top', 'left', 'right', "bottom"]
+}) => {
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: statusBarHeight }, style]}>
+    <SafeAreaView 
+      style={[styles.container, style]}
+      edges={edges}
+    >
       {children}
     </SafeAreaView>
   );

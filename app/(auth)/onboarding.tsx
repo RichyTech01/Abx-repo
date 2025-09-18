@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginVertical: 5,
-    bottom:Platform.OS === "android"?"10%": "6%",
+    bottom:Platform.OS === "android"?"7%": "6%",
   },
   dot: {
     width: 8,

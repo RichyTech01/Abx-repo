@@ -67,7 +67,7 @@ export default function AllStore() {
       ) : (
         <ScrollView
           contentContainerStyle={{
-            paddingBottom: Platform.OS === "ios" ? 20 : 80,
+            paddingBottom: Platform.OS === "ios" ? 20 : 40,
             marginHorizontal: 20,
             paddingTop: 15,
             gap: 24,

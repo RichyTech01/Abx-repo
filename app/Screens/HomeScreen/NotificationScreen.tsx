@@ -13,6 +13,7 @@ import showToast from "@/utils/showToast";
 import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import type { Notification } from "@/types/NotificationType";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NotificationScreen() {
   const { user, fetchUser } = useUserStore();
@@ -20,7 +21,7 @@ export default function NotificationScreen() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
@@ -30,7 +31,7 @@ export default function NotificationScreen() {
       setLoading(true);
       const data = await NotificationApi.getNotifications(1);
       setNotifications(data.results || []);
-      
+
       // Update notification status
       const hasUnread = data.results?.some((n: any) => !n.is_read) || false;
       setHasNewNotifications(hasUnread);
@@ -72,15 +73,28 @@ export default function NotificationScreen() {
   };
 
   // Fetch notifications when screen comes into focus
+  // Fetch notifications only if logged in
+  const checkLoginAndFetch = async () => {
+    const wasLoggedIn = await AsyncStorage.getItem("accessToken");
+    console.log("🔑 Token:", wasLoggedIn);
+
+    if (wasLoggedIn) {
+      fetchNotifications();
+    } else {
+      setNotifications([]);
+    }
+  };
+
+  // Run on screen focus
   useFocusEffect(
     useCallback(() => {
-      fetchNotifications();
+      checkLoginAndFetch();
     }, [])
   );
 
-  // Initial fetch
+  // Run on initial mount
   useEffect(() => {
-    fetchNotifications();
+    checkLoginAndFetch();
   }, []);
 
   return (
