@@ -13,6 +13,7 @@ import dayjs from "dayjs";
 import { groupOrdersByDate, Section } from "@/utils/groupOrdersByDate";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 
+
 export default function AllOrders() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
@@ -89,7 +90,7 @@ export default function AllOrders() {
                 <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
                   {section.title}
                 </OreAppText>
-                {section.data.length > 1 && (
+                {section.data.length > 10 && (
                   <Pressable onPress={() => toggleExpand(section.title)}>
                     <Text className="text-[14px] font-urbanist-medium leading-[20px]">
                       {expandedSections.includes(section.title)

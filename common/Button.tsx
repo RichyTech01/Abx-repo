@@ -52,7 +52,7 @@ const Button: React.FC<ButtonProps> = ({
   const isSolid = variant === "solid";
 
   const handlePress = () => {
-    if (loading || disabled) return;   // 👈 prevent press
+    if (loading || disabled) return;  
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress();
   };

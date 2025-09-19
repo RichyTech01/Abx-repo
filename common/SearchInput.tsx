@@ -19,7 +19,7 @@ interface SearchInputProps {
 }
 
 export default function SearchInput({
-  placeholder = "Ask ABX AI or search for food items of your choice",
+  placeholder = "Search for food items of your choice",
 }: SearchInputProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);

@@ -57,7 +57,6 @@ export default function Login() {
     } catch (err: any) {
       console.log("Login error:", err);
 
-      // Better error handling
       if (err.response?.data?.detail) {
         showToast("error", err.response.data.detail);
       } else {

@@ -1,9 +1,9 @@
-import { View } from "react-native";
-import React, { useState,  } from "react";
+import { View, Text } from "react-native";
+import React, { useState } from "react";
 import CustomTextInput from "@/common/CustomTextInput";
 import Button from "@/common/Button";
 import CustomPhoneInput from "@/common/PhoneNumberInput";
-import showToast from "@/utils/showToast";
+import { isValidEmail } from "@/utils/isValidateEmail";
 
 export default function StepOne({
   nextStep,
@@ -18,16 +18,31 @@ export default function StepOne({
     formData.phone_number?.replace("+44", "") || ""
   );
 
+  // Track errors
+  const [errors, setErrors] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone_number: "",
+  });
+
   const handleNext = () => {
-    if (
-      !formData.first_name ||
-      !formData.last_name ||
-      !formData.email ||
-      !rawPhoneNumber
-    ) {
-      showToast("error", "Please fill in all the fields before continuing.");
-      return;
+    let newErrors: any = {};
+
+    if (!formData.first_name) newErrors.first_name = "First name is required";
+    if (!formData.last_name) newErrors.last_name = "Last name is required";
+
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!isValidEmail(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
     }
+
+    if (!rawPhoneNumber) newErrors.phone_number = "Phone number is required";
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) return;
 
     const fullPhoneNumber = `+44${rawPhoneNumber}`;
     setFormData({
@@ -40,33 +55,70 @@ export default function StepOne({
   return (
     <View className="mt-[7%]">
       <View className="gap-[32px]">
-        <CustomTextInput
-          label="First Name"
-          placeholder="Type your first name"
-          value={formData.first_name}
-          onChangeText={(text) =>
-            setFormData({ ...formData, first_name: text })
-          }
-        />
+        <View>
+          <CustomTextInput
+            label="First Name"
+            placeholder="Type your first name"
+            value={formData.first_name}
+            onChangeText={(text) => {
+              setFormData({ ...formData, first_name: text });
+              if (errors.first_name) setErrors({ ...errors, first_name: "" });
+            }}
+          />
+          {errors.first_name ? (
+            <Text style={{ color: "red", fontSize: 12 }}>
+              {errors.first_name}
+            </Text>
+          ) : null}
+        </View>
 
-        <CustomTextInput
-          label="Last Name"
-          placeholder="Type your last name"
-          value={formData.last_name}
-          onChangeText={(text) => setFormData({ ...formData, last_name: text })}
-        />
+        <View>
+          <CustomTextInput
+            label="Last Name"
+            placeholder="Type your last name"
+            value={formData.last_name}
+            onChangeText={(text) => {
+              setFormData({ ...formData, last_name: text });
+              if (errors.last_name) setErrors({ ...errors, last_name: "" });
+            }}
+          />
+          {errors.last_name ? (
+            <Text style={{ color: "red", fontSize: 12 }}>
+              {errors.last_name}
+            </Text>
+          ) : null}
+        </View>
 
-        <CustomTextInput
-          label="Email Address"
-          placeholder="Type your email"
-          value={formData.email}
-          onChangeText={(text) => setFormData({ ...formData, email: text })}
-        />
+        <View>
+          <CustomTextInput
+            label="Email Address"
+            placeholder="Type your email"
+            value={formData.email}
+            onChangeText={(text) => {
+              setFormData({ ...formData, email: text });
+              if (errors.email) setErrors({ ...errors, email: "" });
+            }}
+          />
+          {errors.email ? (
+            <Text style={{ color: "red", fontSize: 12 }}>{errors.email}</Text>
+          ) : null}
+        </View>
 
-        <CustomPhoneInput
-          value={rawPhoneNumber}
-          onChange={(phone) => setRawPhoneNumber(phone)}
-        />
+        <View>
+          <CustomPhoneInput
+            value={rawPhoneNumber}
+            onChange={(phone) => {
+              setRawPhoneNumber(phone);
+              if (errors.phone_number)
+                setErrors({ ...errors, phone_number: "" });
+            }}
+          />
+          {errors.phone_number ? (
+            <Text style={{ color: "red", fontSize: 12 }}>
+              {errors.phone_number}
+            </Text>
+          ) : null}
+        </View>
 
         <Button
           title="Click to continue"

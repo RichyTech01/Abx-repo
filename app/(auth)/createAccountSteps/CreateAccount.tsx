@@ -36,6 +36,9 @@ export default function CreateAccount() {
   const nextStep = () => {
     if (step < 2) setStep(step + 1);
   };
+  const goBackStep = () => {
+    if (step == 2) setStep(step - 1);
+  };
 
   const handleSignUp = async () => {
     setLoading(true);
@@ -90,7 +93,7 @@ export default function CreateAccount() {
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 140 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -125,6 +128,7 @@ export default function CreateAccount() {
                   setFormData={setFormData}
                   onSubmit={handleSignUp}
                   loading={loading}
+                  goBackStep={goBackStep}
                 />
               )}
             </View>

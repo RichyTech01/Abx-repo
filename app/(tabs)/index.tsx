@@ -1,15 +1,14 @@
 import {
   View,
   Text,
-  SafeAreaView,
-  Platform,
   ScrollView,
   Pressable,
-  StatusBar,
   ActivityIndicator,
+  FlatList,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 
 import NotificationIcon from "@/assets/svgs/NotificationIcon";
@@ -33,6 +32,76 @@ import OrderApi from "@/api/OrderApi";
 import NotificationBadge from "@/common/NotificationBadge";
 import NotificationDot from "@/common/NotificationDot";
 import ScreenWrapper from "@/common/ScreenWrapper";
+
+const { width } = Dimensions.get("window");
+
+const banners = [<Welcomebanner />, <Welcomebanner />];
+
+// Clone banners to simulate infinite loop
+const loopedBanners = [...banners, ...banners];
+
+function BannerSlider() {
+  const flatListRef = useRef<FlatList>(null);
+  const [currentIndex, setCurrentIndex] = useState(banners.length);
+
+  useEffect(() => {
+    // Start at the middle of the dataset (so you can scroll both ways)
+    flatListRef.current?.scrollToOffset({
+      offset: currentIndex * width,
+      animated: false,
+    });
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      let nextIndex = currentIndex + 1;
+      flatListRef.current?.scrollToOffset({
+        offset: nextIndex * width,
+        animated: true,
+      });
+      setCurrentIndex(nextIndex);
+
+      // Reset index when close to the end to simulate infinite loop
+      if (nextIndex >= loopedBanners.length - 1) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToOffset({
+            offset: banners.length * width,
+            animated: false,
+          });
+          setCurrentIndex(banners.length);
+        }, 600); // wait for animation to finish
+      }
+    }, 3000); // slow down to 5s
+
+    return () => clearInterval(interval);
+  }, [currentIndex]);
+
+  return (
+    <FlatList
+      ref={flatListRef}
+      data={loopedBanners}
+      horizontal
+      pagingEnabled
+      showsHorizontalScrollIndicator={false}
+      keyExtractor={(_, index) => index.toString()}
+      renderItem={({ item }) => (
+        <View
+          style={{
+            width,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {item}
+        </View>
+      )}
+      onMomentumScrollEnd={(e) => {
+        const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
+        setCurrentIndex(newIndex);
+      }}
+    />
+  );
+}
 
 export default function Home() {
   const router = useRouter();
@@ -85,10 +154,7 @@ export default function Home() {
 
   return (
     <ScreenWrapper>
-      <View
-        className="mx-[20px] flex-row items-center justify-between mt-2"
-        
-      >
+      <View className="mx-[20px] flex-row items-center justify-between mt-2">
         {loading ? (
           <ActivityIndicator size="small" color="#000" />
         ) : (
@@ -116,7 +182,7 @@ export default function Home() {
 
       {/* Search input */}
       <View className="mx-[20px] mt-[24px]">
-        <SearchInput placeholder="Ask ABX AI or search for food items of your choice" />
+        <SearchInput placeholder="Search for food items of your choice" />
       </View>
 
       {/* Scrollable content */}
@@ -124,16 +190,10 @@ export default function Home() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Welcome banners */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mt-[32px] pl-[20px]"
-          contentContainerStyle={{ gap: 12 }}
-        >
-          <Welcomebanner />
-          <Welcomebanner />
-        </ScrollView>
+        {/* Auto sliding banners */}
+        <View className="mt-[32px]">
+          <BannerSlider />
+        </View>
 
         {/* Sections */}
         <View className="mt-[24px] gap-[24px] ">

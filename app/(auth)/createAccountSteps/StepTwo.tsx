@@ -1,21 +1,26 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Pressable } from "react-native";
 import React, { useState } from "react";
 import CustomTextInput from "@/common/CustomTextInput";
 import Button from "@/common/Button";
 import AuthApi from "@/api/AuthApi";
+import { useRouter } from "expo-router";
 
 export default function StepTwo({
   formData,
   setFormData,
   onSubmit,
   loading,
+  goBackStep,
 }: {
   formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
   onSubmit: () => void;
   loading?: boolean;
+  goBackStep: () => void;
 }) {
+  const router = useRouter();
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const fetchSuggestions = async (term: string) => {
     if (!term) {
@@ -39,16 +44,11 @@ export default function StepTwo({
   // Handle selecting a suggestion
   const handleSelectSuggestion = (item: any) => {
     const addressParts = item.address.split(",");
-
-    // Try to extract postcode from the address using regex
     const extractedPostcode = extractPostcode(item.address);
-
-    // If no postcode found with regex, fall back to the last part (but limit to 10 chars)
     const fallbackPostcode =
       extractedPostcode ||
       addressParts[addressParts.length - 1].trim().substring(0, 10);
 
-    // Extract city - usually the second to last part
     const extractedCity =
       addressParts.length > 2
         ? addressParts[addressParts.length - 2].trim()
@@ -67,6 +67,24 @@ export default function StepTwo({
     setSuggestions([]);
   };
 
+  // Validation check
+  const handleVerify = () => {
+    let newErrors: Record<string, string> = {};
+
+    if (!formData.user_address.post_code)
+      newErrors.post_code = "Post code is required";
+    if (!formData.user_address.city) newErrors.city = "City is required";
+    if (!formData.user_address.addr)
+      newErrors.addr = "Home Address is required";
+    if (!formData.password) newErrors.password = "Password is required";
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      onSubmit();
+    }
+  };
+
   return (
     <View style={{ position: "relative", marginTop: 20 }}>
       <View className="gap-[6%]">
@@ -75,6 +93,7 @@ export default function StepTwo({
           label="Post code"
           placeholder="Type your post code"
           value={formData.user_address.post_code}
+          error={errors.post_code}
           onChangeText={(text) => {
             const limitedText = text.substring(0, 10);
             setFormData({
@@ -85,6 +104,7 @@ export default function StepTwo({
               },
             });
             fetchSuggestions(limitedText);
+            setErrors((prev) => ({ ...prev, post_code: "" }));
           }}
         />
 
@@ -129,12 +149,14 @@ export default function StepTwo({
           label="What city do you currently reside in?"
           placeholder="e.g London"
           value={formData.user_address.city}
-          onChangeText={(text) =>
+          error={errors.city}
+          onChangeText={(text) => {
             setFormData({
               ...formData,
               user_address: { ...formData.user_address, city: text },
-            })
-          }
+            });
+            setErrors((prev) => ({ ...prev, city: "" }));
+          }}
         />
 
         {/* Address input */}
@@ -142,12 +164,14 @@ export default function StepTwo({
           label="Home Address"
           placeholder="Clearly state your address"
           value={formData.user_address.addr}
-          onChangeText={(text) =>
+          error={errors.addr}
+          onChangeText={(text) => {
             setFormData({
               ...formData,
               user_address: { ...formData.user_address, addr: text },
-            })
-          }
+            });
+            setErrors((prev) => ({ ...prev, addr: "" }));
+          }}
         />
 
         {/* Password input */}
@@ -156,7 +180,11 @@ export default function StepTwo({
           isPassword
           placeholder="Use a minimum of 7 characters"
           value={formData.password}
-          onChangeText={(text) => setFormData({ ...formData, password: text })}
+          error={errors.password}
+          onChangeText={(text) => {
+            setFormData({ ...formData, password: text });
+            setErrors((prev) => ({ ...prev, password: "" }));
+          }}
         />
       </View>
 
@@ -169,16 +197,37 @@ export default function StepTwo({
         }}
       >
         By creating an account, you agree to AfrobasketXpress{" "}
-        <Text style={{ color: "#0C513F" }}>Terms and Conditions</Text>
+        <Text
+          style={{ color: "#0C513F" }}
+          onPress={() =>
+            router.push("/Screens/AccountScreen/PrivacyAndPolicyScreen")
+          }
+        >
+          Terms and Conditions
+        </Text>
       </Text>
 
       {/* Submit button */}
-      <View style={{ marginTop: 24 }}>
-        <Button
-          title="Click to verify your account"
-          loading={loading}
-          onPress={onSubmit}
-        />
+      <View
+        style={{ marginTop: 24 }}
+        className="flex-row items-center w-full justify-between "
+      >
+        <View className="w-[40%]">
+          <Button
+            title="Previous"
+            onPress={goBackStep}
+            textColor="#0C513F"
+            backgroundColor="#ECF1F0"
+            borderColor="#AEC5BF"
+          />
+        </View>
+        <View className="w-[58%]">
+          <Button
+            title="Verify your account"
+            loading={loading}
+            onPress={handleVerify}
+          />
+        </View>
       </View>
     </View>
   );
