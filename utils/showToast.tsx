@@ -2,12 +2,13 @@ import Toast from "react-native-toast-message";
 
 const showToast = (
   type: "success" | "error" | "info",
-  message: string
+  title: string,
+  message?: string // Make message optional
 ) => {
   Toast.show({
     type,
-    text1: type.toUpperCase(), // small title
-    text2: message,            // your full message (wraps to multiple lines)
+    text1: title,           // Use the provided title
+    text2: message,         // Use the optional message
     position: "top",
     visibilityTime: 3000,
   });

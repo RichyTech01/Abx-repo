@@ -1,5 +1,5 @@
 import { View, Text, Pressable, FlatList } from "react-native";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import Header from "@/common/Header";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -14,47 +14,86 @@ import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import type { Notification } from "@/types/NotificationType";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import MQTTClient from "@/utils/mqttClient";
 
 export default function NotificationScreen() {
   const { user, fetchUser } = useUserStore();
-  const { setHasNewNotifications } = useNotificationStore();
+  const {
+    notifications,
+    loading,
+    hasNewNotifications,
+    fetchNotifications,
+    markAllAsRead,
+    markNotificationAsRead,
+    handleRealtimeNotification,
+    markNotificationsAsSeen,
+  } = useNotificationStore();
   const router = useRouter();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const data = await NotificationApi.getNotifications(1);
-      setNotifications(data.results || []);
+  // Set up real-time MQTT listener for this screen
+  useEffect(() => {
+    if (user?.id && MQTTClient.isClientConnected()) {
+      console.log("Setting up MQTT listener for notification screen");
 
-      // Update notification status
-      const hasUnread = data.results?.some((n: any) => !n.is_read) || false;
-      setHasNewNotifications(hasUnread);
-    } catch (err) {
-      console.error("❌ Error fetching notifications", err);
-    } finally {
-      setLoading(false);
+      // Get the current callback and create a combined one
+      const originalCallback = MQTTClient.getMessageCallback();
+
+      const combinedCallback = (notification: Notification) => {
+        if (originalCallback) {
+          originalCallback(notification);
+        }
+        handleRealtimeNotification(notification);
+      };
+
+      // Update MQTT callback
+      MQTTClient.updateCallback(combinedCallback);
     }
-  };
+
+    return () => {
+      console.log("Cleaning up notification screen MQTT listener");
+    };
+  }, [user?.id, handleRealtimeNotification]);
 
   const unread = notifications.filter((n) => !n.is_read);
 
+  // Handle individual notification click
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.is_read) {
+      try {
+        // Mark as read on server
+        await NotificationApi.markAsReadPartial(notification.id, {
+          title: notification.title,
+          message: notification.message,
+          notification_type: notification.notification_type,
+          data: notification.data,
+        });
+
+        // Update local state
+        markNotificationAsRead(notification.id);
+
+        console.log(`Marked notification ${notification.id} as read`);
+      } catch (err) {
+        console.error("Error marking notification as read", err);
+        showToast("error", "Failed to mark notification as read");
+      }
+    }
+  };
+
   const handleMarkAllAsRead = async () => {
     try {
-      const unread = notifications.filter((n) => !n.is_read);
+      const unreadNotifications = notifications.filter((n) => !n.is_read);
 
-      if (unread.length === 0) {
-        showToast("info", "📭 All notifications are already read");
+      if (unreadNotifications.length === 0) {
+        showToast("info", "All notifications are already read");
         return;
       }
 
       await Promise.all(
-        unread.map((n) =>
+        unreadNotifications.map((n) =>
           NotificationApi.markAsReadPartial(n.id, {
             title: n.title,
             message: n.message,
@@ -64,56 +103,58 @@ export default function NotificationScreen() {
         )
       );
 
-      fetchNotifications();
-      // Update the dot indicator
-      setHasNewNotifications(false);
+      // Update store
+      markAllAsRead();
+      showToast(
+        "success",
+        `Marked ${unreadNotifications.length} notifications as read`
+      );
     } catch (err) {
-      console.error("❌ Error marking all as read", err);
+      console.error("Error marking all as read", err);
+      showToast("error", "Failed to mark notifications as read");
     }
   };
 
-  // Fetch notifications when screen comes into focus
-  // Fetch notifications only if logged in
-  const checkLoginAndFetch = async () => {
-    const wasLoggedIn = await AsyncStorage.getItem("accessToken");
-    console.log("🔑 Token:", wasLoggedIn);
+  // ONLY fetch when entering this screen
+  const fetchOnlyWhenEntering = async () => {
+    const token = await AsyncStorage.getItem("accessToken");
 
-    if (wasLoggedIn) {
-      fetchNotifications();
-    } else {
-      setNotifications([]);
+    if (token) {
+      // Force fetch when entering notification screen
+      await fetchNotifications(true);
     }
   };
 
-  // Run on screen focus
+  // Run ONLY on screen focus - this is where we actually fetch
   useFocusEffect(
     useCallback(() => {
-      checkLoginAndFetch();
-    }, [])
+      fetchOnlyWhenEntering();
+
+      // Clear the notification indicator when user opens the screen
+      if (hasNewNotifications) {
+        markNotificationsAsSeen();
+      }
+    }, [hasNewNotifications, markNotificationsAsSeen])
   );
 
-  // Run on initial mount
-  useEffect(() => {
-    checkLoginAndFetch();
-  }, []);
+  // DON'T fetch on mount - let useFocusEffect handle it
 
   return (
     <ScreenWrapper>
       <Header title="Notifications" />
 
       <View className="mt-[22px]">
-        {notifications.length > 0 && (
+        {notifications.length > 0 && unread.length > 0 && (
           <Pressable
             onPress={handleMarkAllAsRead}
             className="items-center mx-[20px] flex-row justify-end"
-            disabled={unread.length === 0}
           >
             <MarkIcon />
             <Text
               style={{ fontFamily: "InterRegular" }}
               className="text-[14px] leading-[20px] text-[#05A85A] ml-[4px]"
             >
-              Mark all as read
+              Mark all as read ({unread.length})
             </Text>
           </Pressable>
         )}
@@ -140,6 +181,7 @@ export default function NotificationScreen() {
                   message={item.message}
                   date={new Date(item.created_at).toDateString()}
                   isRead={item.is_read}
+                  onPress={() => handleNotificationClick(item)}
                 />
               )}
               showsVerticalScrollIndicator={false}

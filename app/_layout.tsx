@@ -30,32 +30,30 @@ import { useNotificationStore } from "@/store/useNotificationStore";
 import showToast from "@/utils/showToast";
 import type { Notification } from "@/types/NotificationType";
 
-
-
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 const STRIPE_PUBLISHABLE_KEY =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
 
-
 // Global MQTT Handler Component
 function GlobalMQTTHandler() {
   const { user, fetchUser } = useUserStore();
-  const { setHasNewNotifications } = useNotificationStore();
+  const { handleRealtimeNotification } = useNotificationStore();
 
   // Handle new MQTT messages globally
   const handleNewNotification = useCallback(
     (newNotification: Notification) => {
       console.log("🔔 Global notification received:", newNotification);
 
-      // Show the dot indicator
-      setHasNewNotifications(true);
+      // Update the store (this will update all screens using the store)
+      handleRealtimeNotification(newNotification);
 
-      // Show toast notification
-      showToast("success", `📢 ${newNotification.title}`);
+      // Show toast notification with title and message
+      showToast("success", newNotification.title, newNotification.message);
+
     },
-    [setHasNewNotifications]
+    [handleRealtimeNotification]
   );
 
   // Connect to MQTT when user is available
@@ -70,7 +68,6 @@ function GlobalMQTTHandler() {
       MQTTClient.connect(String(user.id), handleNewNotification);
     }
 
-    // Cleanup on unmount
     return () => {
       console.log("🧹 Cleaning up global MQTT connection");
       MQTTClient.disconnect();
@@ -97,7 +94,7 @@ export default function RootLayout() {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("accessToken");
       console.log("🔑 Token:", token); // Add this
-    console.log("📱 Fonts loaded:", fontsLoaded); 
+      console.log("📱 Fonts loaded:", fontsLoaded);
       setIsLoggedIn(!!token);
 
       if (fontsLoaded) {
@@ -106,8 +103,12 @@ export default function RootLayout() {
     };
     checkAuth();
   }, [fontsLoaded]);
-  console.log("🏠 Current state - isLoggedIn:", isLoggedIn, "fontsLoaded:", fontsLoaded);
-
+  console.log(
+    "🏠 Current state - isLoggedIn:",
+    isLoggedIn,
+    "fontsLoaded:",
+    fontsLoaded
+  );
 
   if (!fontsLoaded || isLoggedIn === null) return null;
 

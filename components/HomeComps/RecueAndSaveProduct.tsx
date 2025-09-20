@@ -75,8 +75,14 @@ export default function RescueAndSaveProduct() {
           Failed to load rescue and save products
         </Text>
       ) : products.length === 0 ? (
-        <Text style={{ marginTop: 16, color: "#666", textAlign: "center" }}>
-          No rescue and save products available at the moment.
+        <Text
+          style={{
+            textAlign: "center",
+            maxWidth: "60%",
+          }}
+          className="font-orelega py-10 text-black text-[16px] mx-auto "
+        >
+          No rescue and save products available at the moment. 
         </Text>
       ) : (
         <ScrollView

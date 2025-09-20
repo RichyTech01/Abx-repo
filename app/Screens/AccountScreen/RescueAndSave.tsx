@@ -1,9 +1,9 @@
 import {
   View,
-  Text,
   Dimensions,
   FlatList,
   ActivityIndicator,
+  ScrollView
 } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
@@ -76,12 +76,12 @@ export default function RescueAndSave() {
               <ActivityIndicator size="large" color="#000" />
             </View>
           ) : products?.length === 0 ? (
-            <View className="py-[10%] items-center justify-center">
+            <ScrollView contentContainerClassName="py-[10%] h-full  ">
               <NoData
                 title="No Discounted Product"
                 subtitle="Looks like you dont have any discounted Product yet, no worries, we've got plenty discounted product waiting for you"
               />
-            </View>
+            </ScrollView>
           ) : (
             <FlatList
               data={products}

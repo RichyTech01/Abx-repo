@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   Pressable,
   ScrollView,
   KeyboardAvoidingView,
@@ -16,6 +15,7 @@ import AuthApi from "@/api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import showToast from "@/utils/showToast";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import mqttClient from "@/utils/mqttClient";
 
 interface SignInResponse {
   access: string;
@@ -48,8 +48,9 @@ export default function Login() {
       await AsyncStorage.setItem("accessToken", res.access);
       await AsyncStorage.setItem("refreshToken", res.refresh);
       await AsyncStorage.setItem("isLoggedIn", "true");
+      mqttClient.reconnect();
 
-      console.log("Login successful:", res);
+      // console.log("Login successful:", res);
       showToast("success", "Login successful! Welcome back.");
       router.dismissAll();
 

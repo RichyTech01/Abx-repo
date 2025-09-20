@@ -11,16 +11,19 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import BacIcon from "../../assets/svgs/BackArrow.svg";
 import showToast from "@/utils/showToast";
-
 import OrderApi from "@/api/OrderApi";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
+
 
 type OrderDetailsProps = {
   orderId: string;
   onBack: () => void;
 };
 
+
 export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
   const [order, setOrder] = useState<any | null>(null);
+  console.log(orderId)
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -50,7 +53,7 @@ export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
   if (!order) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text>Loading order details...</Text>
+         <LoadingSpinner />
       </View>
     );
   }

@@ -1,9 +1,4 @@
-import {
-  View,
-  Text,
-  Pressable,
-  SectionList,
-} from "react-native";
+import { View, Text, Pressable, SectionList } from "react-native";
 import OrderCard from "@/common/OrderCard";
 import { useEffect, useState, useCallback } from "react";
 import OreAppText from "@/common/OreApptext";
@@ -12,7 +7,6 @@ import OrderApi from "@/api/OrderApi";
 import dayjs from "dayjs";
 import { groupOrdersByDate, Section } from "@/utils/groupOrdersByDate";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
-
 
 export default function AllOrders() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -63,7 +57,11 @@ export default function AllOrders() {
             const expanded = expandedSections.includes(section.title);
             const index = section.data.indexOf(item);
 
-            if (!expanded && index > 0) return null;
+            // Show first 10 items by default, or all if expanded
+            const itemsToShow = expanded ? section.data.length : Math.min(5, section.data.length);
+            
+            // Don't render if this item is beyond our display limit
+            if (index >= itemsToShow) return null;
 
             return (
               <View className="mt-[8px]">
@@ -80,6 +78,9 @@ export default function AllOrders() {
           renderSectionHeader={({ section }) => {
             if (section.data.length === 0) return null;
 
+            const expanded = expandedSections.includes(section.title);
+            const hasMoreThanTen = section.data.length > 5;
+
             return (
               <View
                 className="flex-row items-center justify-between"
@@ -88,14 +89,14 @@ export default function AllOrders() {
                 }}
               >
                 <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
-                  {section.title}
+                  {section.title} 
                 </OreAppText>
-                {section.data.length > 10 && (
+                {hasMoreThanTen && (
                   <Pressable onPress={() => toggleExpand(section.title)}>
                     <Text className="text-[14px] font-urbanist-medium leading-[20px]">
-                      {expandedSections.includes(section.title)
-                        ? "See less"
-                        : "View all orders"}
+                      {expanded
+                        ? "Show less"
+                        : `View all orders`}
                     </Text>
                   </Pressable>
                 )}

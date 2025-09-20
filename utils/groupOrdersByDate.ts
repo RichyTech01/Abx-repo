@@ -1,12 +1,14 @@
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
+import weekOfYear from "dayjs/plugin/weekOfYear";
 
 dayjs.extend(isBetween);
+dayjs.extend(weekOfYear);
 
 export type Order = {
   id: string;
   created_at: string;
-  [key: string]: string;
+  [key: string]: any;
 };
 
 export type Section = {
@@ -18,34 +20,84 @@ export function groupOrdersByDate(orders: Order[]): Section[] {
   const today = dayjs();
   const startOfWeek = today.startOf("week");
   const endOfWeek = today.endOf("week");
+  const startOfMonth = today.startOf("month");
+  const startOfYear = today.startOf("year");
 
+  // Initialize groups in order of recency
   const grouped: Record<string, Order[]> = {
-    Today: [],
+    "Today": [],
     "This week": [],
     "Last week": [],
+    "Few weeks ago": [],
+    "This month": [],
+    "Last month": [],
+    "Few months ago": [],
+    "This year": [],
+    "Last year": [],
+    "Years ago": []
   };
 
   orders.forEach((order) => {
     const orderDate = dayjs(order.created_at);
+    const daysDiff = today.diff(orderDate, "days");
+    const weeksDiff = today.diff(orderDate, "weeks");
+    const monthsDiff = today.diff(orderDate, "months");
+    const yearsDiff = today.diff(orderDate, "years");
 
+    // Today
     if (orderDate.isSame(today, "day")) {
-      grouped.Today.push(order);
-    } else if (orderDate.isBetween(startOfWeek, endOfWeek, "day", "[]")) {
+      grouped["Today"].push(order);
+    }
+    // This week (excluding today)
+    else if (orderDate.isBetween(startOfWeek, endOfWeek, "day", "[]")) {
       grouped["This week"].push(order);
-    } else if (
-      orderDate.isBetween(
-        startOfWeek.subtract(7, "day"),
-        endOfWeek.subtract(7, "day"),
-        "day",
-        "[]"
-      )
-    ) {
+    }
+    // Last week
+    else if (orderDate.isBetween(
+      startOfWeek.subtract(1, "week"),
+      endOfWeek.subtract(1, "week"),
+      "day",
+      "[]"
+    )) {
       grouped["Last week"].push(order);
+    }
+    // Few weeks ago (2-4 weeks ago)
+    else if (weeksDiff >= 2 && weeksDiff <= 4) {
+      grouped["Few weeks ago"].push(order);
+    }
+    // This month (but older than 4 weeks)
+    else if (orderDate.isBetween(startOfMonth, today, "day", "[)") && weeksDiff > 4) {
+      grouped["This month"].push(order);
+    }
+    // Last month
+    else if (monthsDiff === 1) {
+      grouped["Last month"].push(order);
+    }
+    // Few months ago (2-6 months ago)
+    else if (monthsDiff >= 2 && monthsDiff <= 6) {
+      grouped["Few months ago"].push(order);
+    }
+    // This year (but older than 6 months)
+    else if (orderDate.isBetween(startOfYear, today, "day", "[)") && monthsDiff > 6) {
+      grouped["This year"].push(order);
+    }
+    // Last year
+    else if (yearsDiff === 1) {
+      grouped["Last year"].push(order);
+    }
+    // Years ago (2+ years)
+    else if (yearsDiff >= 2) {
+      grouped["Years ago"].push(order);
     }
   });
 
-  return (Object.keys(grouped) as (keyof typeof grouped)[]).map((title) => ({
-    title,
-    data: grouped[title],
-  }));
+  // Filter out empty sections and maintain order
+  return Object.keys(grouped)
+    .filter((title) => grouped[title].length > 0)
+    .map((title) => ({
+      title,
+      data: grouped[title].sort((a, b) => 
+        dayjs(b.created_at).valueOf() - dayjs(a.created_at).valueOf()
+      ),
+    }));
 }

@@ -61,7 +61,6 @@ function BannerSlider() {
       });
       setCurrentIndex(nextIndex);
 
-      // Reset index when close to the end to simulate infinite loop
       if (nextIndex >= loopedBanners.length - 1) {
         setTimeout(() => {
           flatListRef.current?.scrollToOffset({
@@ -108,24 +107,12 @@ export default function Home() {
   const { user, loading, fetchUser } = useUserStore();
   const {
     hasNewNotifications,
-    setHasNewNotifications,
+    checkNotificationStatus, // Use lightweight check instead of full fetch
     markNotificationsAsSeen,
   } = useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
-  // Check if there are unread notifications
-  const fetchNotificationStatus = async () => {
-    try {
-      const data = await NotificationApi.getNotifications(1);
-      const notifications = data.results || [];
-      const hasUnread = notifications.some((n: any) => !n.is_read);
-      setHasNewNotifications(hasUnread);
-    } catch (err) {
-      console.error("Error fetching notification status:", err);
-    }
-  };
-
-  // Fetch cart items count
+  // Fetch cart items count (keep this as is)
   const fetchCartCount = async () => {
     try {
       const res = await OrderApi.getCart();
@@ -147,9 +134,9 @@ export default function Home() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchNotificationStatus();
+      checkNotificationStatus();
       fetchCartCount();
-    }, [])
+    }, [checkNotificationStatus])
   );
 
   return (
@@ -163,14 +150,14 @@ export default function Home() {
           </Text>
         )}
 
-        <View className="flex-row items-center gap-[20px]">
+        <View className="flex-row items-center gap-[20px]  ">
           <Pressable onPress={handleNotificationPress}>
             <NotificationDot show={hasNewNotifications}>
               <NotificationIcon />
             </NotificationDot>
           </Pressable>
           <Pressable
-            className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center"
+            className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center "
             onPress={() => router.push("/Carts")}
           >
             <NotificationBadge count={cartItems.length}>

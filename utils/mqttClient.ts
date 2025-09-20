@@ -1,15 +1,14 @@
 import mqtt, { MqttClient, IClientOptions } from "mqtt";
 import { Notification, MessageCallback } from "@/types/NotificationType";
 
-  const MQTT_USERNAME = process.env.EXPO_PUBLIC_MQTT_USERNAME;
-  const MQTT_PASSWORD = process.env.EXPO_PUBLIC_MQTT_PASSWORD;
-  const MQTT_BROKER = process.env.EXPO_PUBLIC_MQTT_BROKER;
+const MQTT_USERNAME = process.env.EXPO_PUBLIC_MQTT_USERNAME;
+const MQTT_PASSWORD = process.env.EXPO_PUBLIC_MQTT_PASSWORD;
+const MQTT_BROKER = process.env.EXPO_PUBLIC_MQTT_BROKER;
 
-  
 class MQTTClient {
   private client: MqttClient | null = null;
   private isConnected: boolean = false;
-  private messageCallback: MessageCallback | null = null;
+  public messageCallback: MessageCallback | null = null; // Made public
   private currentUserId: string | null = null;
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
@@ -28,9 +27,9 @@ class MQTTClient {
       return;
     }
 
-    // If already connected to the same user, don't reconnect
+    // If already connected to the same user, just update callback
     if (this.isConnected && this.currentUserId === userId) {
-      console.log(" Already connected to MQTT for user:", userId);
+      console.log("🔄 Already connected to MQTT for user:", userId);
       this.messageCallback = onMessageCallback; // Update callback
       return;
     }
@@ -43,7 +42,7 @@ class MQTTClient {
     this.currentUserId = userId;
     const brokerUrl = MQTT_BROKER;
     const options: IClientOptions = {
-      username:MQTT_USERNAME, 
+      username: MQTT_USERNAME, 
       password: MQTT_PASSWORD,  
       clean: true,
       connectTimeout: 30000,
@@ -137,6 +136,16 @@ class MQTTClient {
 
   public getCurrentUserId(): string | null {
     return this.currentUserId;
+  }
+
+  // Public getter for messageCallback
+  public getMessageCallback(): MessageCallback | null {
+    return this.messageCallback;
+  }
+
+  // Method to update callback without reconnecting
+  public updateCallback(callback: MessageCallback): void {
+    this.messageCallback = callback;
   }
 
   // Method to manually reconnect

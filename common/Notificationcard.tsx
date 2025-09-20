@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import React from "react";
 import OreAppText from "./OreApptext";
 import UrbanistText from "./UrbanistText";
@@ -8,6 +8,7 @@ type NotificationCardProps = {
   message: string;
   date: string;
   isRead: boolean;
+  onPress: () => void
 };
 
 export default function Notificationcard({
@@ -15,9 +16,11 @@ export default function Notificationcard({
   message,
   date,
   isRead,
+  onPress
 }: NotificationCardProps) {
   return (
-    <View
+    <Pressable
+     onPress={onPress}
       className={`border border-[#E4E7EC] py-[12px] px-[16px] bg-white rounded-[4px] mt-[7px] ${
         isRead ? "opacity-50" : "opacity-100"
       }`}
@@ -33,6 +36,6 @@ export default function Notificationcard({
           {date}
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
