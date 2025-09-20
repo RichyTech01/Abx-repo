@@ -1,4 +1,4 @@
-import { FlatList, View, ActivityIndicator } from "react-native";
+import { FlatList, View, ActivityIndicator, Text } from "react-native";
 import { useEffect, useState } from "react";
 import OreAppText from "@/common/OreApptext";
 import CategoryProduct from "@/common/CategoryProduct";
@@ -104,17 +104,26 @@ export default function AboutStore({
                     item.variations?.[0]?.stock === 0 ||
                     !item.variations?.length
                   }
-                  isOpen={item.store ? isStoreOpen(item.store.open_time, item.store.close_time) : false }
+                  isOpen={
+                    item.store
+                      ? isStoreOpen(item.store.open_time, item.store.close_time)
+                      : false
+                  }
                 />
               </View>
             )}
             scrollEnabled={false}
+            ListEmptyComponent={
+              <View className="py-10 mx-auto  ">
+                <Text className="text-red-500">No Items available</Text>
+              </View>
+            }
           />
         </View>
       )}
       <AddtoCartModal
         value={modalVisible}
-        setValue={setModalVisible}  
+        setValue={setModalVisible}
         loading={productLoading}
         data={productDetails?.variations ?? []}
         isOpen={

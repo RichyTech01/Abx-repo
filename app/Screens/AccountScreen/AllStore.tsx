@@ -10,6 +10,7 @@ import ScreenWrapper from "@/common/ScreenWrapper";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
 import StoreApi from "@/api/StoreApi";
+import NoData from "@/common/NoData";
 
 export default function AllStore() {
   const queryClient = useQueryClient();
@@ -54,16 +55,9 @@ export default function AllStore() {
           style={{ marginTop: 16 }}
         />
       ) : shops.length === 0 ? (
-        <Text
-          style={{
-            textAlign: "center",
-            marginTop: 16,
-            color: "#666",
-            fontSize: 14,
-          }}
-        >
-          No stores available at the moment.
-        </Text>
+        <View className="py-10  ">
+           <NoData title="No data " subtitle="No shop available at the moment."/>
+        </View>
       ) : (
         <ScrollView
           contentContainerStyle={{

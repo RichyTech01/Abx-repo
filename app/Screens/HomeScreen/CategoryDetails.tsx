@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import StoreApi from "@/api/StoreApi";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
+import OreAppText from "@/common/OreApptext";
 
 export default function CategoryDetails() {
   const router = useRouter();
@@ -77,10 +78,6 @@ export default function CategoryDetails() {
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#000" />
         </View>
-      ) : products.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <Text>No products found.</Text>
-        </View>
       ) : (
         <FlatList
           data={products}
@@ -120,6 +117,11 @@ export default function CategoryDetails() {
               />
             </View>
           )}
+           ListEmptyComponent={
+              <View className="py-10 mx-auto text-[16px] ">
+                <OreAppText className="">No Products available</OreAppText>
+              </View>
+            }
         />
       )}
 

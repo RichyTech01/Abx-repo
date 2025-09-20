@@ -15,6 +15,7 @@ import AuthApi from "@/api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import showToast from "@/utils/showToast";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import { useUserStore } from "@/store/useUserStore";
 import mqttClient from "@/utils/mqttClient";
 
 interface SignInResponse {
@@ -29,6 +30,8 @@ interface SignInResponse {
 }
 
 export default function Login() {
+    const { user, fetchUser } = useUserStore();
+
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,6 +51,7 @@ export default function Login() {
       await AsyncStorage.setItem("accessToken", res.access);
       await AsyncStorage.setItem("refreshToken", res.refresh);
       await AsyncStorage.setItem("isLoggedIn", "true");
+      fetchUser()
       mqttClient.reconnect();
 
       // console.log("Login successful:", res);

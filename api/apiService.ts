@@ -58,6 +58,7 @@ class ApiService {
             console.log(
               "🔇 401 received but user already logged out - ignoring"
             );
+            MQTTClient.reconnect()
           }
         }
 

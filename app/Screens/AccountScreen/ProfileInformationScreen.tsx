@@ -1,6 +1,6 @@
 import { View, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/common/Header";
 import CustomTextInput from "@/common/CustomTextInput";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -11,11 +11,19 @@ import EditProfileInformationModal from "@/Modals/EditProfileInformationModal";
 
 export default function ProfileInformationScreen() {
   const router = useRouter();
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(false);
   const { user, fetchUser } = useUserStore();
+
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    if (user) {
+      fetchUser();
+    }
+  };
 
   const UserType = user?.is_vendor === true ? "Vendor" : "Customer";
 
@@ -56,7 +64,7 @@ export default function ProfileInformationScreen() {
           <View className="mt-[40px]">
             <Button
               title="Edit details"
-              onPress={() => setShowModal((prev) => !prev)}
+              onPress={() => setShowModal(true)}
               paddingVertical={10}
               borderWidth={0}
             />
@@ -83,7 +91,10 @@ export default function ProfileInformationScreen() {
         </View>
       </ScrollView>
 
-      <EditProfileInformationModal visible={showModal} onClose={() => setShowModal(prev => !prev)} />
+      <EditProfileInformationModal
+        visible={showModal}
+        onClose={handleModalClose}
+      />
     </ScreenWrapper>
   );
 }

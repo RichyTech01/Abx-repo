@@ -27,7 +27,6 @@ import RecueAndSaveProduct from "@/components/HomeComps/RecueAndSaveProduct";
 import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useCartStore } from "@/store/useCartStore";
-import NotificationApi from "@/api/NotificationApi";
 import OrderApi from "@/api/OrderApi";
 import NotificationBadge from "@/common/NotificationBadge";
 import NotificationDot from "@/common/NotificationDot";
@@ -45,7 +44,6 @@ function BannerSlider() {
   const [currentIndex, setCurrentIndex] = useState(banners.length);
 
   useEffect(() => {
-    // Start at the middle of the dataset (so you can scroll both ways)
     flatListRef.current?.scrollToOffset({
       offset: currentIndex * width,
       animated: false,

@@ -60,6 +60,16 @@ class AuthApi {
     return res.data;
   }
 
+  // update Profile
+   public async setNewProfile(data: {
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+  }) {
+    const res = await this.client.patch("/auth/me/update", data);
+    return res.data;
+  }
+
   // Reset password after OTP
   public async setNewPassword(data: {
     email: string;

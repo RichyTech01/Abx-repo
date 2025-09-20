@@ -162,15 +162,6 @@ export default function NotificationScreen() {
         <View className="mx-[20px] mt-[16px] h-screen">
           {loading ? (
             <LoadingSpinner />
-          ) : notifications.length === 0 ? (
-            <NoData
-              title="No notifications"
-              subtitle="We will keep you updated when you have a notification. "
-              buttonTitle="Explore ABX stores"
-              onButtonPress={() =>
-                router.push("/Screens/AccountScreen/AllStore")
-              }
-            />
           ) : (
             <FlatList
               data={notifications}
@@ -185,6 +176,18 @@ export default function NotificationScreen() {
                 />
               )}
               showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <View className="py-10 mx-auto text-[16px] ">
+                  <NoData
+                    title="No notifications"
+                    subtitle="We will keep you updated when you have a notification. "
+                    buttonTitle="Explore ABX stores"
+                    onButtonPress={() =>
+                      router.push("/Screens/AccountScreen/AllStore")
+                    }
+                  />
+                </View>
+              }
             />
           )}
         </View>

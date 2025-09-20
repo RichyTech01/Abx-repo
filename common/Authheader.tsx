@@ -2,6 +2,7 @@ import { View, Text, Pressable, Image, Platform } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
 import GoogleIcon from "@/assets/svgs/GoogleIcon";
+import GoogleAuth from "./GoogleAuth";
 
 type Props = {
   name?: "Create account" | "Login";
@@ -49,12 +50,7 @@ export default function Authheader({
         </View>
       </View>
 
-      <Pressable className="border border-[#F1EAE7] rounded-[8px] h-[42px] mx-auto flex-row items-center justify-between px-[10px] mt-[32px]">
-        <GoogleIcon />
-        <Text className="text-[#344054] text-[16px] leading-[22px] font-urbanist ml-[8px]">
-         {googleSignName} with Google
-        </Text>
-      </Pressable>
+     <GoogleAuth />
     </View>
   );
 }

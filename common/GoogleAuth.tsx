@@ -5,8 +5,8 @@ import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AuthApi from "@/api/AuthApi";
-import GoogleIcon from "@/assets/svgs/GoogleIcon";
 import showToast from "@/utils/showToast";
+import GoogleIcon from "@/assets/svgs/GoogleIcon";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -18,11 +18,8 @@ const GoogleAuth: React.FC<Props> = ({ buttonText = "Continue with Google" }) =>
   const router = useRouter();
 
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com", // Replace with your actual client ID
-    // For Android, you might also need:
-    // androidClientId: "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
-    // For iOS, you might also need:
-    // iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
+    androidClientId: "60421370220-s5fve6tf67oaihoeobpao03pms6kvbrj.apps.googleusercontent.com",
+    iosClientId: "60421370220-lm1k6gpsa97edc9adfv32r810jh51p6q.apps.googleusercontent.com",
   });
 
   useEffect(() => {
@@ -37,7 +34,7 @@ const GoogleAuth: React.FC<Props> = ({ buttonText = "Continue with Google" }) =>
 
   const handleGoogleSignIn = async (token: string) => {
     try {
-      // Call backend endpoint
+      // Call your existing backend endpoint
       const res = await AuthApi.googleSignIn({ token });
       const { access, refresh } = res;
 
@@ -59,7 +56,7 @@ const GoogleAuth: React.FC<Props> = ({ buttonText = "Continue with Google" }) =>
       onPress={() => {
         promptAsync();
       }}
-      disabled={!request} 
+      disabled={!request}
     >
       <GoogleIcon />
       <Text className="text-[#344054] text-[16px] leading-[22px] font-urbanist ml-[8px]">
