@@ -2,13 +2,14 @@ import { View, Text, Pressable, SectionList } from "react-native";
 import OrderCard from "@/common/OrderCard";
 import { useEffect, useState, useCallback } from "react";
 import OreAppText from "@/common/OreApptext";
-import OrderDetails from "./OrderDetails";
 import OrderApi from "@/api/OrderApi";
 import dayjs from "dayjs";
 import { groupOrdersByDate, Section } from "@/utils/groupOrdersByDate";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
+import { useRouter } from "expo-router";
 
 export default function AllOrders() {
+  const router = useRouter();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
@@ -39,12 +40,7 @@ export default function AllOrders() {
 
   return (
     <View className="mt-[8%]">
-      {selectedOrderId ? (
-        <OrderDetails
-          orderId={selectedOrderId}
-          onBack={() => setSelectedOrderId(null)}
-        />
-      ) : loading ? (
+      {loading ? (
         <View className="py-10 ">
           <LoadingSpinner />
         </View>
@@ -58,19 +54,26 @@ export default function AllOrders() {
             const index = section.data.indexOf(item);
 
             // Show first 10 items by default, or all if expanded
-            const itemsToShow = expanded ? section.data.length : Math.min(5, section.data.length);
-            
+            const itemsToShow = expanded
+              ? section.data.length
+              : Math.min(5, section.data.length);
+
             // Don't render if this item is beyond our display limit
             if (index >= itemsToShow) return null;
-            console.log(item)
+            console.log(item);
             return (
               <View className="mt-[8px]">
                 <OrderCard
                   orderNumber={item.order_code}
                   datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
                   totalAmount={`£${item.store_total_price}`}
-                  status={item.is_order_fulfilled ? "delivered" : "processing"}
-                  onPressDetail={() => setSelectedOrderId(item.id)}
+                  status={item.is_order_fulfilled ? "delivered" : "Your item is being processed"}
+                  onPressDetail={() =>
+                    router.push({
+                      pathname: "/Screens/OrderScreen/OrderDetailsScrenn",
+                      params: { id: item.id },
+                    })
+                  }
                 />
               </View>
             );
@@ -89,14 +92,12 @@ export default function AllOrders() {
                 }}
               >
                 <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
-                  {section.title} 
+                  {section.title}
                 </OreAppText>
                 {hasMoreThanTen && (
                   <Pressable onPress={() => toggleExpand(section.title)}>
                     <Text className="text-[14px] font-urbanist-medium leading-[20px]">
-                      {expanded
-                        ? "Show less"
-                        : `View all orders`}
+                      {expanded ? "Show less" : `View all orders`}
                     </Text>
                   </Pressable>
                 )}

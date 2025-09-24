@@ -4,7 +4,7 @@ import OrderCard from "@/common/OrderCard";
 import OrderApi from "@/api/OrderApi";
 import dayjs from "dayjs";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
-import OrderDetails from "./OrderDetails";
+import { useRouter } from "expo-router";
 
 type OrderStatus = "processing" | "delivered";
 
@@ -12,35 +12,21 @@ type Order = {
   id: string;
   order_code: string;
   created_at: string;
-  store_total_price: string; 
+  store_total_price: string;
   is_order_fulfilled: boolean;
   status: OrderStatus;
 };
 
 export default function OngoingOrders() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const fetchOngoingOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await OrderApi.getCustomerOrders();
-      const allOrders: Order[] = res.results || [];
-
-      //  Convert API into "processing" or "delivered"
-      const ongoing: Order[] = allOrders
-        .map((order) => ({
-          ...order,
-          status: order.is_order_fulfilled
-            ? ("delivered" as OrderStatus)
-            : ("processing" as OrderStatus),
-        }))
-        .filter((order) => order.status === "processing"); 
-      console.log("Orders received:", allOrders);
-      console.log("Ongoing after filter:", ongoing);
-
-      setOrders(ongoing);
+      const res = await OrderApi.getCustomerOrders({ is_completed: false });
+      setOrders(res.results || []);
     } catch (err) {
       console.error("Failed to fetch ongoing orders:", err);
     } finally {
@@ -68,29 +54,31 @@ export default function OngoingOrders() {
 
   return (
     <View className="mt-[8%]">
-      {selectedOrderId ? (
-        <OrderDetails
-          orderId={selectedOrderId}
-          onBack={() => setSelectedOrderId(null)}
-        />
-      ) : (
-        <FlatList
-          data={orders}
-          keyExtractor={(item) => String(item.id)} 
-          renderItem={({ item }) => (
-            <OrderCard
-              orderNumber={item.order_code}
-              datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
-              totalAmount={`£${item.store_total_price}`}
-              status={item.is_order_fulfilled ? "delivered" : "processing"}
-              onPressDetail={() => setSelectedOrderId(item.id)}
-            />
-          )}
-          contentContainerStyle={{ gap: 8, paddingBottom: 310 }}
-          showsVerticalScrollIndicator={false}
-          overScrollMode="never"
-        />
-      )}
+      <FlatList
+        data={orders}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => (
+          <OrderCard
+            orderNumber={item.order_code}
+            datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
+            totalAmount={`£${item.store_total_price}`}
+            status={
+              item.is_order_fulfilled
+                ? "delivered"
+                : "Your item is being processed"
+            }
+            onPressDetail={() =>
+              router.push({
+                pathname: "/Screens/OrderScreen/OrderDetailsScrenn",
+                params: { id: item.id },
+              })
+            }
+          />
+        )}
+        contentContainerStyle={{ gap: 8, paddingBottom: 310 }}
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
+      />
     </View>
   );
 }

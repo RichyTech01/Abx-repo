@@ -4,7 +4,6 @@ import OrderCard from "@/common/OrderCard";
 import OreAppText from "@/common/OreApptext";
 import OrderApi from "@/api/OrderApi";
 import { groupOrdersByDate, Order, Section } from "@/utils/groupOrdersByDate";
-import OrderDetails from "./OrderDetails";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import NoData from "@/common/NoData";
 import { useRouter } from "expo-router";
@@ -14,7 +13,6 @@ export default function CompletedOrders() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
   useEffect(() => {
@@ -23,12 +21,7 @@ export default function CompletedOrders() {
         setLoading(true);
         const res = await OrderApi.getCustomerOrders({ is_completed: true });
 
-        const mapped: Order[] = res.results.map((o: any) => ({
-          ...o,
-          status: "delivered",
-        }));
-
-        setOrders(mapped);
+        setOrders(res.results);
       } catch (err) {
         console.error("Error fetching completed orders", err);
       } finally {
@@ -73,74 +66,70 @@ export default function CompletedOrders() {
 
   return (
     <View className="mt-[8%]">
-      {selectedOrderId ? (
-        <OrderDetails
-          orderId={selectedOrderId}
-          onBack={() => setSelectedOrderId(null)}
-        />
-      ) : (
-        <SectionList
-          sections={sections}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item, section }) => {
-            const expanded = expandedSections.includes(section.title);
-            const index = section.data.indexOf(item);
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item, section }) => {
+          const expanded = expandedSections.includes(section.title);
+          const index = section.data.indexOf(item);
 
-            // Show first 5 items by default, or all if expanded
-            const itemsToShow = expanded
-              ? section.data.length
-              : Math.min(5, section.data.length);
+          // Show first 5 items by default, or all if expanded
+          const itemsToShow = expanded
+            ? section.data.length
+            : Math.min(5, section.data.length);
 
-            // Don't render if this item is beyond our display limit
-            if (index >= itemsToShow) return null;
+          // Don't render if this item is beyond our display limit
+          if (index >= itemsToShow) return null;
 
-            return (
-              <View className="mt-[8px]">
-                <OrderCard
-                  orderNumber={item.order_code}
-                  datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
-                  totalAmount={`£${item.store_total_price}`}
-                  status="delivered"
-                  onPressDetail={() => setSelectedOrderId(item.id)}
-                />
-              </View>
-            );
-          }}
-          renderSectionHeader={({ section }) => {
-            if (section.data.length === 0) return null;
+          return (
+            <View className="mt-[8px]">
+              <OrderCard
+                orderNumber={item.order_code}
+                datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
+                totalAmount={`£${item.store_total_price}`}
+                status="delivered"
+                onPressDetail={() =>
+                  router.push({
+                    pathname: "/Screens/OrderScreen/OrderDetailsScrenn",
+                    params: { id: item.id },
+                  })
+                }
+              />
+            </View>
+          );
+        }}
+        renderSectionHeader={({ section }) => {
+          if (section.data.length === 0) return null;
 
-            const expanded = expandedSections.includes(section.title);
-            const hasMoreThanFive = section.data.length > 5;
+          const expanded = expandedSections.includes(section.title);
+          const hasMoreThanFive = section.data.length > 5;
 
-            return (
-              <View
-                className="flex-row items-center justify-between"
-                style={{
-                  marginTop: section.title !== sections[0]?.title ? 32 : 0,
-                }}
-              >
-                <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
-                  {section.title}
-                </OreAppText>
-                {hasMoreThanFive && (
-                  <Pressable onPress={() => toggleExpand(section.title)}>
-                    <Text className="text-[14px] font-urbanist-medium leading-[20px]">
-                      {expanded ? "Show less" : `View all orders`}
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-            );
-          }}
-          contentContainerStyle={{ paddingBottom: 320 }}
-          ListEmptyComponent={
-            <Text className="text-center mt-10 text-gray-500">
-              No orders yet
-            </Text>
-          }
-        />
-      )}
+          return (
+            <View
+              className="flex-row items-center justify-between"
+              style={{
+                marginTop: section.title !== sections[0]?.title ? 32 : 0,
+              }}
+            >
+              <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
+                {section.title}
+              </OreAppText>
+              {hasMoreThanFive && (
+                <Pressable onPress={() => toggleExpand(section.title)}>
+                  <Text className="text-[14px] font-urbanist-medium leading-[20px]">
+                    {expanded ? "Show less" : `View all orders`}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          );
+        }}
+        contentContainerStyle={{ paddingBottom: 320 }}
+        ListEmptyComponent={
+          <Text className="text-center mt-10 text-gray-500">No orders yet</Text>
+        }
+      />
     </View>
   );
 }
