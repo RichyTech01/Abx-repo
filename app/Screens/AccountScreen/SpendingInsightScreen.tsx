@@ -12,6 +12,7 @@ import { SpendingInsightResponse } from "@/types/SpendingBudgetApi";
 import SpendingBudgetApi from "@/api/SpendingBudgetApi";
 import { useBudgetStore } from "@/store/useBudgetStore";
 
+
 export default function SpendingInsightScreen() {
   const { budgetAmount } = useBudgetStore();
 
