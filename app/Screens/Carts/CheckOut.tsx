@@ -8,8 +8,8 @@ import {
 import { useState, useEffect } from "react";
 import {
   useStripe,
-  initPaymentSheet,
-  presentPaymentSheet,
+  // initPaymentSheet,
+  // presentPaymentSheet,
 } from "@stripe/stripe-react-native";
 import Header from "@/common/Header";
 import OreAppText from "@/common/OreApptext";
@@ -56,6 +56,7 @@ export default function CheckOut() {
       try {
         const data = await OrderApi.checkout();
         setCartDetails(data);
+        console.log("cartdeta", cartDetails)
       } catch (error) {
         console.error("Checkout error:", error);
       }
@@ -64,6 +65,8 @@ export default function CheckOut() {
     if (!user) fetchUser();
     fetchAddress();
   }, [user, fetchUser]);
+
+
 
   const initiatePaymentFlow = async () => {
     if (!address) {
@@ -76,12 +79,11 @@ export default function CheckOut() {
     if (!cartDetails?.grand_total) {
       showToast("error", "Cart total not found.");
       return;
-    }
+    }  
 
     try {
       setLoadingPayment(true);
 
-      // Get payment intent from your backend
       const res = await OrderApi.initiatePayment({
         total_price: cartDetails?.grand_total,
       });

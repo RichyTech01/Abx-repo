@@ -1,6 +1,5 @@
 import {
   View,
-  SafeAreaView,
   FlatList,
   Platform,
   ActivityIndicator,
@@ -9,10 +8,10 @@ import Header from "@/common/Header";
 import { useState, useEffect } from "react";
 import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
-import AdminApi from "@/api/AdminApi";
 import { Dimensions } from "react-native";
 import OreAppText from "@/common/OreApptext";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import StoreApi from "@/api/StoreApi";
 
 const CATEGORY_COLORS: Record<
   number,
@@ -40,7 +39,7 @@ export default function AllCategories() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const data = await AdminApi.getCategories(1);
+        const data = await StoreApi.getCategories();
         const withColors = (data.results || []).map((cat: any) => ({
           ...cat,
           ...CATEGORY_COLORS[cat.id],

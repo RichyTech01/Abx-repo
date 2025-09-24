@@ -30,12 +30,7 @@ class SpendingBudgetApi {
 
   public async updateSpendingBudget(
   id: string,
-  payload: {
-    amount: string;
-    start_date: string;
-    month: number;
-    year: number;
-  }
+  payload: SpendingBudgetRequest
 ): Promise<SpendingBudgetResponse> {
   const res = await this.client.patch(`/order/spending-budget/${id}`, payload);
   return res.data;

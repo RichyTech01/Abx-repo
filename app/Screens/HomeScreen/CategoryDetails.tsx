@@ -14,7 +14,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import StoreApi from "@/api/StoreApi";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
-import OreAppText from "@/common/OreApptext";
+import NoData from "@/common/NoData";
 
 export default function CategoryDetails() {
   const router = useRouter();
@@ -70,7 +70,7 @@ export default function CategoryDetails() {
       <View className={`${Platform.OS === "android" ? "mt-[40px]" : ""}`}>
         <HeaderWithSearchInput
           label={category || "Category"}
-          placeholder="Ask ABX AI or search for food items of your choice"
+          placeholder="Search for food items of your choice"
         />
       </View>
 
@@ -98,7 +98,7 @@ export default function CategoryDetails() {
                 image={{ uri: item.prod_image_url }}
                 name={item.item_name}
                 price={`€${item.min_price} - €${item.max_price}`}
-                rating={2}
+                rating={0}
                 onPress={() =>
                   router.push({
                     pathname: "/Screens/HomeScreen/ProductDetails",
@@ -119,7 +119,7 @@ export default function CategoryDetails() {
           )}
            ListEmptyComponent={
               <View className="py-10 mx-auto text-[16px] ">
-                <OreAppText className="">No Products available</OreAppText>
+                <NoData title="No product available" subtitle="No product available now, come back later"/>
               </View>
             }
         />

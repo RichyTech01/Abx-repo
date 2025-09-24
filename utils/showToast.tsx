@@ -10,7 +10,7 @@ const showToast = (
     text1: title,           // Use the provided title
     text2: message,         // Use the optional message
     position: "top",
-    visibilityTime: 3000,
+    visibilityTime: 5000,
   });
 };
 

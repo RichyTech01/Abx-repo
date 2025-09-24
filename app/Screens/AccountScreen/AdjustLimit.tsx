@@ -55,6 +55,7 @@ export default function AdjustLimit() {
           month: new Date().getMonth() + 1,
           year: new Date().getFullYear(),
         };
+        console.log("immediate ", budgetData);
       } else {
         // Use selected date or next month's first day as fallback
         const startDate =
@@ -63,9 +64,10 @@ export default function AdjustLimit() {
         budgetData = {
           amount: numericAmount,
           start_date: startDate.toISOString().split("T")[0],
-          month: startDate.getMonth() + 1,
+          month: startDate.getMonth(),
           year: startDate.getFullYear(),
         };
+        console.log("later ",budgetData)
       }
 
       let response;
@@ -82,7 +84,14 @@ export default function AdjustLimit() {
       setShowSuccessModal(true);
     } catch (error: any) {
       console.error("Failed to set/update budget:", error);
-      showToast("error", error);
+      let errorMessage = "Failed to set/update budget";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      showToast("error", errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -154,7 +163,6 @@ export default function AdjustLimit() {
         onClose={() => setShowSuccessModal(false)}
         onPress={() => {
           router.dismiss(2);
-          router.replace("/(tabs)");
           setShowSuccessModal(false);
         }}
       />

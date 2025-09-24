@@ -28,7 +28,7 @@ class ApiService {
         if (cartId) {
           config.headers["X-Cart-ID"] = cartId;
         }
-
+        // console.log(cartId)
         return config;
       },
       (error) => Promise.reject(error)
@@ -58,7 +58,7 @@ class ApiService {
             console.log(
               "🔇 401 received but user already logged out - ignoring"
             );
-            MQTTClient.reconnect()
+            MQTTClient.reconnect();
           }
         }
 

@@ -48,8 +48,8 @@ export function groupOrdersByDate(orders: Order[]): Section[] {
     if (orderDate.isSame(today, "day")) {
       grouped["Today"].push(order);
     }
-    // This week (excluding today)
-    else if (orderDate.isBetween(startOfWeek, endOfWeek, "day", "[]")) {
+    // This week (excluding today) - Fixed the logic here
+    else if (orderDate.isBetween(startOfWeek, today.startOf("day"), "day", "[)")) {
       grouped["This week"].push(order);
     }
     // Last week
@@ -61,12 +61,12 @@ export function groupOrdersByDate(orders: Order[]): Section[] {
     )) {
       grouped["Last week"].push(order);
     }
-    // Few weeks ago (2-4 weeks ago)
-    else if (weeksDiff >= 2 && weeksDiff <= 4) {
+    // Few weeks ago (2-4 weeks ago, but not in current month if it's been more than a month)
+    else if (weeksDiff >= 2 && weeksDiff <= 4 && monthsDiff < 2) {
       grouped["Few weeks ago"].push(order);
     }
-    // This month (but older than 4 weeks)
-    else if (orderDate.isBetween(startOfMonth, today, "day", "[)") && weeksDiff > 4) {
+    // This month (orders from current month that are older than 4 weeks)
+    else if (orderDate.isSame(today, "month") && weeksDiff > 4) {
       grouped["This month"].push(order);
     }
     // Last month
@@ -77,8 +77,8 @@ export function groupOrdersByDate(orders: Order[]): Section[] {
     else if (monthsDiff >= 2 && monthsDiff <= 6) {
       grouped["Few months ago"].push(order);
     }
-    // This year (but older than 6 months)
-    else if (orderDate.isBetween(startOfYear, today, "day", "[)") && monthsDiff > 6) {
+    // This year (orders from current year that are older than 6 months)
+    else if (orderDate.isSame(today, "year") && monthsDiff > 6) {
       grouped["This year"].push(order);
     }
     // Last year
@@ -96,7 +96,7 @@ export function groupOrdersByDate(orders: Order[]): Section[] {
     .filter((title) => grouped[title].length > 0)
     .map((title) => ({
       title,
-      data: grouped[title].sort((a, b) => 
+      data: grouped[title].sort((a, b) =>
         dayjs(b.created_at).valueOf() - dayjs(a.created_at).valueOf()
       ),
     }));

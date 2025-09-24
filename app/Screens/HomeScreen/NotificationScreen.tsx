@@ -1,6 +1,5 @@
 import { View, Text, Pressable, FlatList } from "react-native";
-import { useEffect, useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useEffect, useCallback, useState } from "react";
 import Header from "@/common/Header";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import MarkIcon from "@/assets/svgs/MarkIcon.svg";
@@ -13,11 +12,12 @@ import showToast from "@/utils/showToast";
 import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import type { Notification } from "@/types/NotificationType";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import MQTTClient from "@/utils/mqttClient";
+import OrderDetails from "@/components/OrderComps/OrderDetails";
 
 export default function NotificationScreen() {
   const { user, fetchUser } = useUserStore();
+  const [NotOrderDetails, setNotOrderDetails] = useState();
   const {
     notifications,
     loading,
@@ -37,8 +37,6 @@ export default function NotificationScreen() {
   // Set up real-time MQTT listener for this screen
   useEffect(() => {
     if (user?.id && MQTTClient.isClientConnected()) {
-      console.log("Setting up MQTT listener for notification screen");
-
       // Get the current callback and create a combined one
       const originalCallback = MQTTClient.getMessageCallback();
 
@@ -58,13 +56,16 @@ export default function NotificationScreen() {
     };
   }, [user?.id, handleRealtimeNotification]);
 
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
   const unread = notifications.filter((n) => !n.is_read);
 
   // Handle individual notification click
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.is_read) {
       try {
-        // Mark as read on server
         await NotificationApi.markAsReadPartial(notification.id, {
           title: notification.title,
           message: notification.message,
@@ -73,7 +74,7 @@ export default function NotificationScreen() {
         });
 
         // Update local state
-        markNotificationAsRead(notification.id);
+        markNotificationAsRead(Number(notification.id));
 
         console.log(`Marked notification ${notification.id} as read`);
       } catch (err) {
@@ -115,83 +116,71 @@ export default function NotificationScreen() {
     }
   };
 
-  // ONLY fetch when entering this screen
-  const fetchOnlyWhenEntering = async () => {
-    const token = await AsyncStorage.getItem("accessToken");
-
-    if (token) {
-      // Force fetch when entering notification screen
-      await fetchNotifications(true);
+  useCallback(() => {
+    if (hasNewNotifications) {
+      markNotificationsAsSeen();
     }
-  };
-
-  // Run ONLY on screen focus - this is where we actually fetch
-  useFocusEffect(
-    useCallback(() => {
-      fetchOnlyWhenEntering();
-
-      // Clear the notification indicator when user opens the screen
-      if (hasNewNotifications) {
-        markNotificationsAsSeen();
-      }
-    }, [hasNewNotifications, markNotificationsAsSeen])
-  );
-
-  // DON'T fetch on mount - let useFocusEffect handle it
+  }, [hasNewNotifications, markNotificationsAsSeen]);
 
   return (
     <ScreenWrapper>
       <Header title="Notifications" />
 
-      <View className="mt-[22px]">
-        {notifications.length > 0 && unread.length > 0 && (
-          <Pressable
-            onPress={handleMarkAllAsRead}
-            className="items-center mx-[20px] flex-row justify-end"
-          >
-            <MarkIcon />
-            <Text
-              style={{ fontFamily: "InterRegular" }}
-              className="text-[14px] leading-[20px] text-[#05A85A] ml-[4px]"
-            >
-              Mark all as read ({unread.length})
-            </Text>
-          </Pressable>
-        )}
-
-        <View className="mx-[20px] mt-[16px] h-screen">
-          {loading ? (
-            <LoadingSpinner />
-          ) : (
-            <FlatList
-              data={notifications}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <Notificationcard
-                  title={item.title}
-                  message={item.message}
-                  date={new Date(item.created_at).toDateString()}
-                  isRead={item.is_read}
-                  onPress={() => handleNotificationClick(item)}
-                />
-              )}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View className="py-10 mx-auto text-[16px] ">
-                  <NoData
-                    title="No notifications"
-                    subtitle="We will keep you updated when you have a notification. "
-                    buttonTitle="Explore ABX stores"
-                    onButtonPress={() =>
-                      router.push("/Screens/AccountScreen/AllStore")
-                    }
-                  />
-                </View>
-              }
-            />
-          )}
+      {NotOrderDetails ? (
+        <View>
+          {/* <OrderDetails  /> */}
         </View>
-      </View>
+      ) : (
+        <View className="mt-[22px]">
+          {notifications.length > 0 && unread.length > 0 && (
+            <Pressable
+              onPress={handleMarkAllAsRead}
+              className="items-center mx-[20px] flex-row justify-end"
+            >
+              <MarkIcon />
+              <Text
+                style={{ fontFamily: "InterRegular" }}
+                className="text-[14px] leading-[20px] text-[#05A85A] ml-[4px]"
+              >
+                Mark all as read
+              </Text>
+            </Pressable>
+          )}
+
+          <View className="mx-[20px] mt-[16px] h-screen">
+            {loading ? (
+              <LoadingSpinner />
+            ) : (
+              <FlatList
+                data={notifications}
+                keyExtractor={(item) => (item.id !== undefined ? item.id.toString() : Math.random().toString())}
+                renderItem={({ item }) => (
+                  <Notificationcard
+                    title={item.title}
+                    message={item.message}
+                    date={new Date(item.created_at ?? "").toDateString()}
+                    isRead={item.is_read}
+                    onPress={() => handleNotificationClick(item)}
+                  />
+                )}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View className="py-10 mx-auto text-[16px] ">
+                    <NoData
+                      title="No notifications"
+                      subtitle="We will keep you updated when you have a notification. "
+                      buttonTitle="Explore ABX stores"
+                      onButtonPress={() =>
+                        router.push("/Screens/AccountScreen/AllStore")
+                      }
+                    />
+                  </View>
+                }
+              />
+            )}
+          </View>
+        </View>
+      )}
     </ScreenWrapper>
   );
 }

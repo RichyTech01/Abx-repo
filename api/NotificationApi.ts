@@ -24,7 +24,7 @@ class NotificationApi {
   }
 
   // Mark a notification as read (PATCH - partial update)
-  public async markAsReadPartial(id: number, data: any) {
+  public async markAsReadPartial(id: number | undefined, data: any) {
     const res = await this.client.patch(
       `/notifications/${id}/mark-read/`,
       data

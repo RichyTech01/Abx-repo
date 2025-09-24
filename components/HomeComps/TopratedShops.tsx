@@ -15,7 +15,7 @@ export default function TopratedShops() {
   const { data: shops = [], isLoading } = useQuery<Shop[]>({
     queryKey: ["topRatedStores"],
     queryFn: async () => {
-      const res = await StoreApi.getAllStores(1);
+      const res = await StoreApi.getTopRatedStores();
       return res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,

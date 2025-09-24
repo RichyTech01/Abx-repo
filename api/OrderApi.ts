@@ -63,6 +63,7 @@ class OrderApi {
     try {
       const res = await this.client.get("/order/checkout");
       return res.data;
+      console.log("error", res.data)
     } catch (error) {
       console.error("Checkout error:", error);
       throw error;

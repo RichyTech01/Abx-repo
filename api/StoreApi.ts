@@ -10,10 +10,18 @@ class StoreApi {
   private client = ApiService.getClient();
 
   public async getStoreWithProducts(id: number): Promise<StoreProductProps> {
-    const res = await this.client.get<StoreProductProps>(`/store/${id}/products`);
+    const res = await this.client.get<StoreProductProps>(
+      `/store/${id}/products`
+    );
     return res.data;
   }
 
+  public async getCategories(page?: number) {
+    const res = await this.client.get("/admin/product/categories", {
+      params: { page },
+    });
+    return res.data;
+  }
   public async getStoreById(id: number): Promise<StoreDetails> {
     const res = await this.client.get<StoreDetails>(`/store/stores/${id}`);
     return res.data;
@@ -134,7 +142,9 @@ class StoreApi {
 
   //  Popular products
   public async getPopularProducts(): Promise<ShopProductType[]> {
-    const res = await this.client.get<ShopProductType[]>("/store/popular-products");
+    const res = await this.client.get<ShopProductType[]>(
+      "/store/popular-products"
+    );
     return res.data;
   }
 }

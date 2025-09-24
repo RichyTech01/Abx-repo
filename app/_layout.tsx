@@ -39,9 +39,9 @@ const STRIPE_PUBLISHABLE_KEY =
 // Global MQTT Handler Component
 function GlobalMQTTHandler() {
   const { user, fetchUser } = useUserStore();
-  const { handleRealtimeNotification } = useNotificationStore();
+  const { handleRealtimeNotification, fetchNotifications } =
+    useNotificationStore();
 
-  // Handle new MQTT messages globally
   const handleNewNotification = useCallback(
     (newNotification: Notification) => {
       console.log("🔔 Global notification received:", newNotification);
@@ -49,15 +49,15 @@ function GlobalMQTTHandler() {
       // Update the store (this will update all screens using the store)
       handleRealtimeNotification(newNotification);
 
-      // Show toast notification with title and message
-      showToast("success", newNotification.title, newNotification.message);
-
+      // Show toast notification message
+      showToast("success", newNotification.message);
     },
     [handleRealtimeNotification]
   );
 
   // Connect to MQTT when user is available
   useEffect(() => {
+    // fetchNotifications();
     if (!user) {
       fetchUser();
       return;
@@ -77,6 +77,7 @@ function GlobalMQTTHandler() {
   return null;
 }
 
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     OrelegaOne: OrelegaOne_400Regular,
@@ -93,7 +94,7 @@ export default function RootLayout() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("accessToken");
-      console.log("🔑 Token:", token); // Add this
+      console.log("🔑 Token:", token); 
       console.log("📱 Fonts loaded:", fontsLoaded);
       setIsLoggedIn(!!token);
 

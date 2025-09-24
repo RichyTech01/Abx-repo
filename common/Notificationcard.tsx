@@ -4,10 +4,10 @@ import OreAppText from "./OreApptext";
 import UrbanistText from "./UrbanistText";
 
 type NotificationCardProps = {
-  title: string;
+  title: string | undefined;
   message: string;
   date: string;
-  isRead: boolean;
+  isRead: boolean | undefined;
   onPress: () => void
 };
 

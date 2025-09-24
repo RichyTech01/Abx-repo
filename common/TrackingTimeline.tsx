@@ -9,7 +9,7 @@ interface TrackingStep {
 }
 
 interface TrackingTimelineProps {
-  status: "pending" | "processing" | "shipped" | "delivered";
+  status: "pending" | "preparing" | "assigned" | "ready" | "pickedup" | "completed" ;
 }
 
 export default function TrackingTimeline({ status }: TrackingTimelineProps) {
@@ -44,11 +44,15 @@ export default function TrackingTimeline({ status }: TrackingTimelineProps) {
     switch (status) {
       case "pending":
         return 1;
-      case "processing":
+      case "preparing":
         return 2;
-      case "shipped":
+      case "assigned":
+        return 3;
+      case "ready":
         return 4;
-      case "delivered":
+         case "pickedup":
+        return 5;
+         case "completed":
         return 6;
       default:
         return 0;
@@ -56,7 +60,7 @@ export default function TrackingTimeline({ status }: TrackingTimelineProps) {
   })();
 
   return (
-    <View className="pb-[16px] px-[8px]">
+    <View className="pb-[16px] px-[8px] ">
       {steps.map((step, index) => (
         <View
           key={index}

@@ -41,7 +41,6 @@ export default function Carts() {
       checkLoginAndFetch();
     }, [])
   );
-
   const fetchCart = async () => {
     try {
       setLoading(true);

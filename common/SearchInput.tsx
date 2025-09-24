@@ -14,6 +14,7 @@ import UrbanistText from "./UrbanistText";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { Keyboard } from "react-native";
 
+
 interface SearchInputProps {
   placeholder?: string;
 }
@@ -48,8 +49,21 @@ export default function SearchInput({
       setLoading(true);
       setResults([]);
       setShowResults(true);
+
       const res = await StoreApi.searchMarketplace(searchQuery);
-      setResults(res.products || []);
+
+      // assuming response has both products and shops
+      const products = (res.products || []).map((p: any) => ({
+        ...p,
+        type: "product",
+      }));
+
+      const shops = (res.stores || []).map((s: any) => ({
+        ...s,
+        type: "shop",
+      }));
+
+      setResults([...products, ...shops]);
     } catch (error) {
       console.error("Search error:", error);
       setResults([]);
@@ -63,10 +77,20 @@ export default function SearchInput({
     setShowResults(false);
     setQuery("");
 
-    router.push({
-      pathname: "/Screens/HomeScreen/ProductDetails",
-      params: { id: item.id.toString() },
-    });
+    if (item.type === "product") {
+      router.push({
+        pathname: "/Screens/HomeScreen/ProductDetails",
+        params: { id: item.id.toString() },
+      });
+    } else if (item.type === "shop") {
+      router.push({
+        pathname: "/Screens/HomeScreen/ShopDetails",
+        params: {
+          id: item.id.toString(),
+          image: item?.store_img || "", 
+        },
+      });
+    }
   };
 
   return (
@@ -78,10 +102,11 @@ export default function SearchInput({
         </View>
 
         <TextInput
-          className="flex-1 text-[14px] text-black font-urbanist"
+          className="flex-1 text-[14px] text-black font-urbanist "
           placeholder={placeholder}
           placeholderTextColor="#656565"
           value={query}
+          selectionColor="green"
           onChangeText={setQuery}
           onFocus={() => setShowResults(results.length > 0)}
         />
@@ -112,27 +137,51 @@ export default function SearchInput({
               contentContainerStyle={{ paddingBottom: 8 }}
             >
               {results.map((item, index) => (
-                <TouchableOpacity
-                  key={item.id}
-                  onPress={() => handleSelectItem(item)}
+                <View
+                  key={`${item.type}-${item.id}`}
                   className={`flex-row items-center gap-2 px-[10px] ${
                     index === 0
                       ? "bg-[#FDF0DC] px-[10px] mb-2 py-[5px] rounded-[8px]"
                       : "px- py-2"
                   }`}
                 >
-                  <Image
-                    source={{ uri: item?.prod_image_url }}
-                    className="w-[22px] h-[22px] rounded-[8px] mr-2"
-                  />
-                  <UrbanistText
-                    className={`text-[12px] leading-[16px] ${
-                      "text-[#121212]"
-                    }`}
+                  {/* Image */}
+                  {item.type === "shop" ? (
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push({
+                          pathname: "/Screens/HomeScreen/ShopDetails",
+                          params: {
+                            id: item.id.toString(),
+                            image: item?.store_img || "",
+                          },
+                        })
+                      }
+                    >
+                      <Image
+                        source={{ uri: item?.store_img || "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg"}}
+                        className="w-[22px] h-[22px] rounded-[8px] mr-2"
+                      />
+                    </TouchableOpacity>
+                  ) : (
+                    <Image
+                      source={{ uri: item?.prod_image_url }}
+                      className="w-[22px] h-[22px] rounded-[8px] mr-2"
+                    />
+                  )}
+
+                  {/* Text + row tap */}
+                  <TouchableOpacity
+                    onPress={() => handleSelectItem(item)}
+                    className="flex-1"
                   >
-                    {item.item_name}
-                  </UrbanistText>
-                </TouchableOpacity>
+                    <UrbanistText className="text-[12px] leading-[16px] text-[#121212]">
+                      {item.type === "product"
+                        ? item.item_name
+                        : item.business_name}
+                    </UrbanistText>
+                  </TouchableOpacity>
+                </View>
               ))}
             </ScrollView>
           ) : (

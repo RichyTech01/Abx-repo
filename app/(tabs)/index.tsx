@@ -68,7 +68,7 @@ function BannerSlider() {
           setCurrentIndex(banners.length);
         }, 600); // wait for animation to finish
       }
-    }, 3000); // slow down to 5s
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [currentIndex]);
@@ -105,12 +105,11 @@ export default function Home() {
   const { user, loading, fetchUser } = useUserStore();
   const {
     hasNewNotifications,
-    checkNotificationStatus, // Use lightweight check instead of full fetch
-    markNotificationsAsSeen,
+    checkNotificationStatus,
   } = useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
-  // Fetch cart items count (keep this as is)
+  // Fetch cart items count
   const fetchCartCount = async () => {
     try {
       const res = await OrderApi.getCart();
@@ -122,7 +121,6 @@ export default function Home() {
   };
 
   const handleNotificationPress = () => {
-    markNotificationsAsSeen();
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
 
@@ -130,9 +128,10 @@ export default function Home() {
     if (!user) fetchUser();
   }, [user, fetchUser]);
 
+  // Only check notification status on focus - lightweight operation
   useFocusEffect(
     useCallback(() => {
-      checkNotificationStatus();
+      checkNotificationStatus(); // Just check if there are unread notifications
       fetchCartCount();
     }, [checkNotificationStatus])
   );
@@ -148,14 +147,14 @@ export default function Home() {
           </Text>
         )}
 
-        <View className="flex-row items-center gap-[20px]  ">
+        <View className="flex-row items-center gap-[20px]">
           <Pressable onPress={handleNotificationPress}>
             <NotificationDot show={hasNewNotifications}>
               <NotificationIcon />
             </NotificationDot>
           </Pressable>
           <Pressable
-            className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center "
+            className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center"
             onPress={() => router.push("/Carts")}
           >
             <NotificationBadge count={cartItems.length}>
@@ -181,7 +180,7 @@ export default function Home() {
         </View>
 
         {/* Sections */}
-        <View className="mt-[24px] gap-[24px] ">
+        <View className="mt-[24px] gap-[24px]">
           <Categories />
           <TopratedShops />
           <ClosestShops />

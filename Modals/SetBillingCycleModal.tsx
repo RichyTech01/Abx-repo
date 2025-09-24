@@ -11,7 +11,6 @@ type BillingOption = "immediate" | "next_month";
 type SetBillingCycleModalProps = {
   value: boolean;
   setValue: React.Dispatch<React.SetStateAction<boolean>>;
-  // setShowSuccessModal: React.Dispatch<React.SetStateAction<boolean>>;
   onConfirm?: (option: BillingOption, date?: Date) => void;
   initialOption?: BillingOption;
   initialDate?: Date | null;
@@ -37,21 +36,41 @@ const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 export default function SetBillingCycleModal({
   value,
   setValue,
-  // setShowSuccessModal,
   onConfirm,
   initialOption = "next_month",
   initialDate,
 }: SetBillingCycleModalProps) {
   const [selectedOption, setSelectedOption] = useState<BillingOption>(initialOption);
-  const [selectedDate, setSelectedDate] = useState(
-    initialDate || new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
-  );
-  const [currentMonth, setCurrentMonth] = useState(
-    initialDate ? initialDate.getMonth() : new Date().getMonth() + 1
-  );
-  const [currentYear, setCurrentYear] = useState(
-    initialDate ? initialDate.getFullYear() : new Date().getFullYear()
-  );
+  
+  // Helper function to get default date (next month, first day)
+  const getDefaultDate = () => {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    nextMonth.setDate(1);
+    return nextMonth;
+  };
+
+  const [selectedDate, setSelectedDate] = useState(() => {
+    if (initialDate && initialDate instanceof Date && !isNaN(initialDate.getTime())) {
+      return initialDate;
+    }
+    return getDefaultDate();
+  });
+  
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const date = initialDate && initialDate instanceof Date && !isNaN(initialDate.getTime()) 
+      ? initialDate 
+      : getDefaultDate();
+    return date.getMonth();
+  });
+  
+  const [currentYear, setCurrentYear] = useState(() => {
+    const date = initialDate && initialDate instanceof Date && !isNaN(initialDate.getTime()) 
+      ? initialDate 
+      : getDefaultDate();
+    return date.getFullYear();
+  });
+  
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
 
@@ -59,18 +78,17 @@ export default function SetBillingCycleModal({
   useEffect(() => {
     if (value) {
       setSelectedOption(initialOption);
-      if (initialDate) {
-        setSelectedDate(initialDate);
-        setCurrentMonth(initialDate.getMonth());
-        setCurrentYear(initialDate.getFullYear());
+      
+      let dateToUse;
+      if (initialDate && initialDate instanceof Date && !isNaN(initialDate.getTime())) {
+        dateToUse = initialDate;
       } else {
-        // Default to next month's first day
-        const nextMonth = new Date();
-        nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
-        setSelectedDate(nextMonth);
-        setCurrentMonth(nextMonth.getMonth());
-        setCurrentYear(nextMonth.getFullYear());
+        dateToUse = getDefaultDate();
       }
+      
+      setSelectedDate(dateToUse);
+      setCurrentMonth(dateToUse.getMonth());
+      setCurrentYear(dateToUse.getFullYear());
     }
   }, [value, initialOption, initialDate]);
 
@@ -136,26 +154,44 @@ export default function SetBillingCycleModal({
 
   const handleDateSelect = (day: number, isCurrentMonth: boolean) => {
     if (isCurrentMonth) {
-      const newDate = new Date(currentYear, currentMonth, day);
-      // Don't allow selecting past dates
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (newDate >= today) {
-        setSelectedDate(newDate);
+      try {
+        const newDate = new Date(currentYear, currentMonth, day);
+        
+        // Validate the created date
+        if (isNaN(newDate.getTime())) {
+          console.error("Invalid date created:", { currentYear, currentMonth, day });
+          return;
+        }
+        
+        // Don't allow selecting past dates
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (newDate >= today) {
+          setSelectedDate(newDate);
+          console.log("Date selected:", newDate);
+        }
+      } catch (error) {
+        console.error("Error creating date:", error);
       }
     }
   };
 
   const handleConfirm = () => {
-    // console.log("Selected option:", selectedOption);
-    if (selectedOption === "next_month") {
-      // console.log("Selected date:", selectedDate);
-    }
+    console.log("Modal handleConfirm - selectedOption:", selectedOption);
+    console.log("Modal handleConfirm - selectedDate:", selectedDate);
     
-    // Call the parent's onConfirm callback
     if (onConfirm) {
-      onConfirm(selectedOption, selectedOption === "next_month" ? selectedDate : undefined);
+      // Only pass the date if next_month is selected and we have a valid date
+      if (selectedOption === "next_month" && selectedDate instanceof Date && !isNaN(selectedDate.getTime())) {
+        onConfirm(selectedOption, selectedDate);
+      } else if (selectedOption === "immediate") {
+        onConfirm(selectedOption);
+      } else {
+        // Fallback case - if something went wrong with the date, use default
+        const fallbackDate = getDefaultDate();
+        onConfirm(selectedOption, fallbackDate);
+      }
     }
     
     setValue(false);
@@ -169,6 +205,10 @@ export default function SetBillingCycleModal({
   const calendarDays = generateCalendarDays();
   
   const isDateSelected = (day: number) => {
+    if (!selectedDate || !(selectedDate instanceof Date) || isNaN(selectedDate.getTime())) {
+      return false;
+    }
+    
     return (
       selectedDate.getDate() === day &&
       selectedDate.getMonth() === currentMonth &&
@@ -178,6 +218,7 @@ export default function SetBillingCycleModal({
 
   const isPastDate = (day: number) => {
     const today = new Date();
+    today.setHours(23, 59, 59, 999); // Set to end of today
     const dayDate = new Date(currentYear, currentMonth, day);
     return dayDate < today;
   };
@@ -185,6 +226,36 @@ export default function SetBillingCycleModal({
   const closeDropdowns = () => {
     setShowMonthDropdown(false);
     setShowYearDropdown(false);
+  };
+
+  const handleMonthChange = (monthIndex: number) => {
+    setCurrentMonth(monthIndex);
+    setShowMonthDropdown(false);
+    
+    // Update selected date to first day of new month, but keep it valid
+    try {
+      const newDate = new Date(currentYear, monthIndex, 1);
+      if (!isNaN(newDate.getTime())) {
+        setSelectedDate(newDate);
+      }
+    } catch (error) {
+      console.error("Error updating date for new month:", error);
+    }
+  };
+
+  const handleYearChange = (year: number) => {
+    setCurrentYear(year);
+    setShowYearDropdown(false);
+    
+    // Update selected date to first day of new year/month, but keep it valid
+    try {
+      const newDate = new Date(year, currentMonth, 1);
+      if (!isNaN(newDate.getTime())) {
+        setSelectedDate(newDate);
+      }
+    } catch (error) {
+      console.error("Error updating date for new year:", error);
+    }
   };
 
   return (
@@ -310,13 +381,7 @@ export default function SetBillingCycleModal({
                                 className={`px-[16px] py-[12px] border-b border-[#F1F1F1] ${
                                   index === currentMonth ? "bg-[#F0F9FF]" : ""
                                 }`}
-                                onPress={() => {
-                                  setCurrentMonth(index);
-                                  setShowMonthDropdown(false);
-                                  // Update selected date to first day of new month
-                                  const newDate = new Date(currentYear, index, 1);
-                                  setSelectedDate(newDate);
-                                }}
+                                onPress={() => handleMonthChange(index)}
                               >
                                 <Text
                                   className={`text-[14px] ${
@@ -359,13 +424,7 @@ export default function SetBillingCycleModal({
                                 className={`px-[16px] py-[12px] border-b border-[#F1F1F1] ${
                                   year === currentYear ? "bg-[#F0F9FF]" : ""
                                 }`}
-                                onPress={() => {
-                                  setCurrentYear(year);
-                                  setShowYearDropdown(false);
-                                  // Update selected date to first day of new year/month
-                                  const newDate = new Date(year, currentMonth, 1);
-                                  setSelectedDate(newDate);
-                                }}
+                                onPress={() => handleYearChange(year)}
                               >
                                 <Text
                                   className={`text-[14px] ${

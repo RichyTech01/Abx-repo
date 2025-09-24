@@ -14,16 +14,15 @@ import showToast from "@/utils/showToast";
 import OrderApi from "@/api/OrderApi";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 
-
 type OrderDetailsProps = {
   orderId: string;
   onBack: () => void;
 };
 
-
 export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
   const [order, setOrder] = useState<any | null>(null);
-  console.log(orderId)
+
+  console.log(orderId);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -52,8 +51,8 @@ export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
 
   if (!order) {
     return (
-      <View className="flex-1 justify-center items-center">
-         <LoadingSpinner />
+      <View className="flex-1 justify-center items-center py-10 ">
+        <LoadingSpinner />
       </View>
     );
   }
@@ -67,28 +66,40 @@ export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
           color: "#F4B551",
           Icon: ProcessingIcon,
         };
-      case "processing":
+      case "preparing":
         return {
-          text: "Your order is being processed",
+          text: "Preparing for delivery",
           color: "#F4B551",
           Icon: ProcessingIcon,
         };
-      case "shipped":
+      case "assigned":
         return {
-          text: "Your item has been shipped for delivery",
+          text: "Rider assigned to Order",
           color: "#DC6C3C",
           Icon: ShippedForDeliveryIcon,
         };
-      case "delivered":
+      case "ready":
         return {
-          text: "Your order has been delivered",
+          text: "Ready for Delivered",
           color: "#C4C4C4",
           Icon: DeliveredIcon,
+        };
+      case "pickedup":
+        return {
+          text: "Order on the way",
+          color: "#6B7280",
+          Icon: ProcessingIcon,
+        };
+      case "completed":
+        return {
+          text: "Delivered",
+          color: "#6B7280",
+          Icon: ProcessingIcon,
         };
       default:
         return {
           text: "Unknown status",
-          color: "#6B7280",
+          color: "#999999",
           Icon: ProcessingIcon,
         };
     }
@@ -99,6 +110,7 @@ export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
     color: statusColor,
     Icon: StatusIcon,
   } = getStatus(order.status);
+
 
   return (
     <>
@@ -210,7 +222,7 @@ export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
           <Button
             title="Click to confirm item delivery"
             onPress={handleConfirmDelivery}
-            disabled={order.status !== "shipped"}
+            disabled={order.status !== "pickedup"}
           />
         </View>
       </ScrollView>

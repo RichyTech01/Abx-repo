@@ -62,7 +62,7 @@ export default function AllOrders() {
             
             // Don't render if this item is beyond our display limit
             if (index >= itemsToShow) return null;
-
+            console.log(item)
             return (
               <View className="mt-[8px]">
                 <OrderCard

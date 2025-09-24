@@ -10,7 +10,6 @@ import CustomerFeedback from "@/components/ShopDetailsComps/CustomerFeedback";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import StoreApi from "@/api/StoreApi";
 
-
 export default function ShopDetails() {
   const [activeTab, setActiveTab] = useState<string>("About store");
   const { id, image } = useLocalSearchParams<{ id: string; image: string }>();
@@ -46,11 +45,15 @@ export default function ShopDetails() {
           showsVerticalScrollIndicator={false}
         >
           <Image
-            source={{ uri: image }}
+            source={{
+              uri:
+                image 
+                  ? image
+                  : "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg",
+            }}
             alt="banner"
             className="w-full h-[112px] mt-[14px] "
           />
-
           <View className="bg-white py-[24px] px-[10px] mt-[18px] mx-[15px] rounded-[4px] ">
             <TabSwitcher
               activeTab={activeTab}

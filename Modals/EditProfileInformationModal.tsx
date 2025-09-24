@@ -13,6 +13,7 @@ import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
 import { useUserStore } from "@/store/useUserStore";
 
+
 type EditProfileInformationModalProps = {
   visible: boolean;
   onClose: () => void;

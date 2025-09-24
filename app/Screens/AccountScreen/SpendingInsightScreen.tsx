@@ -10,8 +10,11 @@ import BudgetTracker from "@/components/AccountComps/BudgetTracker";
 import SpendingBreakDown from "@/components/AccountComps/SpendingBreakDown";
 import { SpendingInsightResponse } from "@/types/SpendingBudgetApi";
 import SpendingBudgetApi from "@/api/SpendingBudgetApi";
+import { useBudgetStore } from "@/store/useBudgetStore";
 
 export default function SpendingInsightScreen() {
+  const { budgetAmount } = useBudgetStore();
+
   const router = useRouter();
   const [insight, setInsight] = useState<SpendingInsightResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -31,7 +34,7 @@ export default function SpendingInsightScreen() {
     };
 
     fetchBudget();
-  }, []);
+  }, [budgetAmount]);
 
   return (
     <ScreenWrapper>
@@ -53,7 +56,7 @@ export default function SpendingInsightScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{paddingBottom: 100}}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View className="mt-[24px] mx-[17px]  ">
           <View className="flex-row items-center justify-between ">
             <Text className="text-[16px] text-[#181818] font-urbanist-bold  ">

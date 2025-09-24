@@ -1,4 +1,4 @@
-import { View, SectionList,  } from "react-native";
+import { View, Text, Pressable, SectionList } from "react-native";
 import React, { useEffect, useState, useMemo } from "react";
 import OrderCard from "@/common/OrderCard";
 import OreAppText from "@/common/OreApptext";
@@ -8,12 +8,14 @@ import OrderDetails from "./OrderDetails";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import NoData from "@/common/NoData";
 import { useRouter } from "expo-router";
+import dayjs from "dayjs";
 
 export default function CompletedOrders() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -42,15 +44,21 @@ export default function CompletedOrders() {
     [orders]
   );
 
+  const toggleExpand = (title: string) => {
+    setExpandedSections((prev) =>
+      prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
+    );
+  };
+
   if (loading) {
     return (
-      <View className=" justify-center items-center py-10">
+      <View className="py-10">
         <LoadingSpinner />
       </View>
     );
   }
 
-  if (sections.every((s) => s.data.length === 0)) {
+  if (sections.length === 0) {
     return (
       <View className="justify-center items-center mt-[20%]">
         <NoData
@@ -64,7 +72,7 @@ export default function CompletedOrders() {
   }
 
   return (
-    <View className="mt-[8%] flex-1">
+    <View className="mt-[8%]">
       {selectedOrderId ? (
         <OrderDetails
           orderId={selectedOrderId}
@@ -74,28 +82,63 @@ export default function CompletedOrders() {
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View className="mt-[8px]">
-              <OrderCard
-                orderNumber={item.order_code}
-                datePlaced={item.created_at}
-                totalAmount={`£${item.store_total_price}`}
-                status={"delivered"}
-                onPressDetail={() => setSelectedOrderId(item.id)}
-              />
-            </View>
-          )}
-          renderSectionHeader={({ section: { title, data } }) =>
-            data.length > 0 ? (
-              <View className="mt-[20px]">
-                <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
-                  {title}
-                </OreAppText>
-              </View>
-            ) : null
-          }
-          contentContainerStyle={{ paddingBottom: 310 }}
           showsVerticalScrollIndicator={false}
+          renderItem={({ item, section }) => {
+            const expanded = expandedSections.includes(section.title);
+            const index = section.data.indexOf(item);
+
+            // Show first 5 items by default, or all if expanded
+            const itemsToShow = expanded
+              ? section.data.length
+              : Math.min(5, section.data.length);
+
+            // Don't render if this item is beyond our display limit
+            if (index >= itemsToShow) return null;
+
+            return (
+              <View className="mt-[8px]">
+                <OrderCard
+                  orderNumber={item.order_code}
+                  datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
+                  totalAmount={`£${item.store_total_price}`}
+                  status="delivered"
+                  onPressDetail={() => setSelectedOrderId(item.id)}
+                />
+              </View>
+            );
+          }}
+          renderSectionHeader={({ section }) => {
+            if (section.data.length === 0) return null;
+
+            const expanded = expandedSections.includes(section.title);
+            const hasMoreThanFive = section.data.length > 5;
+
+            return (
+              <View
+                className="flex-row items-center justify-between"
+                style={{
+                  marginTop: section.title !== sections[0]?.title ? 32 : 0,
+                }}
+              >
+                <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
+                  {section.title}
+                </OreAppText>
+                {hasMoreThanFive && (
+                  <Pressable onPress={() => toggleExpand(section.title)}>
+                    <Text className="text-[14px] font-urbanist-medium leading-[20px]">
+                      {expanded ? "Show less" : `View all orders`}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            );
+          }}
+          contentContainerStyle={{ paddingBottom: 320 }}
+          ListEmptyComponent={
+            <Text className="text-center mt-10 text-gray-500">
+              No orders yet
+            </Text>
+          }
         />
       )}
     </View>

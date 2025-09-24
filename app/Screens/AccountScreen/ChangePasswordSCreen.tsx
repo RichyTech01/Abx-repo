@@ -36,7 +36,7 @@ export default function ChangePasswordScreen() {
 
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length > 0) return; 
+    if (Object.keys(newErrors).length > 0) return;
 
     setLoading(true);
     try {
@@ -52,13 +52,32 @@ export default function ChangePasswordScreen() {
       setConfirmPassword("");
       setErrors({});
     } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.non_field_errors?.[0] ||
-        err.response?.data?.message ||
-        "Something went wrong while changing password";
+      console.log("Full error response:", err.response?.data);
 
-      console.log("Change password error:", errorMessage);
-      showToast("error", errorMessage);
+      const backendErrors = err.response?.data || {};
+      const fieldErrors: typeof errors = {};
+
+      if (backendErrors.current_password) {
+        fieldErrors.currentPassword = backendErrors.current_password[0];
+      }
+      if (backendErrors.new_password) {
+        fieldErrors.newPassword = backendErrors.new_password[0];
+      }
+      if (backendErrors.confirm_new_password) {
+        fieldErrors.confirmPassword = backendErrors.confirm_new_password[0];
+      }
+      if (backendErrors.non_field_errors) {
+        fieldErrors.currentPassword = backendErrors.non_field_errors[0];
+      }
+
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors);
+      } else {
+        const errorMessage =
+          err.response?.data?.message ||
+          "Something went wrong while changing password";
+        showToast("error", errorMessage);
+      }
     } finally {
       setLoading(false);
     }

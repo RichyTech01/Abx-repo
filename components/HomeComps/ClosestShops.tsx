@@ -70,7 +70,7 @@ export default function ClosestShops() {
                 "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
               distance: shop.distance_km ? `${shop.distance_km}Km` : "N/A",
               rating: shop.rating || 0,
-              isFavorite: shop.isFavorite || false,
+              isFavorite: shop.is_favorited ?? false,
               category: shop.category || "General",
               store_open: shop.open_time,
               store_close: shop.close_time,

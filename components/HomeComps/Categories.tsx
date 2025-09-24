@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import SectionHeader from "@/common/SectionHeader";
 import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
-import AdminApi from "@/api/AdminApi";
+import StoreApi from "@/api/StoreApi";
 
 
 const CATEGORY_COLORS: Record<
@@ -26,7 +26,7 @@ export default function Categories() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const data = await AdminApi.getCategories(1);
+        const data = await StoreApi.getCategories();
         const withColors = (data.results || []).map((cat: any) => ({
           ...cat,
           ...CATEGORY_COLORS[cat.id],

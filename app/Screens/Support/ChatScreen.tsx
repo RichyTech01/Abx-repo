@@ -222,7 +222,7 @@ const pickImageFromGallery = async () => {
         </View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
           className="flex-1 bg-white"
         >
@@ -284,6 +284,7 @@ const pickImageFromGallery = async () => {
                 className="flex-1 text-[16px] py-2 font-urbanist"
                 multiline
                 maxLength={500}
+                returnKeyType="done"
               />
               <TouchableOpacity
                 onPress={toggleImagePicker}

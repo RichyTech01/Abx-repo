@@ -36,17 +36,19 @@ const ShopCard: React.FC<ShopCardProps> = ({
   const openStatus = isStoreOpen(shop.store_open, shop.store_close);
 
   return (
-    <TouchableOpacity
+    <View
       className="bg-white shadow rounded-[8px] shadow-[#624C3917]/10 p-[10px]"
       style={{ width: width || "100%" }}
-      onPress={() =>
-        router.push({
-          pathname: "/Screens/HomeScreen/ShopDetails",
-          params: { id: shop.id, image: shop.image },
-        })
-      }
     >
-      <View className="relative h-[158px]">
+      <TouchableOpacity
+        className="relative h-[158px]"
+        onPress={() =>
+          router.push({
+            pathname: "/Screens/HomeScreen/ShopDetails",
+            params: { id: shop.id, image: shop.image },
+          })
+        }
+      >
         <Image
           source={{ uri: shop.image }}
           className="w-full h-full rounded-[8px]"
@@ -70,7 +72,7 @@ const ShopCard: React.FC<ShopCardProps> = ({
         >
           {shop.isFavorite ? <LoveLogo /> : <LoveIcon />}
         </Pressable>
-      </View>
+      </TouchableOpacity>
 
       <View className="flex-row items-center justify-between mt-[16px]">
         <View>
@@ -87,7 +89,7 @@ const ShopCard: React.FC<ShopCardProps> = ({
           <MaincartIcon />
         </Pressable>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
