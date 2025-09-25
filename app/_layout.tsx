@@ -1,10 +1,11 @@
 import "./global.css";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback,  } from "react";
 import * as SplashScreen from "expo-splash-screen";
+import { View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/toastConfig";
 import { StatusBar } from "expo-status-bar";
@@ -114,41 +115,35 @@ export default function RootLayout() {
   if (!fontsLoaded || isLoggedIn === null) return null;
 
   return (
-    <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-      <QueryClientProvider client={queryClient}>
-        <SafeAreaProvider>
+  <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+    {!fontsLoaded || isLoggedIn === null ? (
+      <View style={{ flex: 1, backgroundColor: "#FFF6F2" }} />
+    ) : (
+      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+        <QueryClientProvider client={queryClient}>
           <StatusBar style="dark" backgroundColor="#fff" />
 
-          {/* Only connect to MQTT when user is logged in */}
           {isLoggedIn && <GlobalMQTTHandler />}
 
-          <Stack
-            screenOptions={{
-              headerShown: false,
-            }}
-          >
+          <Stack screenOptions={{ headerShown: false }}>
             {isLoggedIn ? (
               <Stack.Screen
                 name="(tabs)/_layout"
-                options={{
-                  gestureEnabled: false,
-                  headerShown: false,
-                }}
+                options={{ gestureEnabled: false, headerShown: false }}
               />
             ) : (
               <Stack.Screen
                 name="(auth)/onboarding"
-                options={{
-                  gestureEnabled: true,
-                  headerShown: false,
-                }}
+                options={{ gestureEnabled: true, headerShown: false }}
               />
             )}
           </Stack>
 
           <Toast config={toastConfig} />
-        </SafeAreaProvider>
-      </QueryClientProvider>
-    </StripeProvider>
-  );
+        </QueryClientProvider>
+      </StripeProvider>
+    )}
+  </SafeAreaProvider>
+);
+
 }

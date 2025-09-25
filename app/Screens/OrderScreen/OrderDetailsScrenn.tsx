@@ -2,11 +2,11 @@ import ScreenWrapper from "@/common/ScreenWrapper";
 import { useLocalSearchParams } from "expo-router";
 import { View, Text, ScrollView, Image } from "react-native";
 import UrbanistText from "@/common/UrbanistText";
-import ProcessingIcon from "@/assets/svgs/OrderProcessingIcon.svg";
-import ShippedForDeliveryIcon from "@/assets/svgs/ShippedForDeliveryIcon.svg";
 import DeliveredIcon from "@/assets/svgs/OrderDeliveredIcon.svg";
 import Button from "@/common/Button";
 // import OrderProccessingIcon from "../../assets/svgs/OrderProcessingIcon.svg";
+import ProcessingIcon from "@/assets/svgs/OrderProcessingIcon.svg";
+
 import TrackingTimeline from "@/common/TrackingTimeline";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
@@ -68,13 +68,13 @@ export default function OrderDetailsScrenn() {
         return {
           text: "Rider assigned to Order",
           color: "#DC6C3C",
-          Icon: ShippedForDeliveryIcon,
+          Icon: ProcessingIcon,
         };
       case "ready":
         return {
           text: "Ready for Delivered",
-          color: "#C4C4C4",
-          Icon: DeliveredIcon,
+          color: "",
+          Icon: ProcessingIcon,
         };
       case "pickedup":
         return {
@@ -86,7 +86,7 @@ export default function OrderDetailsScrenn() {
         return {
           text: "Delivered",
           color: "#6B7280",
-          Icon: ProcessingIcon,
+          Icon: DeliveredIcon,
         };
       default:
         return {
@@ -197,7 +197,6 @@ export default function OrderDetailsScrenn() {
               {/* Status row */}
               <View className="flex-row items-center ml-[28px] my-[8px]">
                 <StatusIcon
-                  stroke={order?.status === "completed" ? "#05A85A" : "#F8A84C"}
                 />
                 <UrbanistText
                   className="ml-[4px] text-[12px]"

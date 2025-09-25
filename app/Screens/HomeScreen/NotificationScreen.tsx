@@ -151,13 +151,13 @@ export default function NotificationScreen() {
           ) : (
             <FlatList
               data={notifications}
-              keyExtractor={(item) =>
+              keyExtractor={(item, index) =>
                 item.id !== undefined
                   ? item.id.toString()
                   : Math.random().toString()
               }
               renderItem={({ item }) => (
-                <Notificationcard
+                <Notificationcard 
                   title={item.title}
                   message={item.message}
                   date={new Date(item.created_at ?? "").toDateString()}

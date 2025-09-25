@@ -69,7 +69,7 @@ function BannerSlider() {
             animated: false,
           });
           setCurrentIndex(banners.length);
-        }, 600); // wait for animation to finish
+        }, 1000); // wait for animation to finish
       }
     }, 3000);
 
@@ -110,17 +110,6 @@ export default function Home() {
     useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
-  // Fetch cart items count
-  const fetchCartCount = async () => {
-    try {
-      const res = await OrderApi.getCart();
-      const items = res.cart?.items || [];
-      setCartItems(items);
-    } catch (err) {
-      console.error("Error fetching cart:", err);
-    }
-  };
-
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
@@ -132,9 +121,20 @@ export default function Home() {
   // Only check notification status on focus - lightweight operation
   useFocusEffect(
     useCallback(() => {
-      checkNotificationStatus(); // Just check if there are unread notifications
+      checkNotificationStatus();
+
+      const fetchCartCount = async () => {
+        try {
+          const res = await OrderApi.getCart();
+          const items = res.cart?.items || [];
+          setCartItems(items);
+        } catch (err) {
+          console.error("Error fetching cart:", err);
+        }
+      };
+
       fetchCartCount();
-    }, [checkNotificationStatus, fetchCartCount])
+    }, [checkNotificationStatus])
   );
 
   return (

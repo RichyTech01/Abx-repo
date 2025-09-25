@@ -10,7 +10,6 @@ import { useRouter } from "expo-router";
 
 export default function AllOrders() {
   const router = useRouter();
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);

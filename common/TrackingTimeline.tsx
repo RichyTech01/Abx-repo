@@ -32,7 +32,7 @@ export default function TrackingTimeline({ status }: TrackingTimelineProps) {
     },
     {
       title: "Order is in transit",
-      description: "A rider is in transit with the customer’s order",
+      description: "A rider is in transit with the customer's order",
     },
     {
       title: "Order completed",
