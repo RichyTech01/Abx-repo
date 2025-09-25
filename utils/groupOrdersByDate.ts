@@ -48,7 +48,7 @@ export function groupOrdersByDate(orders: Order[]): Section[] {
     if (orderDate.isSame(today, "day")) {
       grouped["Today"].push(order);
     }
-    // This week (excluding today) - Fixed the logic here
+    // This week (excluding today)
     else if (orderDate.isBetween(startOfWeek, today.startOf("day"), "day", "[)")) {
       grouped["This week"].push(order);
     }
@@ -61,16 +61,16 @@ export function groupOrdersByDate(orders: Order[]): Section[] {
     )) {
       grouped["Last week"].push(order);
     }
-    // Few weeks ago (2-4 weeks ago, but not in current month if it's been more than a month)
-    else if (weeksDiff >= 2 && weeksDiff <= 4 && monthsDiff < 2) {
+    // Few weeks ago (2-4 weeks ago) - FIXED: Removed the monthsDiff constraint
+    else if (weeksDiff >= 2 && weeksDiff <= 4) {
       grouped["Few weeks ago"].push(order);
     }
     // This month (orders from current month that are older than 4 weeks)
     else if (orderDate.isSame(today, "month") && weeksDiff > 4) {
       grouped["This month"].push(order);
     }
-    // Last month
-    else if (monthsDiff === 1) {
+    // Last month (orders from previous month)
+    else if (orderDate.isSame(today.subtract(1, "month"), "month")) {
       grouped["Last month"].push(order);
     }
     // Few months ago (2-6 months ago)
@@ -82,7 +82,7 @@ export function groupOrdersByDate(orders: Order[]): Section[] {
       grouped["This year"].push(order);
     }
     // Last year
-    else if (yearsDiff === 1) {
+    else if (orderDate.isSame(today.subtract(1, "year"), "year")) {
       grouped["Last year"].push(order);
     }
     // Years ago (2+ years)

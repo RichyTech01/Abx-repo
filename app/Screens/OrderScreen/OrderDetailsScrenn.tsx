@@ -6,6 +6,7 @@ import DeliveredIcon from "@/assets/svgs/OrderDeliveredIcon.svg";
 import Button from "@/common/Button";
 // import OrderProccessingIcon from "../../assets/svgs/OrderProcessingIcon.svg";
 import ProcessingIcon from "@/assets/svgs/OrderProcessingIcon.svg";
+import CompletedHistoryTimeline from "@/components/OrderComps/CompletedHistoryTimeline";
 
 import TrackingTimeline from "@/common/TrackingTimeline";
 import dayjs from "dayjs";
@@ -20,7 +21,6 @@ export default function OrderDetailsScrenn() {
 
   const [order, setOrder] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-
 
   useEffect(() => {
     setLoading(true);
@@ -196,8 +196,7 @@ export default function OrderDetailsScrenn() {
 
               {/* Status row */}
               <View className="flex-row items-center ml-[28px] my-[8px]">
-                <StatusIcon
-                />
+                <StatusIcon />
                 <UrbanistText
                   className="ml-[4px] text-[12px]"
                   style={{
@@ -210,14 +209,22 @@ export default function OrderDetailsScrenn() {
               </View>
 
               {/* Timeline */}
-              <View className="border-t border-[#F1EAE7] bg-white pt-[16px]">
-                <Text className="text-[12px] text-[#7D7D7D] font-urbanist-medium px-[8px]">
-                  Delivery timeline
-                </Text>
-              </View>
-              <View className="mt-[12px]">
-                <TrackingTimeline status={order?.status} />
-              </View>
+              {!order?.is_order_fulfilled ? (
+                <View>
+                  <CompletedHistoryTimeline />
+                </View>
+              ) : (
+                <View>
+                  <View className="border-t border-[#F1EAE7] bg-white pt-[16px]">
+                    <Text className="text-[12px] text-[#7D7D7D] font-urbanist-medium px-[8px]">
+                      Delivery timeline
+                    </Text>
+                  </View>
+                  <View className="mt-[12px]">
+                    <TrackingTimeline status={order?.status} />
+                  </View>
+                </View>
+              )}
             </View>
 
             {order?.is_order_fulfilled ? null : (
