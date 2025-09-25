@@ -37,6 +37,7 @@ const CustomPhoneInput: React.FC<Props> = ({
           placeholder="Type phone number"
           keyboardType="phone-pad"
           value={value}
+          maxLength={10}
           onChangeText={onChange}
           placeholderTextColor="#929292"
           selectionColor="#0C513F"

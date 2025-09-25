@@ -84,7 +84,7 @@ export default function OrderDetailsScrenn() {
         };
       case "completed":
         return {
-          text: "Delivered",
+          text: `Delivered on ${dayjs(order?.created_at).format("MMM D, YYYY")}`,
           color: "#6B7280",
           Icon: DeliveredIcon,
         };
@@ -195,10 +195,12 @@ export default function OrderDetailsScrenn() {
               </View>
 
               {/* Status row */}
-              <View className="flex-row items-center ml-[28px] my-[8px]">
+              {/* <Text>Total Quantity of items: 30.5kg</Text> */}
+
+              <View className="flex-row items-center ml-[8px] my-[8px] ">
                 <StatusIcon />
                 <UrbanistText
-                  className="ml-[4px] text-[12px]"
+                  className="ml-[4px] text-[12px] "
                   style={{
                     color:
                       order?.status === "completed" ? "#05A85A" : "#F8A84C",
@@ -209,11 +211,7 @@ export default function OrderDetailsScrenn() {
               </View>
 
               {/* Timeline */}
-              {order?.is_order_fulfilled ? (
-                <View>
-                  <CompletedHistoryTimeline />
-                </View>
-              ) : (
+              {order?.is_order_fulfilled ? null : (
                 <View>
                   <View className="border-t border-[#F1EAE7] bg-white pt-[16px]">
                     <Text className="text-[12px] text-[#7D7D7D] font-urbanist-medium px-[8px]">
@@ -225,6 +223,14 @@ export default function OrderDetailsScrenn() {
                   </View>
                 </View>
               )}
+            </View>
+
+            <View>
+              {order?.is_order_fulfilled ? (
+                <View>
+                  <CompletedHistoryTimeline />
+                </View>
+              ) : null}
             </View>
 
             {order?.is_order_fulfilled ? null : (
