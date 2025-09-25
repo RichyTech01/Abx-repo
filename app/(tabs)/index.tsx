@@ -34,7 +34,10 @@ import ScreenWrapper from "@/common/ScreenWrapper";
 
 const { width } = Dimensions.get("window");
 
-const banners = [<Welcomebanner />, <Welcomebanner />];
+const banners = [
+  <Welcomebanner key="banner-1" />,
+  <Welcomebanner key="banner-2" />,
+];
 
 // Clone banners to simulate infinite loop
 const loopedBanners = [...banners, ...banners];
@@ -71,7 +74,7 @@ function BannerSlider() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [currentIndex]);
+  }, [currentIndex, banners, loopedBanners, width]);
 
   return (
     <FlatList
@@ -103,10 +106,8 @@ function BannerSlider() {
 export default function Home() {
   const router = useRouter();
   const { user, loading, fetchUser } = useUserStore();
-  const {
-    hasNewNotifications,
-    checkNotificationStatus,
-  } = useNotificationStore();
+  const { hasNewNotifications, checkNotificationStatus } =
+    useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
   // Fetch cart items count
@@ -133,7 +134,7 @@ export default function Home() {
     useCallback(() => {
       checkNotificationStatus(); // Just check if there are unread notifications
       fetchCartCount();
-    }, [checkNotificationStatus])
+    }, [checkNotificationStatus, fetchCartCount])
   );
 
   return (

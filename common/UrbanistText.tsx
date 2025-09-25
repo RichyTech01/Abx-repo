@@ -3,22 +3,18 @@ import { Text, TextProps } from "react-native";
 
 interface UrbanistTextProps extends TextProps {
   className?: string;
-  fontFamily?: string; 
+  fontFamily?: string;
 }
 
 export default function UrbanistText({
   children,
   className,
-  fontFamily = "UrbanistRegular", 
+  fontFamily = "UrbanistRegular",
   style,
   ...props
 }: UrbanistTextProps) {
   return (
-    <Text
-      className={className}
-      style={[{ fontFamily }, style]}
-      {...props}
-    >
+    <Text style={[{ fontFamily }, style]} className={className} {...props}>
       {children}
     </Text>
   );

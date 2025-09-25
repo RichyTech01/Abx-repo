@@ -1,4 +1,4 @@
-import { View, ScrollView, Alert } from "react-native";
+import { View, ScrollView,  } from "react-native";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import Header from "@/common/Header";
 import CustomTextInput from "@/common/CustomTextInput";

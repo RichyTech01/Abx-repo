@@ -37,7 +37,6 @@ export default function AllOrders() {
       prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
     );
   };
-
   return (
     <View className="mt-[8%]">
       {loading ? (
@@ -60,7 +59,6 @@ export default function AllOrders() {
 
             // Don't render if this item is beyond our display limit
             if (index >= itemsToShow) return null;
-            console.log(item);
             return (
               <View className="mt-[8px]">
                 <OrderCard

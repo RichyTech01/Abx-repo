@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  SafeAreaView,
   Pressable,
   KeyboardAvoidingView,
   ScrollView,

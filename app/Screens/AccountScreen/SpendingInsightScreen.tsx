@@ -11,7 +11,7 @@ import SpendingBreakDown from "@/components/AccountComps/SpendingBreakDown";
 import { SpendingInsightResponse } from "@/types/SpendingBudgetApi";
 import SpendingBudgetApi from "@/api/SpendingBudgetApi";
 import { useBudgetStore } from "@/store/useBudgetStore";
-
+import SpendingInsighFilterDropdown from "@/common/SpendingInsighFilterDropdown";
 
 export default function SpendingInsightScreen() {
   const { budgetAmount } = useBudgetStore();
@@ -19,6 +19,7 @@ export default function SpendingInsightScreen() {
   const router = useRouter();
   const [insight, setInsight] = useState<SpendingInsightResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     const fetchBudget = async () => {
@@ -56,6 +57,12 @@ export default function SpendingInsightScreen() {
           <DropDownIcon />
         </View>
       </View>
+
+      {showDropdown && (
+        <View className="">
+          <SpendingInsighFilterDropdown />
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View className="mt-[24px] mx-[17px]  ">
@@ -95,6 +102,7 @@ export default function SpendingInsightScreen() {
               <BudgetTracker
                 spent={insight?.total_spent}
                 budget={insight?.amount}
+                 transactions={insight?.transactions ?? []}
               />
             </View>
           </View>

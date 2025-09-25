@@ -26,7 +26,6 @@ export default function Carts() {
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
-  const wasLoggedIn = AsyncStorage.getItem("accessToken");
 
   useFocusEffect(
     useCallback(() => {

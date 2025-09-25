@@ -16,7 +16,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import showToast from "@/utils/showToast";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useUserStore } from "@/store/useUserStore";
-import mqttClient from "@/utils/mqttClient";
 
 interface SignInResponse {
   access: string;
@@ -30,16 +29,34 @@ interface SignInResponse {
 }
 
 export default function Login() {
-    const { user, fetchUser } = useUserStore();
-
+  const { fetchUser } = useUserStore();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // Add errors state for field-specific error handling
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      showToast("error", "Please enter email and password.");
+    // Clear previous errors
+    const newErrors: typeof errors = {};
+
+    // Frontend validation
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    }
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+
+    // If there are validation errors, don't proceed
+    if (Object.keys(newErrors).length > 0) {
       return;
     }
 
@@ -51,22 +68,162 @@ export default function Login() {
       await AsyncStorage.setItem("accessToken", res.access);
       // await AsyncStorage.setItem("refreshToken", res.refresh);
       await AsyncStorage.setItem("isLoggedIn", "true");
-      fetchUser()
-      mqttClient.reconnect();
+      fetchUser();
 
       // console.log("Login successful:", res);
       showToast("success", "Login successful! Welcome back.");
       router.dismissAll();
-
       router.replace("/(tabs)");
+      
+      // Clear form and errors on success
+      setEmail("");
+      setPassword("");
+      setErrors({});
+      
     } catch (err: any) {
       console.log("Login error:", err);
+      console.log("Full error response:", err.response?.data);
 
-      if (err.response?.data?.detail) {
-        showToast("error", err.response.data.detail);
-      } else {
-        showToast("error", "Check your credentials");
+      const backendErrors = err.response?.data || {};
+      const fieldErrors: typeof errors = {};
+
+      // Debug: Log what errors we're getting
+      console.log("Backend errors object:", backendErrors);
+
+      // Handle field-specific errors from backend
+      if (backendErrors.email) {
+        fieldErrors.email = Array.isArray(backendErrors.email) 
+          ? backendErrors.email[0] 
+          : backendErrors.email;
+        console.log("Email error set:", fieldErrors.email);
       }
+      if (backendErrors.password) {
+        fieldErrors.password = Array.isArray(backendErrors.password) 
+          ? backendErrors.password[0] 
+          : backendErrors.password;
+        console.log("Password error set:", fieldErrors.password);
+      }
+      
+      // Handle non-field errors (like invalid credentials)
+      if (backendErrors.non_field_errors) {
+        const errorMessage = Array.isArray(backendErrors.non_field_errors) 
+          ? backendErrors.non_field_errors[0] 
+          : backendErrors.non_field_errors;
+        
+        // Try to determine if it's an email or password issue based on error message
+        const errorLower = errorMessage.toLowerCase();
+        if (errorLower.includes('email') || errorLower.includes('username')) {
+          fieldErrors.email = errorMessage;
+          console.log("Non-field error set to email:", fieldErrors.email);
+        } else if (errorLower.includes('password') || errorLower.includes('pass')) {
+          fieldErrors.password = errorMessage;
+          console.log("Non-field error set to password:", fieldErrors.password);
+        } else {
+          // For generic messages, show under both fields
+          fieldErrors.email = errorMessage;
+          fieldErrors.password = errorMessage;
+          console.log("Non-field error set to both fields:", errorMessage);
+        }
+      }
+      
+      // Handle Django's common error field names for login
+      if (backendErrors.detail) {
+        const errorMessage = backendErrors.detail;
+        
+        // Try to determine if it's an email or password issue based on error message
+        const errorLower = errorMessage.toLowerCase();
+        if (errorLower.includes('email') || errorLower.includes('username')) {
+          fieldErrors.email = errorMessage;
+          console.log("Detail error set to email:", fieldErrors.email);
+        } else if (errorLower.includes('password') || errorLower.includes('pass')) {
+          fieldErrors.password = errorMessage;
+          console.log("Detail error set to password:", fieldErrors.password);
+        } else {
+          // For generic messages, show under both fields
+          fieldErrors.email = errorMessage;
+          fieldErrors.password = errorMessage;
+          console.log("Detail error set to both fields:", errorMessage);
+        }
+      }
+
+      // Handle other common Django error structures
+      if (backendErrors.error) {
+        const errorMessage = backendErrors.error;
+        
+        // Try to determine if it's an email or password issue based on error message
+        const errorLower = errorMessage.toLowerCase();
+        if (errorLower.includes('email') || errorLower.includes('username')) {
+          fieldErrors.email = errorMessage;
+          console.log("General error set to email:", fieldErrors.email);
+        } else if (errorLower.includes('password') || errorLower.includes('pass')) {
+          fieldErrors.password = errorMessage;
+          console.log("General error set to password:", fieldErrors.password);
+        } else {
+          // For generic messages, show under both fields
+          fieldErrors.email = errorMessage;
+          fieldErrors.password = errorMessage;
+          console.log("General error set to both fields:", errorMessage);
+        }
+      }
+
+      // Handle message errors
+      if (backendErrors.message) {
+        const errorMessage = backendErrors.message;
+        
+        // Try to determine if it's an email or password issue based on error message
+        const errorLower = errorMessage.toLowerCase();
+        if (errorLower.includes('email') || errorLower.includes('username')) {
+          fieldErrors.email = errorMessage;
+          console.log("Message error set to email:", fieldErrors.email);
+        } else if (errorLower.includes('password') || errorLower.includes('pass')) {
+          fieldErrors.password = errorMessage;
+          console.log("Message error set to password:", fieldErrors.password);
+        } else {
+          // For generic messages, show under both fields
+          fieldErrors.email = errorMessage;
+          fieldErrors.password = errorMessage;
+          console.log("Message error set to both fields:", errorMessage);
+        }
+      }
+
+      // If no specific structure matches, try to extract any error message
+      if (Object.keys(fieldErrors).length === 0) {
+        // Look for any error message in the response
+        const errorMessage = 
+          backendErrors.detail || 
+          backendErrors.message || 
+          backendErrors.error ||
+          (typeof backendErrors === 'string' ? backendErrors : null);
+        
+        if (errorMessage) {
+          // Try to determine if it's an email or password issue based on error message
+          const errorLower = errorMessage.toLowerCase();
+          if (errorLower.includes('email') || errorLower.includes('username')) {
+            fieldErrors.email = errorMessage;
+            console.log("Fallback error set to email:", errorMessage);
+          } else if (errorLower.includes('password') || errorLower.includes('pass')) {
+            fieldErrors.password = errorMessage;
+            console.log("Fallback error set to password:", errorMessage);
+          } else {
+            // For generic messages, show under both fields
+            fieldErrors.email = errorMessage;
+            fieldErrors.password = errorMessage;
+            console.log("Fallback error set to both fields:", errorMessage);
+          }
+        } else {
+          // Default generic error under both fields
+          fieldErrors.email = "Invalid credentials";
+          fieldErrors.password = "Invalid credentials";
+          console.log("Default error set to both fields");
+        }
+      }
+
+      // Debug: Log field errors before setting
+      console.log("Field errors to set:", fieldErrors);
+
+      // Always set errors to show them in the form
+      setErrors(fieldErrors);
+      console.log("Setting field errors:", fieldErrors);
     } finally {
       setLoading(false);
     }
@@ -89,7 +246,14 @@ export default function Login() {
               label="Email Address"
               placeholder="Type your email"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                // Clear email error when user starts typing
+                if (errors.email) {
+                  setErrors({ ...errors, email: undefined });
+                }
+              }}
+              error={errors.email}
             />
 
             <View className="mt-[24px]">
@@ -98,7 +262,14 @@ export default function Login() {
                 isPassword
                 placeholder="Use a minimum of 7 characters"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  // Clear password error when user starts typing
+                  if (errors.password) {
+                    setErrors({ ...errors, password: undefined });
+                  }
+                }}
+                error={errors.password}
               />
             </View>
 

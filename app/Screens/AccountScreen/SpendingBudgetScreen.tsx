@@ -25,12 +25,12 @@ export default function SpendingBudgetScreen() {
       try {
         setLoading(true);
         const data = await SpendingBudgetApi.getCurrentSpendingBudget();
-        const normalized = {
-          ...data,
-          amount: Number(data.amount ?? 0),
-          amount_spent: Number(data.amount_spent ?? 0),
-          balance: Number(data.balance ?? 0),
-        };
+        // const normalized = {
+        //   ...data,
+        //   amount: Number(data.amount ?? 0),
+        //   amount_spent: Number(data.amount_spent ?? 0),
+        //   balance: Number(data.balance ?? 0),
+        // };
         setBudget(String(data.amount ?? 0), data.id ?? "", data);
       } catch (error) {
         console.error("Failed to load spending budget:", error);

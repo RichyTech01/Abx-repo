@@ -64,10 +64,10 @@ export default function AdjustLimit() {
         budgetData = {
           amount: numericAmount,
           start_date: startDate.toISOString().split("T")[0],
-          month: startDate.getMonth(),
+          month: startDate.getMonth() + 1,
           year: startDate.getFullYear(),
         };
-        console.log("later ",budgetData)
+        console.log("later ", budgetData);
       }
 
       let response;

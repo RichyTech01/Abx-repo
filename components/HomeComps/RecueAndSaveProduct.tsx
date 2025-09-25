@@ -51,7 +51,6 @@ export default function RescueAndSaveProduct() {
     setModalVisible(true);
   };
 
-  console.log("single", products[0]);
 
   return (
     <View className={`${Platform.OS === "ios" ? "mb-16" : "mb-28"} mb-16`}>

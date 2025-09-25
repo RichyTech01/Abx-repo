@@ -1,7 +1,5 @@
-import {
-  View,
-  ScrollView,
-} from "react-native";
+// Refactored NewDeliveryAddressScreen.tsx
+import { View, ScrollView } from "react-native";
 import { useState } from "react";
 import Header from "@/common/Header";
 import CustomTextInput from "@/common/CustomTextInput";
@@ -13,16 +11,28 @@ import CustomPhoneInput from "@/common/PhoneNumberInput";
 import OrderApi from "@/api/OrderApi";
 import showToast from "@/utils/showToast";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import { AddressData } from "@/hooks/useAddressAutocomplete";
+import AddressAutocompleteInput from "@/common/AddressAutocompleteInputProps";
 
 export default function NewDeliveryAddressScreen() {
-  const navigaion = useNavigation();
+  const navigation = useNavigation();
   const [is_guest, setIs_Guest] = useState(false);
   const [fullName, setFullName] = useState("");
   const [rawPhoneNumber, setRawPhoneNumber] = useState("");
-  const [postCode, setPostCode] = useState("");
-  const [city, setCity] = useState("");
-  const [address, setAddress] = useState("");
+  const [addressData, setAddressData] = useState<AddressData>({
+    postCode: "",
+    city: "",
+    address: "",
+  });
   const [loading, setLoading] = useState(false);
+
+  const handleAddressChange = (newAddressData: AddressData) => {
+    setAddressData(newAddressData);
+  };
+
+  const handlePostCodeChange = (postCode: string) => {
+    setAddressData(prev => ({ ...prev, postCode }));
+  };
 
   const handleAddAddress = async () => {
     if (is_guest) {
@@ -36,15 +46,15 @@ export default function NewDeliveryAddressScreen() {
       }
     }
 
-    if (!postCode || !city || !address) {
+    if (!addressData.postCode || !addressData.city || !addressData.address) {
       showToast("error", "Please fill in all required fields");
       return;
     }
 
     const payload: any = {
-      addr: address,
-      post_code: postCode,
-      city,
+      addr: addressData.address,
+      post_code: addressData.postCode,
+      city: addressData.city,
     };
 
     if (is_guest) {
@@ -57,14 +67,13 @@ export default function NewDeliveryAddressScreen() {
       setLoading(true);
 
       const res = await OrderApi.addAddress(payload);
-      navigaion.goBack();
+      navigation.goBack();
       showToast("success", "Address added successfully");
 
+      // Reset form
       setFullName("");
       setRawPhoneNumber("");
-      setPostCode("");
-      setCity("");
-      setAddress("");
+      setAddressData({ postCode: "", city: "", address: "" });
       setIs_Guest(false);
 
       return res;
@@ -108,23 +117,13 @@ export default function NewDeliveryAddressScreen() {
               </View>
             )}
 
-            <CustomTextInput
-              label="Post code"
-              placeholder="Type your post code"
-              value={postCode}
-              onChangeText={setPostCode}
-            />
-            <CustomTextInput
-              label="City"
-              placeholder="Type your city"
-              value={city}
-              onChangeText={setCity}
-            />
-            <CustomTextInput
-              label="Home Address"
-              placeholder="Clearly state your address"
-              value={address}
-              onChangeText={setAddress}
+            <AddressAutocompleteInput
+              postCodeValue={addressData.postCode}
+              cityValue={addressData.city}
+              addressValue={addressData.address}
+              onAddressChange={handleAddressChange}
+              onPostCodeChange={handlePostCodeChange}
+              cityPlaceholder="Type your city"
             />
           </View>
 

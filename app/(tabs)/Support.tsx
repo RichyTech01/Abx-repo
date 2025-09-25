@@ -21,15 +21,15 @@ import SupportApi from "@/api/SupportApi";
 export default function Support() {
   const router = useRouter()
 
-  const handleStartSession = async () => {
-  try {
-    const response = await SupportApi.startChatSession();
-    console.log("chat", response); // ✅ this will run
-    return response; // return after logging
-  } catch (error) {
-    console.error("Failed to start chat session:", error);
-  }
-};
+//   const handleStartSession = async () => {
+//   try {
+//     const response = await SupportApi.startChatSession();
+//     console.log("chat", response); // ✅ this will run
+//     return response; // return after logging
+//   } catch (error) {
+//     console.error("Failed to start chat session:", error);
+//   }
+// };
 
   const handleEmailPress = () => {
     Linking.openURL("mailto:support@abx.com");

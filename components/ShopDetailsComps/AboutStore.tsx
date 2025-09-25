@@ -18,7 +18,6 @@ export interface StoreProductProps {
 
 export default function AboutStore({
   id,
-  image,
 }: {
   id: number;
   image: string;
@@ -64,7 +63,6 @@ export default function AboutStore({
     }
   };
 
-  console.log("shopProduct", shopProduct?.products);
   return (
     <View>
       <OreAppText className="text-[16px] leading-[20px] text-[#2D2220] mx-auto my-[24px]  ">
