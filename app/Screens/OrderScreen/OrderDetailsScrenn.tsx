@@ -209,7 +209,7 @@ export default function OrderDetailsScrenn() {
               </View>
 
               {/* Timeline */}
-              {!order?.is_order_fulfilled ? (
+              {order?.is_order_fulfilled ? (
                 <View>
                   <CompletedHistoryTimeline />
                 </View>
