@@ -45,13 +45,13 @@ function GlobalMQTTHandler() {
 
   const handleNewNotification = useCallback(
     (newNotification: Notification) => {
-      console.log("🔔 Global notification received:", newNotification);
+      console.log("🔔 Global notification received:", newNotification.message);
 
       // Update the store (this will update all screens using the store)
       handleRealtimeNotification(newNotification);
 
       // Show toast notification message
-      showToast("success", newNotification.message);
+      showToast("success", newNotification.data.message);                                            
     },
     [handleRealtimeNotification]
   );
