@@ -6,7 +6,6 @@ import ShopCard from "@/common/ShopCard";
 import { useClosestStores } from "@/hooks/useClosestStores";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
-import * as Haptics from "expo-haptics";
 
 export default function ClosestShops() {
   const router = useRouter();
@@ -20,12 +19,14 @@ export default function ClosestShops() {
     locationError,
   } = useClosestStores();
 
+ 
   const favoriteMutation = useMutation({
-    mutationFn: (storeId: string | number) =>
+    mutationFn: (storeId: string) =>
       StoreApi.toggleFavorite(Number(storeId)),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["closestStores"] }),
   });
+  // console.log(shops[5])
 
   let content;
   if (locationStatus === "pending" || isLoading) {
@@ -76,11 +77,7 @@ export default function ClosestShops() {
               store_close: shop.close_time,
             }}
             width={254}
-            onFavoritePress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              favoriteMutation.mutate(shop.id);
-              console.log("Toggled favorite for store:", shop.id);
-            }}
+            onFavoritePress={() => favoriteMutation.mutate(shop.id)}
           />
         ))}
       </ScrollView>

@@ -65,7 +65,6 @@
     "react-native-ui-datepicker": "^3.1.2",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
-    "undefined": "expo-auth-session/providers/google",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

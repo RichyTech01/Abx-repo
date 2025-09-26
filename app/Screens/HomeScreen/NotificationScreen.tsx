@@ -151,6 +151,7 @@ export default function NotificationScreen() {
           ) : (
             <FlatList
               data={notifications}
+              contentContainerStyle={{paddingBottom:210}}
               keyExtractor={(item, index) =>
                 item.id !== undefined
                   ? item.id.toString()

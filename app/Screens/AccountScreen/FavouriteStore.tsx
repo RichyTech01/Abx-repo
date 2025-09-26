@@ -1,9 +1,4 @@
-import {
-  View,
-  ScrollView,
-  ActivityIndicator,
-  Platform,
-} from "react-native";
+import { View, ScrollView, ActivityIndicator, Platform } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useRouter } from "expo-router";
@@ -15,7 +10,7 @@ import { useNavigation } from "@react-navigation/native";
 
 export default function FavouriteStore() {
   const router = useRouter();
-  const navigation =useNavigation()
+  const navigation = useNavigation();
   const queryClient = useQueryClient();
 
   const { data: shops = [], isLoading } = useQuery<Shop[]>({
@@ -31,9 +26,9 @@ export default function FavouriteStore() {
         store_open: store.open_time,
         store_close: store.close_time,
         isFavorite: store.is_favorited ?? true,
+        distance: store.distance_km ? `${store.distance_km}Km` : "N/A",
       }));
     },
-    
   });
 
   const favoriteMutation = useMutation({
@@ -44,8 +39,7 @@ export default function FavouriteStore() {
 
   return (
     <ScreenWrapper>
-      <View
-        >
+      <View>
         <HeaderWithSearchInput label="Your favorite stores" />
       </View>
 
@@ -67,7 +61,10 @@ export default function FavouriteStore() {
             title="No favorite stores"
             subtitle="Looks like you don't have any favorite stores yet—no worries, Start browsing and find a store you'll love. We've got plenty of great stores waiting for you! "
             buttonTitle="Explore ABX stores"
-            onButtonPress={() => {navigation.goBack(); router.push("/Screens/AccountScreen/AllStore")}}
+            onButtonPress={() => {
+              navigation.goBack();
+              router.push("/Screens/AccountScreen/AllStore");
+            }}
           />
         </ScrollView>
       ) : (
