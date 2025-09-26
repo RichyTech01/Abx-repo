@@ -8,6 +8,7 @@ import { groupOrdersByDate, Section } from "@/utils/groupOrdersByDate";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useRouter } from "expo-router";
 
+
 export default function AllOrders() {
   const router = useRouter();
   const [sections, setSections] = useState<Section[]>([]);

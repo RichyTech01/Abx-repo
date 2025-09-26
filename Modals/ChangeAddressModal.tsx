@@ -12,6 +12,7 @@ import OrderApi from "@/api/OrderApi";
 import showToast from "@/utils/showToast";
 import { AddressData } from "@/hooks/useAddressAutocomplete";
 import AddressAutocompleteInput from "@/common/AddressAutocompleteInputProps";
+import OreAppText from "@/common/OreApptext";
 
 type ChangeAddressModalProps = {
   visible: boolean;
@@ -172,7 +173,7 @@ export default function ChangeAddressModal({
             className="bg-white py-[16px] px-[24px] border border-[#F1EAE7] rounded-lg"
             onPress={(e) => e.stopPropagation()}
           >
-            <Text className="text-base font-semibold mb-4">Change Address</Text>
+            <OreAppText className="text-[20px] leading-[28px] mb-6 mx-auto">Add New Address</OreAppText>
 
             <AddressAutocompleteInput
               postCodeValue={addressData.postCode}
@@ -189,7 +190,7 @@ export default function ChangeAddressModal({
                 onPress={handleSave}
                 loading={loading}
                 disabled={loading || !canSave()}
-                paddingVertical={8}
+                paddingVertical={12}
               />
             </View>
           </Pressable>

@@ -15,12 +15,16 @@ import showToast from "@/utils/showToast";
 import OrderApi from "@/api/OrderApi";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import Header from "@/common/Header";
+import PaymentSuccessModal from "@/Modals/PaymentSuccessModal";
+import { useRouter } from "expo-router";
 
 export default function OrderDetailsScrenn() {
+  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [order, setOrder] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
   const [ConfirmLoading, setConfirmLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -40,7 +44,6 @@ export default function OrderDetailsScrenn() {
   const handleConfirmDelivery = async () => {
     setConfirmLoading(true);
     try {
-      // Call the API to complete the order
       await OrderApi.completeCustomerOrder(id);
 
       // Optimistically update the order status immediately
@@ -49,8 +52,7 @@ export default function OrderDetailsScrenn() {
         status: "completed",
       }));
 
-      showToast("success", "Order marked as delivered.");
-
+      setShowModal((prev) => !prev);
       // Optionally fetch fresh data in the background (but don't wait for it)
       OrderApi.getCustomerOrderById(id)
         .then((refreshedOrder) => {
@@ -266,6 +268,13 @@ export default function OrderDetailsScrenn() {
           </ScrollView>
         )}
       </>
+      <PaymentSuccessModal
+        visible={showModal}
+        content="Order Confirmed"
+        onPress={() => router.push("/Screens/OrderScreen/WriteReviewScreen")}
+        tittle="Write a Review"
+        onClose={() => setShowModal((prev) => !prev)}
+      />
     </ScreenWrapper>
   );
 }
