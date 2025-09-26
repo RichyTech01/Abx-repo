@@ -43,18 +43,23 @@ function GlobalMQTTHandler() {
   const { handleRealtimeNotification, fetchNotifications } =
     useNotificationStore();
 
-  const handleNewNotification = useCallback(
-    (newNotification: Notification) => {
-      console.log("🔔 Global notification received:", newNotification.message);
+  // In your GlobalMQTTHandler component in _layout.tsx
+const handleNewNotification = useCallback(
+  (newNotification: Notification) => {
+    console.log("🔔 Global notification received:", newNotification);
 
-      // Update the store (this will update all screens using the store)
-      handleRealtimeNotification(newNotification);
+    // Update the store (this will update all screens using the store)
+    handleRealtimeNotification(newNotification)
 
-      // Show toast notification message
-      showToast("success", newNotification.data.message);                                            
-    },
-    [handleRealtimeNotification]
-  );
+    // Show toast notification message - FIXED: Pass title and message correctly
+    showToast(
+      "success",
+      newNotification.title ?? "Notification",
+      newNotification.message ?? "You have a new notification."
+    );
+  },
+  [handleRealtimeNotification]
+);
 
   // Connect to MQTT when user is available
   useEffect(() => {

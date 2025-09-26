@@ -48,13 +48,7 @@ export default function CustomerFeedback({ feedback }: CustomerFeedbackProps) {
           />
         ))}
       </View>
-      <View className="mt-[16px]">
-        <Button
-          title="Write a review"
-          fontClassName="urbanist"
-          onPress={() => {}}
-        />
-      </View>
+    
     </View>
   );
 }

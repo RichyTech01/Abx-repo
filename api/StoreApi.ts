@@ -5,7 +5,7 @@ import {
   StoreDetails,
   StoreProductProps,
 } from "@/types/store";
-
+ 
 class StoreApi {
   private client = ApiService.getClient();
 
@@ -41,7 +41,7 @@ class StoreApi {
       {
         params: { page },
       }
-    );
+    ); 
     return res.data;
   }
   //  Get all favorite stores of the current user

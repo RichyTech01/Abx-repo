@@ -21,6 +21,7 @@ export default function OrderDetailsScrenn() {
 
   const [order, setOrder] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [ConfirmLoading, setConfirmLoading] = useState<boolean>(false);
 
   useEffect(() => {
     setLoading(true);
@@ -37,15 +38,32 @@ export default function OrderDetailsScrenn() {
   }, [id]);
 
   const handleConfirmDelivery = async () => {
+    setConfirmLoading(true);
     try {
+      // Call the API to complete the order
       await OrderApi.completeCustomerOrder(id);
 
-      setOrder((prev: any) => (prev ? { ...prev, status: "delivered" } : prev));
+      // Optimistically update the order status immediately
+      setOrder((prevOrder: any) => ({
+        ...prevOrder,
+        status: "completed",
+      }));
 
       showToast("success", "Order marked as delivered.");
+
+      // Optionally fetch fresh data in the background (but don't wait for it)
+      OrderApi.getCustomerOrderById(id)
+        .then((refreshedOrder) => {
+          setOrder(refreshedOrder);
+        })
+        .catch((err) => {
+          console.error("Failed to refresh order data:", err);
+        });
     } catch (err) {
       console.error("Failed to complete order:", err);
       showToast("error", "Failed to confirm delivery. Please try again.");
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -84,7 +102,9 @@ export default function OrderDetailsScrenn() {
         };
       case "completed":
         return {
-          text: `Delivered on ${dayjs(order?.created_at).format("MMM D, YYYY")}`,
+          text: `Delivered on ${dayjs(order?.created_at).format(
+            "MMM D, YYYY"
+          )}`,
           color: "#6B7280",
           Icon: DeliveredIcon,
         };
@@ -211,7 +231,7 @@ export default function OrderDetailsScrenn() {
               </View>
 
               {/* Timeline */}
-              {order?.is_order_fulfilled ? null : (
+              {order?.status === "completed" ? null : (
                 <View>
                   <View className="border-t border-[#F1EAE7] bg-white pt-[16px]">
                     <Text className="text-[12px] text-[#7D7D7D] font-urbanist-medium px-[8px]">
@@ -226,19 +246,20 @@ export default function OrderDetailsScrenn() {
             </View>
 
             <View>
-              {order?.is_order_fulfilled ? (
+              {order?.status === "completed" ? (
                 <View>
                   <CompletedHistoryTimeline />
                 </View>
               ) : null}
             </View>
 
-            {order?.is_order_fulfilled ? null : (
+            {order?.status === "completed" ? null : (
               <View className="mt-[8%]">
                 <Button
                   title="Click to confirm item delivery"
                   onPress={handleConfirmDelivery}
-                  disabled={order?.status !== "pickedup"}
+                  loading={ConfirmLoading}
+                  disabled={order?.status !== "pickedup" || ConfirmLoading}
                 />
               </View>
             )}
