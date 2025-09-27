@@ -25,6 +25,7 @@ import SpendingLimit from "@/components/HomeComps/SpendingLimit";
 import RescueAndSave from "@/components/HomeComps/RescueAndSave";
 import RecueAndSaveProduct from "@/components/HomeComps/RecueAndSaveProduct";
 import { useUserStore } from "@/store/useUserStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useCartStore } from "@/store/useCartStore";
 import OrderApi from "@/api/OrderApi";
@@ -103,6 +104,8 @@ function BannerSlider() {
   );
 }
 
+
+
 export default function Home() {
   const router = useRouter();
   const { user, loading, fetchUser } = useUserStore();
@@ -110,6 +113,7 @@ export default function Home() {
     useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
+ 
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };

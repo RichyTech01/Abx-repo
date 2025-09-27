@@ -114,11 +114,11 @@ export default function VariationCard({
           className="text-[#424242] text-[14px] leading-[20px] px-[10px]"
           style={{ fontFamily: "UrbanistSemiBold" }}
         >
-          {quantity}
+          {quantity} 
         </UrbanistText>
 
         <Pressable
-          className={`w-[35px] ${
+          className={`w-[35px]  ${
             !isOpen || item.stock === 0 ? "bg-[#86A89F]" : "bg-[#0C513F]"
           } h-[35px] rounded-[8px] bg-[#0C513F] items-center justify-center`}
           onPress={handleIncrease}
