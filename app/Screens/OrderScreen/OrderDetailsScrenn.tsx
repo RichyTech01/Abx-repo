@@ -271,7 +271,12 @@ export default function OrderDetailsScrenn() {
       <PaymentSuccessModal
         visible={showModal}
         content="Order Confirmed"
-        onPress={() => router.push("/Screens/OrderScreen/WriteReviewScreen")}
+        onPress={() =>
+          router.push({
+            pathname: "/Screens/OrderScreen/WriteReviewScreen",
+            params: { storeId: order?.store_id },
+          })
+        }
         tittle="Write a Review"
         onClose={() => setShowModal((prev) => !prev)}
       />

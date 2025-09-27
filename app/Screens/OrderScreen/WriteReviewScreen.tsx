@@ -1,23 +1,81 @@
-import { View, Text, TextInput, ScrollView } from "react-native";
+import { View, Text, TextInput, ScrollView, Alert } from "react-native";
 import { useState } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import Header from "@/common/Header";
 import Button from "@/common/Button";
 import StarRating from "@/common/StarRating";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import StoreApi from "@/api/StoreApi";
+import showToast from "@/utils/showToast";
+import { useNavigation } from "expo-router";
 
 export default function WriteReviewScreen() {
+  const navigation = useNavigation();
+  const { storeId } = useLocalSearchParams<{ storeId: string }>();
   const [currentRating, setUserRating] = useState<number>(0);
   const [text, setText] = useState<string>("");
   const [isFocused, setIsFocused] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleWriteReview = async () => {
-    try {
-        
-    } catch (error) {
-        
+    if (!storeId || isNaN(Number(storeId))) {
+      Alert.alert("Error", "Invalid store ID.");
+      return;
     }
-  }
 
+    if (!currentRating) {
+      showToast("error", "Please select a star rating.");
+      return;
+    }
+
+    if (!text.trim()) {
+      showToast("error", "Please write a review.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await StoreApi.createStoreReview({
+        store: Number(storeId),
+        rating: currentRating,
+        message: text,
+      });
+
+      showToast("success", "Your review has been posted!");
+      navigation.goBack();
+    } catch (error: any) {
+      console.log("Full error object:", error);
+      if (error?.response?.status === 400) {
+        const errorData = error.response.data;
+
+        if (
+          errorData?.non_field_errors?.includes(
+            "You have already reviewed this store."
+          )
+        ) {
+          showToast(
+            "info",
+            "You have already reviewed this store. You can only submit one review per store."
+          );
+          return;
+        }
+
+        const errorMessage =
+          errorData?.non_field_errors?.[0] ||
+          errorData?.message ||
+          "Invalid request. Please check your input.";
+        Alert.alert("Error", errorMessage);
+      } else {
+        Alert.alert("Error", error?.message || "Failed to post review.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  console.log(storeId, currentRating, text);
   return (
     <ScreenWrapper>
       <Header title="Rate your shopping experience" />
@@ -65,8 +123,13 @@ export default function WriteReviewScreen() {
           </View>
         </View>
 
-        <View className="mx-[20px]  mt-[24px]  ">
-          <Button title="Post your review" onPress={() => {}} />
+        <View className="mx-[20px] mt-[24px]">
+          <Button
+            title={loading ? "Posting..." : "Post your review"}
+            onPress={handleWriteReview}
+            disabled={loading}
+            loading={loading}
+          />
         </View>
       </ScrollView>
     </ScreenWrapper>

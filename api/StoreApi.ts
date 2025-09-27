@@ -62,9 +62,9 @@ class StoreApi {
 
   //  Create a store review
   public async createStoreReview(data: {
-    store_id: number;
+    store: number;
     rating: number;
-    comment: string;
+    message: string;
   }): Promise<any> {
     const res = await this.client.post<any>("/store/create-store-review", data);
     return res.data;
