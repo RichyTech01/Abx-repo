@@ -8,7 +8,6 @@ import {
   Image,
   ActivityIndicator,
   StatusBar,
-  Pressable,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -84,7 +83,6 @@ export default function ProductDetails() {
               productData.store.open_time,
               productData.store.close_time
             );
-            console.log("variation", productData.variations);
             return (
               <View className="mx-[20px] bg-white border border-[#E6E6E6] rounded-[8px] mt-[26px]  px-[7px] py-[15px] ">
                 <View className="px-[]">

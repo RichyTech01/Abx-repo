@@ -8,7 +8,6 @@ import { groupOrdersByDate, Section } from "@/utils/groupOrdersByDate";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useRouter } from "expo-router";
 
-
 export default function AllOrders() {
   const router = useRouter();
   const [sections, setSections] = useState<Section[]>([]);
@@ -65,7 +64,11 @@ export default function AllOrders() {
                   orderNumber={item.order_code}
                   datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
                   totalAmount={`£${item.store_total_price}`}
-                  status={item.is_order_fulfilled ? "delivered" : "Your item is being processed"}
+                  status={
+                    item.is_order_fulfilled
+                      ? "delivered"
+                      : "Your item is being processed"
+                  }
                   onPressDetail={() =>
                     router.push({
                       pathname: "/Screens/OrderScreen/OrderDetailsScrenn",

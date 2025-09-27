@@ -22,13 +22,13 @@ export default function CustomerFeedback({ feedback }: CustomerFeedbackProps) {
     return (
       <View className="mt-[16px]"> 
         <UrbanistText className="py-10 mx-auto text-[16px]">No reviews yet.</UrbanistText>
-        <View className="mt-[16px]">
+        {/* <View className="mt-[16px]">
           <Button
             title="Write a review"
             fontClassName="urbanist"
             onPress={() => {}}
           />
-        </View>
+        </View> */}
       </View>
     );
   }
