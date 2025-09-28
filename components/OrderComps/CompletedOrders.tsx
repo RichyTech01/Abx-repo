@@ -43,6 +43,14 @@ export default function CompletedOrders() {
     );
   };
 
+  const getStatus = (order: any) => {
+    return {
+      text: `Delivered on ${dayjs(order.created_at).format("MMM D, YYYY")}`,
+      color: "#059669",
+      isDelivered: true,
+    };
+  };
+
   if (loading) {
     return (
       <View className="py-10">
@@ -82,13 +90,22 @@ export default function CompletedOrders() {
           // Don't render if this item is beyond our display limit
           if (index >= itemsToShow) return null;
 
+          // Get dynamic status
+          const {
+            text: statusText,
+            color: statusColor,
+            isDelivered,
+          } = getStatus(item);
+
           return (
             <View className="mt-[8px]">
               <OrderCard
                 orderNumber={item.order_code}
                 datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
                 totalAmount={`£${item.store_total_price}`}
-                status="delivered"
+                status={statusText}
+                statusColor="#059669"
+                isDelivered={true}
                 onPressDetail={() =>
                   router.push({
                     pathname: "/Screens/OrderScreen/OrderDetailsScrenn",

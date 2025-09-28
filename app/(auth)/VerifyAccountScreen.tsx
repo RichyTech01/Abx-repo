@@ -19,10 +19,11 @@ import { useRouter } from "expo-router";
 
 export default function VerifyAccountScreen() {
   const router = useRouter();
-  const { email } = useLocalSearchParams();
+  const { email } = useLocalSearchParams<{ email: string }>();
 
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const handleOtpComplete = async (otp: string) => {
     setLoading(true);
@@ -39,8 +40,26 @@ export default function VerifyAccountScreen() {
     }
   };
 
+  const handleResendCode = async () => {
+    if (!email) {
+      showToast("error", "Email is missing.");
+      return;
+    }
+
+    try {
+      setResending(true);
+      await AuthApi.resendOtp(email);
+      showToast("success", "Success", "A new code has been sent to your email.");
+    } catch (err: any) {
+      console.log("Resend error:", err?.response?.data || err.message);
+      showToast("error", "Failed to resend code. Try again later.");
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
-    <ScreenWrapper style={{ flex: 1, backgroundColor: "white" }}  >
+    <ScreenWrapper style={{ flex: 1, backgroundColor: "white" }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -75,9 +94,9 @@ export default function VerifyAccountScreen() {
               <Text className="text-[14px] leading-[20px] font-urbanist text-[#4A3223] flex-shrink">
                 Didn&apos;t receive a code?{" "}
               </Text>
-              <Pressable onPress={() => console.log("Resend code pressed")}>
+              <Pressable onPress={handleResendCode} disabled={resending}>
                 <Text className="text-[14px] leading-[20px] font-urbanist text-[#0C513F] ml-[4px]">
-                  Resend code
+                  {"Resend code"}
                 </Text>
               </Pressable>
             </View>
@@ -98,10 +117,7 @@ export default function VerifyAccountScreen() {
 
       {showModal && (
         <VerificationSuccessModal
-          onClose={() => 
-            setShowModal(false)
-          
-          }
+          onClose={() => {}}
           visible={showModal}
         />
       )}

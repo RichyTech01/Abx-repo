@@ -10,6 +10,8 @@ interface OrderCardProps {
   datePlaced: string;
   totalAmount: string;
   status: string;
+  statusColor?: string;
+  isDelivered?: boolean;
   onPressDetail?: () => void;
 }
 
@@ -18,6 +20,8 @@ export default function OrderCard({
   datePlaced,
   totalAmount,
   status,
+  statusColor = "#F4B551",
+  isDelivered = false,
   onPressDetail,
 }: OrderCardProps) {
   return (
@@ -55,10 +59,10 @@ export default function OrderCard({
       {/* Status Row */}
       <View className="p-[8px] flex-row items-center justify-between">
         <View className="gap-[4px] flex-row items-center">
-          {status === "delivered" ? <DeliveredIcon /> : <ProcessingIcon />}
+          {isDelivered || status.toLowerCase().includes('delivered') ? <DeliveredIcon /> : <ProcessingIcon />}
           <UrbanistText
             className="text-[12px] leading-[16px]"
-            style={{ color: status === "delivered" ? "#05A85A" : "#F4B551" }}
+            style={{ color: statusColor }}
           >
             {status}
           </UrbanistText>

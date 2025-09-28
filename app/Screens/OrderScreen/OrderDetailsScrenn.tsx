@@ -149,39 +149,45 @@ export default function OrderDetailsScrenn() {
           >
             <View className="bg-white mt-[20px]">
               {/* Order info row */}
-              <View className="border border-[#F1EAE7] rounded-[8px] px-[10px] py-[10px] flex-row items-center justify-between gap-1">
-                <View>
-                  <Text className="text-[14px] font-urbanist-medium text-[#111827]">
-                    Order number
-                  </Text>
+              <View className="border border-[#F1EAE7] rounded-[8px] px-[10px] py-[10px]">
+                {/* First Row */}
+                <View className="flex-row items-center justify-between gap-4 mb-[16px]">
+                  <View className="flex-1">
+                    <Text className="text-[14px] font-urbanist-medium text-[#111827]">
+                      Order number
+                    </Text>
+                    <UrbanistText className="text-[14px] leading-[20px] text-[#6B7280] mt-[4px]">
+                      {order?.order_code}
+                    </UrbanistText>
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[14px] font-urbanist-medium text-[#111827]">
+                      Store ID
+                    </Text>
+                    <UrbanistText className="text-[14px] leading-[20px] text-[#6B7280] mt-[4px]">
+                      {order?.store_id}
+                    </UrbanistText>
+                  </View>
+                </View>
 
-                  <UrbanistText className="text-[14px] leading-[20px] text-[#6B7280] mt-[4px]">
-                    {order?.order_code}
-                  </UrbanistText>
-                </View>
-                <View className="ml-[4px] flex  flex-col items-center ">
-                  <Text className="text-[14px] font-urbanist-medium text-[#111827]">
-                    Store ID
-                  </Text>
-                  <UrbanistText className="text-[14px] leading-[20px] text-[#6B7280] mt-[4px]">
-                    ABX
-                  </UrbanistText>
-                </View>
-                <View className="ml-[4px]">
-                  <Text className="text-[14px] font-urbanist-medium text-[#111827]">
-                    Date placed
-                  </Text>
-                  <UrbanistText className="text-[14px] leading-[20px] text-[#6B7280] mt-[4px]">
-                    {dayjs(order?.created_at).format("MMM D, YYYY")}
-                  </UrbanistText>
-                </View>
-                <View className="ml-[4px]">
-                  <Text className="text-[14px] leading-[20px] font-urbanist-medium text-[#111827]">
-                    Total amount
-                  </Text>
-                  <Text className="text-[14px] leading-[20px] text-[#111827] mt-[4px] font-urbanist-medium ">
-                    £{order?.grand_total}
-                  </Text>
+                {/* Second Row */}
+                <View className="flex-row items-center justify-between gap-4">
+                  <View className="flex-1">
+                    <Text className="text-[14px] font-urbanist-medium text-[#111827]">
+                      Date placed
+                    </Text>
+                    <UrbanistText className="text-[14px] leading-[20px] text-[#6B7280] mt-[4px]">
+                      {dayjs(order?.created_at).format("MMM D, YYYY")}
+                    </UrbanistText>
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[14px] leading-[20px] font-urbanist-medium text-[#111827]">
+                      Total amount
+                    </Text>
+                    <Text className="text-[14px] leading-[20px] text-[#111827] mt-[4px] font-urbanist-medium">
+                      £{order?.grand_total}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
@@ -255,7 +261,8 @@ export default function OrderDetailsScrenn() {
               ) : null}
             </View>
 
-            {order?.status === "completed" ? null : (
+            {order?.status === "completed" ||
+            order?.status !== "pickedup" ? null : (
               <View className="mt-[8%]">
                 <Button
                   title="Click to confirm item delivery"
@@ -271,6 +278,7 @@ export default function OrderDetailsScrenn() {
       <PaymentSuccessModal
         visible={showModal}
         content="Order Confirmed"
+        secondButtonTitle="Cancel"
         onPress={() =>
           router.push({
             pathname: "/Screens/OrderScreen/WriteReviewScreen",
@@ -279,6 +287,7 @@ export default function OrderDetailsScrenn() {
         }
         tittle="Write a Review"
         onClose={() => setShowModal((prev) => !prev)}
+        onSecondPress={() => console.log("Secondary pressed")}
       />
     </ScreenWrapper>
   );

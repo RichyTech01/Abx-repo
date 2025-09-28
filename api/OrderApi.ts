@@ -18,7 +18,7 @@ export interface AddressResponse {
   city?: string;
   is_guest?: boolean;
   full_name?: string;
-  [key: string]: any; 
+  [key: string]: any;
 }
 
 class OrderApi {
@@ -63,7 +63,7 @@ class OrderApi {
     try {
       const res = await this.client.get("/order/checkout");
       return res.data;
-      console.log("error", res.data)
+      console.log("error", res.data);
     } catch (error) {
       console.error("Checkout error:", error);
       throw error;
@@ -79,6 +79,18 @@ class OrderApi {
         "Error fetching user address:",
         error.response || error.message
       );
+      throw error;
+    }
+  }
+
+  public async getCustomerAddresses(page?: number) {
+    try {
+      const res = await this.client.get("/customer/addresses", {
+        params: page ? { page } : {},
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Failed to fetch customer addresses:", error);
       throw error;
     }
   }
@@ -141,14 +153,13 @@ class OrderApi {
       throw error;
     }
   }
-  
-  // Inside your OrderApi or CustomerApi class
+
   public async completeCustomerOrder(orderId: string) {
     try {
       const res = await this.client.patch(
         `/customer/orders/${orderId}/complete`
       );
-      return res.data; 
+      return res.data;
     } catch (error) {
       console.error(`Failed to complete order ${orderId}:`, error);
       throw error;

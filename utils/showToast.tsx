@@ -3,14 +3,14 @@ import Toast from "react-native-toast-message";
 const showToast = (
   type: "success" | "error" | "info",
   title: string,
-  message?: string // Make message optional
+  message?: string 
 ) => {
   Toast.show({
     type,
-    text1: title,           // Use the provided title
-    text2: message,         // Use the optional message
+    text1: title,          
+    text2: message,         
     position: "top",
-    visibilityTime: 5000,
+    visibilityTime: 6000,
   });
 };
 

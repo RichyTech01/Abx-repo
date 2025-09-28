@@ -113,9 +113,10 @@ export default function Home() {
     useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
- 
+
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
+    // removeItem("cartId")
   };
 
   useEffect(() => {

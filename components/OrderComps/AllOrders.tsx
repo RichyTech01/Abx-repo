@@ -36,6 +36,59 @@ export default function AllOrders() {
       prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
     );
   };
+
+  const getStatus = (order: any) => {
+    const status = order.status;
+    
+    switch (status) {
+      case "pending":
+        return {
+          text: "Your order is pending",
+          color: "#F4B551",
+          isDelivered: false,
+        };
+      case "preparing":
+        return {
+          text: "Preparing for delivery",
+          color: "#F4B551",
+          isDelivered: false,
+        };
+      case "assigned":
+        return {
+          text: "Rider assigned to Order",
+          color: "#DC6C3C",
+          isDelivered: false,
+        };
+      case "ready":
+        return {
+          text: "Ready for Delivery",
+          color: "#2563EB",
+          isDelivered: false,
+        };
+      case "pickedup":
+        return {
+          text: "Order on the way",
+          color: "#6B7280",
+          isDelivered: false,
+        };
+      case "completed":
+        return {
+          text: `Delivered on ${dayjs(order.created_at).format("MMM D, YYYY")}`,
+          color: "#059669",
+          isDelivered: true,
+        };
+      default:
+        // Fallback to your existing logic
+        return {
+          text: order.is_order_fulfilled 
+            ? "Delivered" 
+            : "Your item is being processed",
+          color: order.is_order_fulfilled ? "#059669" : "#F4B551",
+          isDelivered: order.is_order_fulfilled,
+        };
+    }
+  };
+
   return (
     <View className="mt-[8%]">
       {loading ? (
@@ -51,24 +104,26 @@ export default function AllOrders() {
             const expanded = expandedSections.includes(section.title);
             const index = section.data.indexOf(item);
 
-            // Show first 10 items by default, or all if expanded
+            // Show first 5 items by default, or all if expanded
             const itemsToShow = expanded
               ? section.data.length
               : Math.min(5, section.data.length);
 
             // Don't render if this item is beyond our display limit
             if (index >= itemsToShow) return null;
+
+            // Get dynamic status
+            const { text: statusText, color: statusColor, isDelivered } = getStatus(item);
+
             return (
               <View className="mt-[8px]">
                 <OrderCard
                   orderNumber={item.order_code}
                   datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
                   totalAmount={`£${item.store_total_price}`}
-                  status={
-                    item.is_order_fulfilled
-                      ? "delivered"
-                      : "Your item is being processed"
-                  }
+                  status={statusText}
+                  statusColor={statusColor}
+                  isDelivered={isDelivered}
                   onPressDetail={() =>
                     router.push({
                       pathname: "/Screens/OrderScreen/OrderDetailsScrenn",
@@ -83,7 +138,7 @@ export default function AllOrders() {
             if (section.data.length === 0) return null;
 
             const expanded = expandedSections.includes(section.title);
-            const hasMoreThanTen = section.data.length > 5;
+            const hasMoreThanFive = section.data.length > 5;
 
             return (
               <View
@@ -95,7 +150,7 @@ export default function AllOrders() {
                 <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
                   {section.title}
                 </OreAppText>
-                {hasMoreThanTen && (
+                {hasMoreThanFive && (
                   <Pressable onPress={() => toggleExpand(section.title)}>
                     <Text className="text-[14px] font-urbanist-medium leading-[20px]">
                       {expanded ? "Show less" : `View all orders`}
