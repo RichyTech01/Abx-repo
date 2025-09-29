@@ -122,7 +122,7 @@ class AuthApi {
   }
 
   // Validate email or phone before registration
-  public async validateCredential(data: { email?: string; phone?: string }) {
+  public async validateCredential(data: { email?: string; phone_number?: string }) {
     const res = await this.client.post("/auth/validated-credential", data);
     return res.data;
   }

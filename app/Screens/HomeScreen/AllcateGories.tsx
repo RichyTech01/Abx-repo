@@ -45,7 +45,7 @@ export default function AllCategories() {
           ...CATEGORY_COLORS[cat.id],
         }));
         setCategories(withColors);
-        console.log("category data", withColors);
+        // console.log("category data", withColors);
       } catch (error) {
         console.error("Failed to fetch categories", error);
       } finally {

@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import { groupOrdersByDate, Section } from "@/utils/groupOrdersByDate";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useRouter } from "expo-router";
+import NoData from "@/common/NoData";
 
 export default function AllOrders() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function AllOrders() {
 
   const getStatus = (order: any) => {
     const status = order.status;
-    
+
     switch (status) {
       case "pending":
         return {
@@ -78,10 +79,9 @@ export default function AllOrders() {
           isDelivered: true,
         };
       default:
-        // Fallback to your existing logic
         return {
-          text: order.is_order_fulfilled 
-            ? "Delivered" 
+          text: order.is_order_fulfilled
+            ? "Delivered"
             : "Your item is being processed",
           color: order.is_order_fulfilled ? "#059669" : "#F4B551",
           isDelivered: order.is_order_fulfilled,
@@ -89,6 +89,18 @@ export default function AllOrders() {
     }
   };
 
+  if (sections.length === 0) {
+    return (
+      <View className="justify-center items-center mt-[20%]">
+        <NoData
+          title="No order history"
+          buttonTitle="Start shopping"
+          onButtonPress={() => router.push("/Screens/AccountScreen/AllStore")}
+          subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
+        />
+      </View>
+    );
+  }
   return (
     <View className="mt-[8%]">
       {loading ? (
@@ -113,7 +125,11 @@ export default function AllOrders() {
             if (index >= itemsToShow) return null;
 
             // Get dynamic status
-            const { text: statusText, color: statusColor, isDelivered } = getStatus(item);
+            const {
+              text: statusText,
+              color: statusColor,
+              isDelivered,
+            } = getStatus(item);
 
             return (
               <View className="mt-[8px]">

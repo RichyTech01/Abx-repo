@@ -104,8 +104,6 @@ function BannerSlider() {
   );
 }
 
-
-
 export default function Home() {
   const router = useRouter();
   const { user, loading, fetchUser } = useUserStore();
@@ -113,10 +111,8 @@ export default function Home() {
     useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
-
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
-    // removeItem("cartId")
   };
 
   useEffect(() => {
@@ -132,13 +128,19 @@ export default function Home() {
         try {
           const res = await OrderApi.getCart();
           const items = res.cart?.items || [];
+          const cartId = res.cart?.id;
+
+          if (cartId) {
+            await AsyncStorage.setItem("cartId", cartId);
+            fetchCartCount();
+          } else {
+            await AsyncStorage.removeItem("cartId");
+          }
           setCartItems(items);
         } catch (err) {
           console.error("Error fetching cart:", err);
         }
       };
-
-      fetchCartCount();
     }, [checkNotificationStatus])
   );
 

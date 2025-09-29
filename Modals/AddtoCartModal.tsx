@@ -15,7 +15,7 @@ import Button from "@/common/Button";
 import { ProductVariation } from "@/types/store";
 import VariationCard from "@/common/VariationCard";
 import OrderApi from "@/api/OrderApi";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type AddtoCartModalProps = {
   value: boolean;
@@ -38,6 +38,11 @@ export default function AddtoCartModal({
 
   const fetchCart = async () => {
     try {
+      const cartId = await AsyncStorage.getItem("cartId"); 
+      if (!cartId) {
+        setCartItems([]); 
+        return;
+      }
       const res = await OrderApi.getCart();
       // console.log("Full API response:", res);
       setCartItems(res.cart.items || []);

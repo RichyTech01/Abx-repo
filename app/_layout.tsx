@@ -1,11 +1,14 @@
 import "./global.css";
-import { useEffect, useState, useCallback,  } from "react";
+import { useEffect, useState, useCallback } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  initialWindowMetrics,
+} from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/toastConfig";
 import { StatusBar } from "expo-status-bar";
@@ -44,22 +47,22 @@ function GlobalMQTTHandler() {
     useNotificationStore();
 
   // In your GlobalMQTTHandler component in _layout.tsx
-const handleNewNotification = useCallback(
-  (newNotification: Notification) => {
-    console.log("🔔 Global notification received:", newNotification);
+  const handleNewNotification = useCallback(
+    (newNotification: Notification) => {
+      console.log("🔔 Global notification received:", newNotification);
 
-    // Update the store (this will update all screens using the store)
-    handleRealtimeNotification(newNotification)
+      // Update the store (this will update all screens using the store)
+      handleRealtimeNotification(newNotification);
 
-    // Show toast notification message - FIXED: Pass title and message correctly
-    showToast(
-      "success",
-      newNotification.title ?? "Notification",
-      newNotification.message ?? "You have a new notification."
-    );
-  },
-  [handleRealtimeNotification]
-);
+      // Show toast notification message - FIXED: Pass title and message correctly
+      showToast(
+        "success",
+        newNotification.title ?? "Notification",
+        newNotification.message ?? "You have a new notification."
+      );
+    },
+    [handleRealtimeNotification]
+  );
 
   // Connect to MQTT when user is available
   useEffect(() => {
@@ -83,7 +86,6 @@ const handleNewNotification = useCallback(
   return null;
 }
 
-
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     OrelegaOne: OrelegaOne_400Regular,
@@ -100,7 +102,7 @@ export default function RootLayout() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("accessToken");
-      console.log("🔑 Token:", token); 
+      console.log("🔑 Token:", token);
       console.log("📱 Fonts loaded:", fontsLoaded);
       setIsLoggedIn(!!token);
 
@@ -120,35 +122,34 @@ export default function RootLayout() {
   if (!fontsLoaded || isLoggedIn === null) return null;
 
   return (
-  <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-    {!fontsLoaded || isLoggedIn === null ? (
-      <View style={{ flex: 1, backgroundColor: "#FFF6F2" }} />
-    ) : (
-      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-        <QueryClientProvider client={queryClient}>
-          <StatusBar style="dark" backgroundColor="#fff" />
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      {!fontsLoaded || isLoggedIn === null ? (
+        <View style={{ flex: 1, backgroundColor: "#FFF6F2" }} />
+      ) : (
+        <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+          <QueryClientProvider client={queryClient}>
+            <StatusBar style="dark" backgroundColor="#fff" />
 
-          {isLoggedIn && <GlobalMQTTHandler />}
+            {isLoggedIn && <GlobalMQTTHandler />}
 
-          <Stack screenOptions={{ headerShown: false }}>
-            {isLoggedIn ? (
-              <Stack.Screen
-                name="(tabs)/_layout"
-                options={{ gestureEnabled: false, headerShown: false }}
-              />
-            ) : (
-              <Stack.Screen
-                name="(auth)/onboarding"
-                options={{ gestureEnabled: true, headerShown: false }}
-              />
-            )}
-          </Stack>
+            <Stack screenOptions={{ headerShown: false }}>
+              {isLoggedIn ? (
+                <Stack.Screen
+                  name="(tabs)/_layout"
+                  options={{ gestureEnabled: false, headerShown: false }}
+                />
+              ) : (
+                <Stack.Screen
+                  name="(auth)/onboarding"
+                  options={{ gestureEnabled: true, headerShown: false }}
+                />
+              )}
+            </Stack>
 
-          <Toast config={toastConfig} />
-        </QueryClientProvider>
-      </StripeProvider>
-    )}
-  </SafeAreaProvider>
-);
-
+            <Toast config={toastConfig} />
+          </QueryClientProvider>
+        </StripeProvider>
+      )}
+    </SafeAreaProvider>
+  );
 }

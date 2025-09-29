@@ -12,7 +12,6 @@ export interface PatchedChatSession {
   status?: "open" | "closed";
 }
 
-
 class SupportApi {
   private client = ApiService.getClient();
 
@@ -24,7 +23,7 @@ class SupportApi {
     return res.data;
   }
 
-   //  Start a new chat session
+  //  Start a new chat session
   public async startChatSession() {
     const res = await this.client.post("/support/chat-session/start");
     return res.data;
@@ -32,7 +31,9 @@ class SupportApi {
 
   //  Get a single session by ID
   public async getSessionById(sessionId: string) {
-    const res = await this.client.get(`/api/support/admin/sessions/${sessionId}`);
+    const res = await this.client.get(
+      `/api/support/admin/sessions/${sessionId}`
+    );
     return res.data;
   }
 
@@ -54,6 +55,10 @@ class SupportApi {
     return res.data;
   }
 
+  public getWebSocketUrl(sessionId: string, userId: string): string {
+    return `wss://chat.afrobasketxpress.uk/ws/support/${sessionId}/${userId}/`;
+  }
+
   // Get active chat messages in a session (paginated)
   public async getActiveChatMessages(sessionId: string, page?: number) {
     const res = await this.client.get(
@@ -62,8 +67,6 @@ class SupportApi {
     );
     return res.data;
   }
-
- 
 }
 
 export default new SupportApi();

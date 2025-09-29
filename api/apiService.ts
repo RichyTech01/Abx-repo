@@ -28,7 +28,7 @@ class ApiService {
         if (cartId) {
           config.headers["X-Cart-ID"] = cartId;
         }
-        console.log("cart",cartId)
+        // console.log("carttt",cartId)
         return config;
       },
       (error) => Promise.reject(error)

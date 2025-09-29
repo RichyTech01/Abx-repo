@@ -5,6 +5,7 @@ import OrderApi from "@/api/OrderApi";
 import dayjs from "dayjs";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useRouter } from "expo-router";
+import NoData from "@/common/NoData";
 
 type OrderStatus = "processing" | "delivered";
 
@@ -46,11 +47,18 @@ export default function OngoingOrders() {
     );
   }
 
-  if (orders.length === 0) {
-    return (
-      <Text className="text-center mt-10 text-gray-500">No ongoing orders</Text>
-    );
-  }
+   if (orders.length === 0) {
+      return (
+        <View className="justify-center items-center mt-[20%]">
+          <NoData
+            title="No order history"
+            buttonTitle="Start shopping"
+            onButtonPress={() => router.push("/Screens/AccountScreen/AllStore")}
+            subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
+          />
+        </View>
+      );
+    }
 
   return (
     <View className="mt-[8%]">

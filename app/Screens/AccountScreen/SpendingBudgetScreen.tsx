@@ -51,7 +51,7 @@ export default function SpendingBudgetScreen() {
     <ScreenWrapper>
       <Header title="Spending budget" />
 
-      {budget && (
+      {Number(budget?.amount ?? 0) > 0 ? (
         <View className="w-[80%] mx-auto px-[20px] mt-[8%]">
           <SpendingBudgetTab
             tabs={["Spending budget", "Spending insight"]}
@@ -60,7 +60,7 @@ export default function SpendingBudgetScreen() {
             navigateTab="Spending insight"
           />
         </View>
-      )}
+      ): null} 
 
       {/* 👇 Scrollable content after the tab */}
       <ScrollView

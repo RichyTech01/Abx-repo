@@ -26,20 +26,30 @@ export default function Carts() {
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
-
   useFocusEffect(
     useCallback(() => {
       const checkLoginAndFetch = async () => {
-        const wasLoggedIn = await AsyncStorage.getItem("accessToken");
+        try {
+          const wasLoggedIn = await AsyncStorage.getItem("accessToken");
+          const cartId = await AsyncStorage.getItem("cartId"); // ✅ check cartId
 
-        if (wasLoggedIn) {
-          fetchCart();
+          if (wasLoggedIn && cartId) {
+            fetchCart();
+          } else {
+            setCartItems([]);
+            setLoading(false);
+          }
+        } catch (err) {
+          console.error("Error checking login/cart:", err);
+          setCartItems([]);
+          setLoading(false);
         }
       };
 
       checkLoginAndFetch();
     }, [])
   );
+
   const fetchCart = async () => {
     try {
       setLoading(true);
@@ -188,8 +198,8 @@ export default function Carts() {
                 </View>
               )}
               showsVerticalScrollIndicator={false}
-              refreshing={loading}
-              onRefresh={fetchCart}
+              // refreshing={loading}
+              // onRefresh={fetchCart}
             />
           )}
 

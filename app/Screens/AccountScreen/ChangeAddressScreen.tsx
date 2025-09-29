@@ -5,7 +5,7 @@ import Header from "@/common/Header";
 import Button from "@/common/Button";
 import { useUserStore } from "@/store/useUserStore";
 import ChangeAddressModal from "@/Modals/ChangeAddressModal";
-import AddressCard from "@/common/AddressCard"; 
+import AddressCard from "@/common/AddressCard";  
 
 export default function ChangeAddressScreen() {
   const { user, fetchUser } = useUserStore();

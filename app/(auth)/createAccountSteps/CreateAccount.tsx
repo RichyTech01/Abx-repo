@@ -13,6 +13,7 @@ import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
 import { useRouter } from "expo-router";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CreateAccount() {
   const [step, setStep] = useState(1);
@@ -58,7 +59,7 @@ export default function CreateAccount() {
       showToast("success", "Your account has been created!");
       router.push({
         pathname: "/VerifyAccountScreen",
-        params: { email: formData.email }, 
+        params: { email: formData.email },
       });
     } catch (error: any) {
       console.log("Sign up error:", error?.response?.data || error.message);

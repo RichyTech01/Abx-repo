@@ -1,9 +1,10 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import React, { useState } from "react";
 import CustomTextInput from "@/common/CustomTextInput";
 import Button from "@/common/Button";
 import CustomPhoneInput from "@/common/PhoneNumberInput";
 import { isValidEmail } from "@/utils/isValidateEmail";
+import AuthApi from "@/api/AuthApi";
 
 export default function StepOne({
   nextStep,
@@ -18,7 +19,6 @@ export default function StepOne({
     formData.phone_number?.replace("+44", "") || ""
   );
 
-  // Track errors
   const [errors, setErrors] = useState({
     first_name: "",
     last_name: "",
@@ -26,7 +26,9 @@ export default function StepOne({
     phone_number: "",
   });
 
-  const handleNext = () => {
+  const [loading, setLoading] = useState(false);
+
+  const handleNext = async () => {
     let newErrors: any = {};
 
     if (!formData.first_name) newErrors.first_name = "First name is required";
@@ -40,92 +42,123 @@ export default function StepOne({
 
     if (!rawPhoneNumber) newErrors.phone_number = "Phone number is required";
 
-    setErrors(newErrors);
+    setErrors((prev) => ({ ...prev, ...newErrors }));
 
     if (Object.keys(newErrors).length > 0) return;
 
     const fullPhoneNumber = `+44${rawPhoneNumber}`;
-    setFormData({
-      ...formData,
-      phone_number: fullPhoneNumber,
-    });
-    nextStep();
+
+    try {
+      setLoading(true);
+
+      const res = await AuthApi.validateCredential({
+        email: formData.email,
+        phone_number: fullPhoneNumber,
+      });
+
+      console.log("Validation success:", res);
+
+      setFormData({
+        ...formData,
+        phone_number: fullPhoneNumber,
+      });
+      nextStep();
+    } catch (err: any) {
+      console.log("Validation error:", err.response?.data);
+
+      const backendErrors = err.response?.data;
+
+      if (backendErrors) {
+        let updatedErrors = {
+          first_name: "",
+          last_name: "",
+          email: "",
+          phone_number: "",
+        };
+
+        if (backendErrors.email) {
+          updatedErrors.email = backendErrors.email[0];
+        }
+        if (backendErrors.phone_number) {
+          updatedErrors.phone_number = backendErrors.phone_number[0];
+        }
+
+        if (backendErrors.non_field_errors) {
+          const message = backendErrors.non_field_errors[0];
+
+          if (message.toLowerCase().includes("phone")) {
+            updatedErrors.phone_number = message;
+          } else if (message.toLowerCase().includes("email")) {
+            updatedErrors.email = message;
+          } else {
+            // optional toast fallback if it's some generic error
+          }
+        }
+
+        setErrors(updatedErrors);
+      } else {
+        setErrors({
+          ...errors,
+          email: "Something went wrong, please try again",
+        });
+      }
+      setLoading(false);
+    }
   };
 
   return (
     <View className="mt-[7%]">
       <View className="gap-[32px]">
-        <View>
-          <CustomTextInput
-            label="First Name"
-            placeholder="Type your first name"
-            value={formData.first_name}
-            onChangeText={(text) => {
-              setFormData({ ...formData, first_name: text });
-              if (errors.first_name) setErrors({ ...errors, first_name: "" });
-            }}
-          />
-          {errors.first_name ? (
-            <Text style={{ color: "red", fontSize: 12 }}>
-              {errors.first_name}
-            </Text>
-          ) : null}
-        </View>
+        <CustomTextInput
+          label="First Name"
+          placeholder="Type your first name"
+          value={formData.first_name}
+          onChangeText={(text) => {
+            setFormData({ ...formData, first_name: text });
+            if (errors.first_name) setErrors({ ...errors, first_name: "" });
+          }}
+          error={errors.first_name}
+        />
 
-        <View>
-          <CustomTextInput
-            label="Last Name"
-            placeholder="Type your last name"
-            value={formData.last_name}
-            onChangeText={(text) => {
-              setFormData({ ...formData, last_name: text });
-              if (errors.last_name) setErrors({ ...errors, last_name: "" });
-            }}
-          />
-          {errors.last_name ? (
-            <Text style={{ color: "red", fontSize: 12 }}>
-              {errors.last_name}
-            </Text>
-          ) : null}
-        </View>
+        <CustomTextInput
+          label="Last Name"
+          placeholder="Type your last name"
+          value={formData.last_name}
+          onChangeText={(text) => {
+            setFormData({ ...formData, last_name: text });
+            if (errors.last_name) setErrors({ ...errors, last_name: "" });
+          }}
+          error={errors.last_name}
+        />
 
-        <View>
-          <CustomTextInput
-            label="Email Address"
-            placeholder="Type your email"
-            value={formData.email}
-            onChangeText={(text) => {
-              setFormData({ ...formData, email: text });
-              if (errors.email) setErrors({ ...errors, email: "" });
-            }}
-          />
-          {errors.email ? (
-            <Text style={{ color: "red", fontSize: 12 }}>{errors.email}</Text>
-          ) : null}
-        </View>
+        <CustomTextInput
+          label="Email Address"
+          placeholder="Type your email"
+          value={formData.email}
+          onChangeText={(text) => {
+            setFormData({ ...formData, email: text });
+            if (errors.email) setErrors({ ...errors, email: "" });
+          }}
+          error={errors.email}
+        />
 
-        <View>
-          <CustomPhoneInput
-            value={rawPhoneNumber}
-            onChange={(phone) => {
-              setRawPhoneNumber(phone);
-              if (errors.phone_number)
-                setErrors({ ...errors, phone_number: "" });
-            }}
-          />
-          {errors.phone_number ? (
-            <Text style={{ color: "red", fontSize: 12 }}>
-              {errors.phone_number}
-            </Text>
-          ) : null}
-        </View>
+        <CustomPhoneInput
+          value={rawPhoneNumber}
+          onChange={(phone) => {
+            setRawPhoneNumber(phone);
+            if (errors.phone_number) setErrors({ ...errors, phone_number: "" });
+          }}
+          error={errors.phone_number}
+        />
 
         <Button
-          title="Click to continue"
+          title={"Click to continue"}
           textColor="#0C513F"
           backgroundColor="#ECF1F0"
           borderColor="#AEC5BF"
           onPress={handleNext}
+          loading={loading}
+          disabled={loading}
         />
       </View>
     </View>
