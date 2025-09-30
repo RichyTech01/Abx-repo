@@ -89,18 +89,6 @@ export default function AllOrders() {
     }
   };
 
-  if (sections.length === 0) {
-    return (
-      <View className="justify-center items-center mt-[20%]">
-        <NoData
-          title="No order history"
-          buttonTitle="Start shopping"
-          onButtonPress={() => router.push("/Screens/AccountScreen/AllStore")}
-          subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
-        />
-      </View>
-    );
-  }
   return (
     <View className="mt-[8%]">
       {loading ? (
@@ -178,9 +166,16 @@ export default function AllOrders() {
           }}
           contentContainerStyle={{ paddingBottom: 320 }}
           ListEmptyComponent={
-            <Text className="text-center mt-10 text-gray-500">
-              No orders yet
-            </Text>
+            <View className="justify-center items-center mt-[20%]">
+              <NoData
+                title="No order history"
+                buttonTitle="Start shopping"
+                onButtonPress={() =>
+                  router.push("/Screens/AccountScreen/AllStore")
+                }
+                subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
+              />
+            </View>
           }
         />
       )}

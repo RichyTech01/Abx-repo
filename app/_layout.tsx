@@ -43,7 +43,7 @@ const STRIPE_PUBLISHABLE_KEY =
 // Global MQTT Handler Component
 function GlobalMQTTHandler() {
   const { user, fetchUser } = useUserStore();
-  const { handleRealtimeNotification, fetchNotifications } =
+  const { handleRealtimeNotification,  } =
     useNotificationStore();
     
 

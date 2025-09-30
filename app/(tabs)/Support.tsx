@@ -17,19 +17,32 @@ import SupportCard from "@/common/SupportCard";
 import { useRouter } from "expo-router";
 import showToast from "@/utils/showToast";
 import SupportApi from "@/api/SupportApi";
+import { useState } from "react";
+import ChatLoadingModal from "@/Modals/ChatLoadingModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Support() {
-  const router = useRouter()
+  const router = useRouter();
+  const [showLodaing, setShowLoading] = useState(false);
 
-//   const handleStartSession = async () => {
-//   try {
-//     const response = await SupportApi.startChatSession();
-//     console.log("chat", response); // ✅ this will run
-//     return response; // return after logging
-//   } catch (error) {
-//     console.error("Failed to start chat session:", error);
-//   }
-// };
+  const handleStartSession = async () => {
+    setShowLoading(true);
+    try {
+      const response = await SupportApi.startChatSession();
+      console.log("chat", response);
+      await AsyncStorage.setItem("ChatSessionId", response.session_id);
+      if (response.is_active === true) {
+        router.push("/Screens/Support/ChatScreen");
+        setShowLoading(false);
+      } else {
+        setShowLoading(false);
+        showToast("error", "No support available. try again later");
+      }
+      return response;
+    } catch (error: any) {
+      console.error("Failed to start chat session:", error.response?.data);
+    }
+  };
 
   const handleEmailPress = () => {
     Linking.openURL("mailto:support@abx.com");
@@ -70,7 +83,7 @@ export default function Support() {
               buttonText="Click to start a conversation"
               backgroundColor="#ECF1F0"
               buttonColor="#346E5F"
-              onPress={()=> router.push("/Screens/Support/ChatScreen")}
+              onPress={handleStartSession}
             />
 
             {/* Send Email */}
@@ -107,6 +120,11 @@ export default function Support() {
           </View>
         </View>
       </ScrollView>
+
+      <ChatLoadingModal
+        visible={showLodaing}
+        onClose={() => setShowLoading(false)}
+      />
     </ScreenWrapper>
   );
 }

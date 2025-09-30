@@ -18,6 +18,8 @@ import SupportImg from "@/assets/svgs/SupportImg.svg";
 import UrbanistText from "@/common/UrbanistText";
 import ChatSendIcon from "@/assets/svgs/ChatSendIcon.svg";
 import PickImageIcon from "@/assets/svgs/PickImageIcon.svg";
+import { useUserStore } from "@/store/useUserStore";
+
 
 
 interface Message {
@@ -34,6 +36,9 @@ interface GalleryImage {
 }
 
 export default function ChatScreen() {
+  const { user } = useUserStore();
+ console.log("userid",user?.id)
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -54,7 +59,6 @@ export default function ChatScreen() {
   const [isTyping, setIsTyping] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  
   const sendMessage = () => {
     if (inputText.trim()) {
       const newMessage: Message = {
@@ -73,32 +77,33 @@ export default function ChatScreen() {
     }
   };
 
+  // Open gallery
+  const pickImageFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "We need gallery permissions to show your photos."
+      );
+      return;
+    }
 
-// Open gallery
-const pickImageFromGallery = async () => {
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (status !== "granted") {
-    Alert.alert("Permission needed", "We need gallery permissions to show your photos.");
-    return;
-  }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    quality: 0.8,
-  });
-
-  if (!result.canceled && result.assets[0]) {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      image: result.assets[0].uri,
-      isUser: true,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, newMessage]);
-  }
-};
-
+    if (!result.canceled && result.assets[0]) {
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        image: result.assets[0].uri,
+        isUser: true,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, newMessage]);
+    }
+  };
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -181,7 +186,7 @@ const pickImageFromGallery = async () => {
             </View>
             <View className="bg-[#AEC5BF] w-[30px] h-[30px] rounded-full items-center justify-center mb-1">
               <Text className="text-[#2D2220] text-[10px] font-urbanist-medium  ">
-                C
+                {user?.first_name?.charAt(0).toUpperCase()}
               </Text>
             </View>
           </View>
@@ -197,7 +202,7 @@ const pickImageFromGallery = async () => {
               <SupportImg />
             </View>
             <View className=" max-w-[90%] rounded-[20px] rounded-bl-none px-4 py-2 border border-[#0C513F]">
-              <Text className="text-[#2D2220] text-[16px] leading-[22px] mb-1">
+              <Text className="text-[#2D2220] text-[14px] leading-[22px] font-urbanist mb-1">
                 {message.text}
               </Text>
               <Text className="text-[#2D2220] text-[14px] font-urbanist self-end mt-[8px] ">
@@ -258,7 +263,10 @@ const pickImageFromGallery = async () => {
           {showImagePicker && (
             <View className="bg-white border-t border-x border-[#F1EAE7] items-center pt-[16px] pb-[5%]  rounded-t-[16px]  ">
               <View className="flex-row b overflow-hidden w-[60% max-w-[250px]">
-                <TouchableOpacity className="flex-1 items-center border-b border-[#1B5E20] py-[8px] px-[10px] " onPress={pickImageFromGallery} >
+                <TouchableOpacity
+                  className="flex-1 items-center border-b border-[#1B5E20] py-[8px] px-[10px] "
+                  onPress={pickImageFromGallery}
+                >
                   <UrbanistText className="text-[#1B5E20] text-[16px] leading-[22px]">
                     Gallery
                   </UrbanistText>

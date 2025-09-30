@@ -7,6 +7,7 @@ import { useClosestStores } from "@/hooks/useClosestStores";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 
+
 export default function ClosestShops() {
   const router = useRouter();
   const queryClient = useQueryClient();

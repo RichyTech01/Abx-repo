@@ -47,19 +47,6 @@ export default function OngoingOrders() {
     );
   }
 
-   if (orders.length === 0) {
-      return (
-        <View className="justify-center items-center mt-[20%]">
-          <NoData
-            title="No order history"
-            buttonTitle="Start shopping"
-            onButtonPress={() => router.push("/Screens/AccountScreen/AllStore")}
-            subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
-          />
-        </View>
-      );
-    }
-
   return (
     <View className="mt-[8%]">
       <FlatList
@@ -86,6 +73,18 @@ export default function OngoingOrders() {
         contentContainerStyle={{ gap: 8, paddingBottom: 310 }}
         showsVerticalScrollIndicator={false}
         overScrollMode="never"
+        ListEmptyComponent={
+          <View className="justify-center items-center mt-[20%]">
+            <NoData
+              title="No order history"
+              buttonTitle="Start shopping"
+              onButtonPress={() =>
+                router.push("/Screens/AccountScreen/AllStore")
+              }
+              subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
+            />
+          </View>
+        }
       />
     </View>
   );
