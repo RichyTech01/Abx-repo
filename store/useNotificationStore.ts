@@ -75,7 +75,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   // Lightweight method - just check if there are unread notifications
   checkNotificationStatus: async () => {
     try {
-      const data = await NotificationApi.getNotifications(1);
+      const data = await NotificationApi.getNotifications();
       const notifications = data.results || [];
       const hasUnread = notifications.some((n: Notification) => !n.is_read);
       set({ hasNewNotifications: hasUnread });
@@ -85,20 +85,11 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   },
 
   // Full fetch method - only fetch if forced or haven't fetched recently
-  fetchNotifications: async (force = false) => {
-    // const { lastFetchTime } = get();
-    // const now = Date.now();
-    // const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-    // // Skip if we fetched recently and not forced
-    // if (!force && lastFetchTime && now - lastFetchTime < CACHE_DURATION) {
-    //   console.log("Skipping fetch - recently fetched");
-    //   return;
-    // }
+  fetchNotifications: async () => {
 
     try {
       set({ loading: true });
-      const data = await NotificationApi.getNotifications(1);
+      const data = await NotificationApi.getNotifications();
       const notifications = data.results || [];
 
       set({

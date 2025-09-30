@@ -5,17 +5,17 @@ import { useRouter } from "expo-router";
 import { AddressData } from "@/hooks/useAddressAutocomplete";
 import AddressAutocompleteInput from "@/common/AddressAutocompleteInputProps";
 import OrderApi from "@/api/OrderApi";
+import { useUserStore } from "@/store/useUserStore";
+import showToast from "@/utils/showToast";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function AdditionalinfoStepTwo({
-  onSubmit,
-  loading,
   goBackStep,
 }: {
-  onSubmit: () => void;
-  loading?: boolean;
   goBackStep: () => void;
 }) {
   const router = useRouter();
+  const { fetchUser } = useUserStore();
 
   const [addressData, setAddressData] = useState<AddressData>({
     address: "",
@@ -47,16 +47,24 @@ export default function AdditionalinfoStepTwo({
     try {
       setSubmitting(true);
 
+      // Send to backend
       await OrderApi.addAddress({
         addr: addressData.address,
         post_code: addressData.postCode,
         city: addressData.city,
       });
 
-      // Move to next onboarding step
-      onSubmit();
+      fetchUser();
+      await AsyncStorage.setItem("isLoggedIn", "true");
+
+      router.dismissAll();
+      router.replace("/(tabs)");
     } catch (err: any) {
-      console.log("Address submission error:", err.response?.data || err);
+      console.log(
+        "Address submission error:",
+        err.response?.data.detail || err
+      );
+      showToast("error", err.response?.data.detail);
       setErrors({
         addr: "Could not save address. Please try again.",
       });
@@ -124,7 +132,7 @@ export default function AdditionalinfoStepTwo({
         <View className="w-[58%]">
           <Button
             title="Verify your account"
-            loading={loading || submitting}
+            loading={submitting}
             onPress={handleVerify}
           />
         </View>

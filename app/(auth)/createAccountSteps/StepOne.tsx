@@ -6,6 +6,7 @@ import CustomPhoneInput from "@/common/PhoneNumberInput";
 import { isValidEmail } from "@/utils/isValidateEmail";
 import AuthApi from "@/api/AuthApi";
 
+
 export default function StepOne({
   nextStep,
   formData,

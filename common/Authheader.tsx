@@ -1,7 +1,6 @@
 import { View, Text, Pressable, Image, Platform } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
-import GoogleIcon from "@/assets/svgs/GoogleIcon";
 import GoogleAuth from "./GoogleAuth";
 
 type Props = {
@@ -30,7 +29,7 @@ export default function Authheader({
 
   return (
     <View>
-      <View className={`mx-auto items-center justify-center ${Platform.OS === "android"?"mt-[16%]":"mt-[5%]"} `}>
+      <View className={`mx-auto items-center justify-center mt-[5%]`}>
         <Image source={MianImg} />
 
         <Text className="text-[24px] leading-[32px] font-orelega text-[#2D2220] mt-[10px]">

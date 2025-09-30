@@ -45,7 +45,7 @@ class ApiService {
             console.log("🚪 Session expired - logging out user");
 
             // Clear session storage
-            await AsyncStorage.multiRemove(["accessToken"]);
+            await AsyncStorage.multiRemove(["accessToken", "cartId"]);
 
             // Disconnect MQTT immediately
             MQTTClient.disconnect();

@@ -26,13 +26,27 @@ export default function Carts() {
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
+    const fetchCart = async () => {
+    try {
+      setLoading(true);
+      const res = await OrderApi.getCart();
+
+      const items = res.cart?.items || [];
+      setCartItems(items);
+    } catch (err) {
+      console.error("Failed to fetch cart:", err);
+      setCartItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       const checkLoginAndFetch = async () => {
         try {
           const wasLoggedIn = await AsyncStorage.getItem("accessToken");
-          const cartId = await AsyncStorage.getItem("cartId"); // ✅ check cartId
-
+          const cartId = await AsyncStorage.getItem("cartId"); 
           if (wasLoggedIn && cartId) {
             fetchCart();
           } else {
@@ -50,20 +64,6 @@ export default function Carts() {
     }, [])
   );
 
-  const fetchCart = async () => {
-    try {
-      setLoading(true);
-      const res = await OrderApi.getCart();
-
-      const items = res.cart?.items || [];
-      setCartItems(items);
-    } catch (err) {
-      console.error("Failed to fetch cart:", err);
-      setCartItems([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const updateQuantity = async (
     cartItemId: number,

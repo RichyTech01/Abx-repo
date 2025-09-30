@@ -107,20 +107,6 @@ class AuthApi {
     return res.data;
   }
 
-  // Create store
-  public async createStore(formData: FormData) {
-    const res = await this.client.post("/auth/create-store", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return res.data;
-  }
-
-  // Stripe onboarding
-  public async stripeOnboarding() {
-    const res = await this.client.post("/auth/stripe-onboarding");
-    return res.data;
-  }
-
   // Validate email or phone before registration
   public async validateCredential(data: { email?: string; phone_number?: string }) {
     const res = await this.client.post("/auth/validated-credential", data);

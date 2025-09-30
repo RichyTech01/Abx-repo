@@ -6,14 +6,12 @@ import showToast from "@/utils/showToast";
 import { CartItem } from "@/types/carts";
 import { useCartOperations } from "@/hooks/useCartOperations";
 
-
 type VariationCardProps = {
   item: ProductVariation;
   cartItems: CartItem[];
   onCartUpdate: () => Promise<void>;
   isOpen?: boolean;
 };
-
 
 export default function VariationCard({
   item,
@@ -31,16 +29,6 @@ export default function VariationCard({
   const quantity = existingItem ? existingItem.quantity : 0;
 
   const handleIncrease = async () => {
-    if (isOpen === false) {
-      showToast("info", "Shop is closed");
-      return;
-    }
-
-    if (quantity >= item.stock) {
-      showToast("info", "Out of stock!");
-      return;
-    }
-
     let success = false;
     if (existingItem) {
       success = await updateCartQuantity(existingItem.id, "increase");
@@ -114,7 +102,7 @@ export default function VariationCard({
           className="text-[#424242] text-[14px] leading-[20px] px-[10px]"
           style={{ fontFamily: "UrbanistSemiBold" }}
         >
-          {quantity} 
+          {quantity}
         </UrbanistText>
 
         <Pressable

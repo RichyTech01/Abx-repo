@@ -70,7 +70,7 @@ function BannerSlider() {
             animated: false,
           });
           setCurrentIndex(banners.length);
-        }, 1000); // wait for animation to finish
+        }, 1000);
       }
     }, 3000);
 
@@ -119,10 +119,17 @@ export default function Home() {
     if (!user) fetchUser();
   }, [user, fetchUser]);
 
-  // Only check notification status on focus - lightweight operation
+  // Only check notification status on focus - lightweight operation 
   useFocusEffect(
     useCallback(() => {
-      checkNotificationStatus();
+      const init = async () => {
+        const access = await AsyncStorage.getItem("accessToken");
+
+        if (!access) return;
+
+        checkNotificationStatus();
+        await fetchCartCount();
+      };
 
       const fetchCartCount = async () => {
         try {
@@ -130,18 +137,22 @@ export default function Home() {
           const items = res.cart?.items || [];
           const cartId = res.cart?.id;
 
+          console.log("home cartId", cartId);
+
           if (cartId) {
             await AsyncStorage.setItem("cartId", cartId);
-            fetchCartCount();
           } else {
             await AsyncStorage.removeItem("cartId");
           }
+
           setCartItems(items);
         } catch (err) {
           console.error("Error fetching cart:", err);
         }
       };
-    }, [checkNotificationStatus])
+
+      init();
+    }, [checkNotificationStatus, setCartItems])
   );
 
   return (

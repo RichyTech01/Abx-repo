@@ -109,6 +109,7 @@ export default function StepTwo({
           textAlign: "center",
           color: "#4A3223",
         }}
+        className="font-urbanist"
       >
         By creating an account, you agree to AfrobasketXpress{" "}
         <Text
@@ -116,6 +117,7 @@ export default function StepTwo({
           onPress={() =>
             router.push("/Screens/AccountScreen/PrivacyAndPolicyScreen")
           }
+          className="font-urbanist"
         >
           Terms and Conditions
         </Text>

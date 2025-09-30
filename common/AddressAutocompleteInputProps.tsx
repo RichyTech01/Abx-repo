@@ -110,7 +110,7 @@ export default function AddressAutocompleteInput({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 12,
+    gap: 32,
     position: 'relative',
   },
   suggestionsContainer: {

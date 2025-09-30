@@ -35,7 +35,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Add errors state for field-specific error handling
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -66,7 +65,6 @@ export default function Login() {
 
       // Save tokens
       await AsyncStorage.setItem("accessToken", res.access);
-      // await AsyncStorage.setItem("refreshToken", res.refresh);
       await AsyncStorage.setItem("isLoggedIn", "true");
       fetchUser();
 

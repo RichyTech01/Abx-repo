@@ -45,6 +45,7 @@ function GlobalMQTTHandler() {
   const { user, fetchUser } = useUserStore();
   const { handleRealtimeNotification, fetchNotifications } =
     useNotificationStore();
+    
 
   // In your GlobalMQTTHandler component in _layout.tsx
   const handleNewNotification = useCallback(
@@ -57,7 +58,7 @@ function GlobalMQTTHandler() {
       // Show toast notification message - FIXED: Pass title and message correctly
       showToast(
         "success",
-        newNotification.title ?? "Notification",
+        newNotification.notification_type ?? "Notification",
         newNotification.message ?? "You have a new notification."
       );
     },
@@ -72,6 +73,7 @@ function GlobalMQTTHandler() {
       return;
     }
 
+    
     if (user?.id) {
       console.log("🚀 Connecting to global MQTT for user:", user.id);
       MQTTClient.connect(String(user.id), handleNewNotification);
@@ -102,8 +104,6 @@ export default function RootLayout() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("accessToken");
-      console.log("🔑 Token:", token);
-      console.log("📱 Fonts loaded:", fontsLoaded);
       setIsLoggedIn(!!token);
 
       if (fontsLoaded) {

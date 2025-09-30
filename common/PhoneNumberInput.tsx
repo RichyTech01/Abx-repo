@@ -42,6 +42,7 @@ const CustomPhoneInput: React.FC<Props> = ({
 
         <TextInput
           style={styles.input}
+          className="text-[12px] font-urbanist   "
           placeholder="Type phone number"
           keyboardType="phone-pad"
           inputMode="numeric"

@@ -13,7 +13,6 @@ import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
 import { useRouter } from "expo-router";
 import ScreenWrapper from "@/common/ScreenWrapper";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CreateAccount() {
   const [step, setStep] = useState(1);
@@ -89,7 +88,7 @@ export default function CreateAccount() {
   return (
     <ScreenWrapper style={{ flex: 1, backgroundColor: "white" }}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" :   "height"}
         style={{ flex: 1 }}
       >
         <ScrollView
