@@ -6,7 +6,11 @@ interface NotificationStore {
   notifications: Notification[];
   hasNewNotifications: boolean;
   loading: boolean;
-  lastFetchTime: number | null; // Track when we last fetched
+  loadingMore: boolean;
+  unreadCount: number;
+  lastFetchTime: number | null;
+  currentPage: number; // Track current page number
+  hasMore: boolean; // Track if there are more notifications to load
 
   // Actions
   setNotifications: (notifications: Notification[]) => void;
@@ -15,9 +19,10 @@ interface NotificationStore {
   markAllAsRead: () => void;
   setHasNewNotifications: (hasNew: boolean) => void;
   setLoading: (loading: boolean) => void;
-  fetchNotifications: (force?: boolean) => Promise<void>; // Add force parameter
+  fetchNotifications: (force?: boolean) => Promise<void>;
+  fetchMoreNotifications: () => Promise<void>; // New method for pagination
   markNotificationsAsSeen: () => void;
-  checkNotificationStatus: () => Promise<void>; // Just check status, don't fetch full list
+  checkNotificationStatus: () => Promise<void>;
 
   // Real-time handler
   handleRealtimeNotification: (notification: Notification) => void;
@@ -27,12 +32,17 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   notifications: [],
   hasNewNotifications: false,
   loading: false,
+  unreadCount: 0,
+  loadingMore: false,
   lastFetchTime: null,
+  currentPage: 1,
+  hasMore: true,
 
   setNotifications: (notifications) =>
     set({
       notifications,
       hasNewNotifications: notifications.some((n) => !n.is_read),
+      unreadCount: notifications.filter((n) => !n.is_read).length,
       lastFetchTime: Date.now(),
     }),
 
@@ -42,9 +52,11 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       const exists = state.notifications.find((n) => n.id === notification.id);
       if (exists) return state;
 
+      const updated = [notification, ...state.notifications];
       return {
-        notifications: [notification, ...state.notifications],
+        notifications: updated,
         hasNewNotifications: true,
+        unreadCount: updated.filter((n) => !n.is_read).length, 
       };
     }),
 
@@ -57,6 +69,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       return {
         notifications: updatedNotifications,
         hasNewNotifications: updatedNotifications.some((n) => !n.is_read),
+         unreadCount: updatedNotifications.filter((n) => !n.is_read).length,
       };
     }),
 
@@ -64,6 +77,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set((state) => ({
       notifications: state.notifications.map((n) => ({ ...n, is_read: true })),
       hasNewNotifications: false,
+      unreadCount: 0, 
     })),
 
   setHasNewNotifications: (hasNew) => set({ hasNewNotifications: hasNew }),
@@ -73,23 +87,37 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   markNotificationsAsSeen: () => set({ hasNewNotifications: false }),
 
   // Lightweight method - just check if there are unread notifications
-  checkNotificationStatus: async () => {
-    try {
-      const data = await NotificationApi.getNotifications();
-      const notifications = data.results || [];
-      const hasUnread = notifications.some((n: Notification) => !n.is_read);
-      set({ hasNewNotifications: hasUnread });
-    } catch (err) {
-      console.error("Error checking notification status:", err);
+checkNotificationStatus: async () => {
+  try {
+    let page = 1;
+    let unreadTotal = 0;
+    let hasNext = true;
+
+    while (hasNext) {
+      const data = await NotificationApi.getNotifications(page);
+
+      unreadTotal += data.results.filter((n: Notification) => !n.is_read).length;
+
+      hasNext = !!data.next;
+      page++;
     }
-  },
 
-  // Full fetch method - only fetch if forced or haven't fetched recently
+    set({
+      hasNewNotifications: unreadTotal > 0,
+      unreadCount: unreadTotal,
+    });
+  } catch (err) {
+    console.error("Error checking notification status:", err);
+  }
+},
+
+
+
+  // Full fetch method - initial load
   fetchNotifications: async () => {
-
     try {
       set({ loading: true });
-      const data = await NotificationApi.getNotifications();
+      const data = await NotificationApi.getNotifications(1);
       const notifications = data.results || [];
 
       set({
@@ -97,12 +125,42 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         hasNewNotifications: notifications.some(
           (n: Notification) => !n.is_read
         ),
-        // lastFetchTime: now,
+        currentPage: 1,
+        hasMore: !!data.next,
+        lastFetchTime: Date.now(),
       });
     } catch (err) {
       console.error("Error fetching notifications", err);
     } finally {
       set({ loading: false });
+    }
+  },
+
+  // Fetch more notifications (pagination)
+  fetchMoreNotifications: async () => {
+    const { currentPage, hasMore, loadingMore, notifications } = get();
+
+    // Don't fetch if already loading or no more data
+    if (loadingMore || !hasMore) {
+      return;
+    }
+
+    try {
+      set({ loadingMore: true });
+
+      const nextPage = currentPage + 1;
+      const data = await NotificationApi.getNotifications(nextPage);
+      const newNotifications = data.results || [];
+
+      set({
+        notifications: [...notifications, ...newNotifications],
+        currentPage: nextPage,
+        hasMore: !!data.next,
+        loadingMore: false,
+      });
+    } catch (err) {
+      console.error("Error fetching more notifications", err);
+      set({ loadingMore: false });
     }
   },
 

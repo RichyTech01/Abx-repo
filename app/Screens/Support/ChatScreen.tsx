@@ -8,7 +8,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from "react-native";
 import React, { useState, useRef, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
@@ -26,6 +25,7 @@ import SupportApi from "@/api/SupportApi";
 import showToast from "@/utils/showToast";
 import { useRouter } from "expo-router";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
+import { formatMessageDate } from "@/utils/groupchatByDate";
 
 interface Message {
   id: string;
@@ -44,6 +44,7 @@ export default function ChatScreen() {
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [InitImage, setInitImage] = useState("");
   const scrollViewRef = useRef<ScrollView>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasLoadedSession = useRef(false);
@@ -66,7 +67,6 @@ export default function ChatScreen() {
     };
   }, []);
 
-  // Initialize WebSocket connection ONLY after sessionId is loaded
   const {
     messages,
     setMessages,
@@ -179,7 +179,7 @@ export default function ChatScreen() {
       ...prev,
       {
         ...newMessage,
-        attachments: (newMessage.attachments || []).map(att =>
+        attachments: (newMessage.attachments || []).map((att) =>
           typeof att === "string" ? att : att?.file_url || att?.url || ""
         ),
       },
@@ -266,7 +266,7 @@ export default function ChatScreen() {
       ...prev,
       {
         ...newMessage,
-        attachments: (newMessage.attachments || []).map(att =>
+        attachments: (newMessage.attachments || []).map((att) =>
           typeof att === "string" ? att : att?.file_url || att?.url || ""
         ),
       },
@@ -298,9 +298,11 @@ export default function ChatScreen() {
     if (!result.canceled && result.assets[0]) {
       setShowImagePicker(false);
       await handleImageSend(result.assets[0].uri);
+      setInitImage(result.assets[0].uri);
     }
   };
 
+  console.log("3e", InitImage);
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
@@ -347,7 +349,6 @@ export default function ChatScreen() {
           ? firstAttachment
           : firstAttachment?.file_url;
     }
-    
 
     if (message.isUser) {
       return (
@@ -363,7 +364,7 @@ export default function ChatScreen() {
               {attachmentUrl ? (
                 <View className="relative mb-1">
                   <Image
-                    source={{ uri: attachmentUrl }}
+                    source={{ uri: attachmentUrl || InitImage }}
                     className="h-[200px] w-full rounded-[12px]"
                     resizeMode="cover"
                   />
@@ -422,7 +423,6 @@ export default function ChatScreen() {
     }
   };
 
-
   return (
     <ScreenWrapper>
       <View className="flex-1">
@@ -457,13 +457,26 @@ export default function ChatScreen() {
               <LoadingSpinner />
             ) : (
               <View>
-                <View className="items-center py-4">
-                  <UrbanistText className="text-[#000000] text-[16px]">
-                    Today
-                  </UrbanistText>
-                </View>
+                {messages.map((msg, index) => {
+                  const prevMsg = messages[index - 1];
+                  const showDate =
+                    !prevMsg ||
+                    new Date(prevMsg.timestamp).toDateString() !==
+                      new Date(msg.timestamp).toDateString();
 
-                {messages.map(renderMessage)}
+                  return (
+                    <View key={msg.id}>
+                      {showDate && (
+                        <View className="items-center py-4">
+                          <UrbanistText className="text-[#000000] text-[16px]">
+                            {formatMessageDate(msg.timestamp)}
+                          </UrbanistText>
+                        </View>
+                      )}
+                      {renderMessage(msg)}
+                    </View>
+                  );
+                })}
               </View>
             )}
             {/* Typing Indicator */}
@@ -473,7 +486,7 @@ export default function ChatScreen() {
                   <View className="w-[30px] h-[30px] rounded-full mr-2 mb-1 items-center justify-center">
                     <SupportImg />
                   </View>
-                  <View className="bg-[#F5F5F5] rounded-[20px] rounded-bl-none px-4 py-3">
+                  <View className="bg-[rgb(245,245,245)] rounded-[20px] rounded-bl-none px-4 py-3">
                     <Text className="text-[#666] text-[14px] italic">
                       Typing...
                     </Text>
@@ -517,7 +530,8 @@ export default function ChatScreen() {
                 placeholderTextColor="#929292"
                 className="flex-1 text-[16px] py-2 font-urbanist"
                 multiline
-                maxLength={500}
+                maxLength={100}
+                numberOfLines={4}
                 returnKeyType="done"
                 editable={isConnected && !isUploadingImage}
               />

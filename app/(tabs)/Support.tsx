@@ -21,6 +21,7 @@ import { useState } from "react";
 import ChatLoadingModal from "@/Modals/ChatLoadingModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+
 export default function Support() {
   const router = useRouter();
   const [showLodaing, setShowLoading] = useState(false);

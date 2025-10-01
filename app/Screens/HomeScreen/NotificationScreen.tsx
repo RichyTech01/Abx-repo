@@ -12,19 +12,21 @@ import MQTTClient from "@/utils/mqttClient";
 import showToast from "@/utils/showToast";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View, } from "react-native";
 
 export default function NotificationScreen() {
   const { user, fetchUser } = useUserStore();
   const {
     notifications,
     loading,
-    hasNewNotifications,
+    loadingMore,
+    hasMore,
     fetchNotifications,
+    fetchMoreNotifications,
     markAllAsRead,
     markNotificationAsRead,
     handleRealtimeNotification,
-    markNotificationsAsSeen,
+    checkNotificationStatus
   } = useNotificationStore();
   const router = useRouter();
 
@@ -35,7 +37,6 @@ export default function NotificationScreen() {
   // Set up real-time MQTT listener for this screen
   useEffect(() => {
     if (user?.id && MQTTClient.isClientConnected()) {
-      // Get the current callback and create a combined one
       const originalCallback = MQTTClient.getMessageCallback();
 
       const combinedCallback = (notification: Notification) => {
@@ -74,6 +75,7 @@ export default function NotificationScreen() {
 
         // Update local state
         markNotificationAsRead(Number(notification.id));
+        checkNotificationStatus()
         console.log(`Marked notification ${notification.id} as read`);
       } catch (err) {
         console.error("Error marking notification as read", err);
@@ -119,11 +121,22 @@ export default function NotificationScreen() {
     }
   };
 
-  useCallback(() => {
-    if (hasNewNotifications) {
-      markNotificationsAsSeen();
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loadingMore) {
+      fetchMoreNotifications();
     }
-  }, [hasNewNotifications, markNotificationsAsSeen]);
+  }, [hasMore, loadingMore, fetchMoreNotifications]);
+
+  // Render footer component for loading indicator
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    
+    return (
+      <View className="py-4 items-center">
+        <LoadingSpinner/>
+      </View>
+    );
+  };
 
   return (
     <ScreenWrapper>
@@ -151,14 +164,14 @@ export default function NotificationScreen() {
           ) : (
             <FlatList
               data={notifications}
-              contentContainerStyle={{paddingBottom:210}}
+              contentContainerStyle={{ paddingBottom: 210 }}
               keyExtractor={(item, index) =>
                 item.id !== undefined
                   ? item.id.toString()
                   : Math.random().toString()
               }
               renderItem={({ item }) => (
-                <Notificationcard 
+                <Notificationcard
                   title={item.title}
                   message={item.message}
                   date={new Date(item.created_at ?? "").toDateString()}
@@ -167,6 +180,9 @@ export default function NotificationScreen() {
                 />
               )}
               showsVerticalScrollIndicator={false}
+              onEndReached={handleLoadMore}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={renderFooter}
               ListEmptyComponent={
                 <View className="py-10 mx-auto text-[16px] ">
                   <NoData

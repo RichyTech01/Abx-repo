@@ -30,7 +30,6 @@ import { useNotificationStore } from "@/store/useNotificationStore";
 import { useCartStore } from "@/store/useCartStore";
 import OrderApi from "@/api/OrderApi";
 import NotificationBadge from "@/common/NotificationBadge";
-import NotificationDot from "@/common/NotificationDot";
 import ScreenWrapper from "@/common/ScreenWrapper";
 
 const { width } = Dimensions.get("window");
@@ -107,19 +106,18 @@ function BannerSlider() {
 export default function Home() {
   const router = useRouter();
   const { user, loading, fetchUser } = useUserStore();
-  const { hasNewNotifications, checkNotificationStatus } =
-    useNotificationStore();
+  const { unreadCount, checkNotificationStatus } = useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
-
+console.log(unreadCount)
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
 
-  // Only check notification status on focus - lightweight operation 
+  // Check notification status on focus
   useFocusEffect(
     useCallback(() => {
       const init = async () => {
@@ -137,7 +135,6 @@ export default function Home() {
           const items = res.cart?.items || [];
           const cartId = res.cart?.id;
 
-          console.log("home cartId", cartId);
 
           if (cartId) {
             await AsyncStorage.setItem("cartId", cartId);
@@ -168,9 +165,9 @@ export default function Home() {
 
         <View className="flex-row items-center gap-[20px]">
           <Pressable onPress={handleNotificationPress}>
-            <NotificationDot show={hasNewNotifications}>
+            <NotificationBadge count={unreadCount}>
               <NotificationIcon />
-            </NotificationDot>
+            </NotificationBadge>
           </Pressable>
           <Pressable
             className="bg-[#F9DAA8] h-[35px] w-[35px] rounded-full items-center justify-center"

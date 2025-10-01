@@ -4,7 +4,7 @@ class NotificationApi {
   private client = ApiService.getClient();
 
   // Get paginated notifications
-  public async getNotifications(page?: number) {
+  public async getNotifications(page: number = 1) {
     const res = await this.client.get("/notifications/", {
       params: { page },
     });

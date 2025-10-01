@@ -69,7 +69,7 @@ export default function AllOrders() {
       case "pickedup":
         return {
           text: "Order on the way",
-          color: "#6B7280",
+          color: "#DC6C3C",
           isDelivered: false,
         };
       case "completed":
