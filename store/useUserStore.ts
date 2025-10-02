@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import AuthApi from "@/api/AuthApi";
 import { AppUser } from "@/types/store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface UserStore {
   user: AppUser | null;
@@ -19,6 +20,14 @@ export const useUserStore = create<UserStore>((set) => ({
   fetchUser: async () => {
     set({ loading: true, error: null });
     try {
+      const access = await AsyncStorage.getItem("accessToken");
+
+      // if no access token, skip API call
+      if (!access) {
+        set({ user: null, loading: false });
+        return;
+      }
+
       const data = await AuthApi.getMe();
       set({ user: data });
     } catch (err: any) {

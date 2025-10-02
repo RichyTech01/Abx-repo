@@ -1,3 +1,4 @@
+import { useState } from "react";
 import NotificationApi from "@/api/NotificationApi";
 import MarkIcon from "@/assets/svgs/MarkIcon.svg";
 import Header from "@/common/Header";
@@ -12,9 +13,12 @@ import MQTTClient from "@/utils/mqttClient";
 import showToast from "@/utils/showToast";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect } from "react";
-import { FlatList, Pressable, Text, View, } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
+import Storage from "@/utils/Storage";
 
 export default function NotificationScreen() {
+  const [hasToken, setHasToken] = useState<boolean | null>(null);
+
   const { user, fetchUser } = useUserStore();
   const {
     notifications,
@@ -26,15 +30,25 @@ export default function NotificationScreen() {
     markAllAsRead,
     markNotificationAsRead,
     handleRealtimeNotification,
-    checkNotificationStatus
+    checkNotificationStatus,
   } = useNotificationStore();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) fetchUser();
-  }, [user, fetchUser]);
+    const checkToken = async () => {
+      const token = await Storage.get("accessToken");
+      setHasToken(!!token);
+    };
+    checkToken();
+  }, []);
 
-  // Set up real-time MQTT listener for this screen
+  useEffect(() => {
+    if (hasToken && !user) {
+      fetchUser();
+      fetchNotifications();
+    }
+  }, [hasToken, user, fetchUser, fetchNotifications]);
+
   useEffect(() => {
     if (user?.id && MQTTClient.isClientConnected()) {
       const originalCallback = MQTTClient.getMessageCallback();
@@ -55,10 +69,6 @@ export default function NotificationScreen() {
     };
   }, [user?.id, handleRealtimeNotification]);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
   const unread = notifications.filter((n) => !n.is_read);
 
   // Handle individual notification click
@@ -75,7 +85,7 @@ export default function NotificationScreen() {
 
         // Update local state
         markNotificationAsRead(Number(notification.id));
-        checkNotificationStatus()
+        checkNotificationStatus();
         console.log(`Marked notification ${notification.id} as read`);
       } catch (err) {
         console.error("Error marking notification as read", err);
@@ -122,18 +132,18 @@ export default function NotificationScreen() {
   };
 
   const handleLoadMore = useCallback(() => {
-    if (hasMore && !loadingMore) {
+    if (hasMore && !loadingMore && hasToken) {
       fetchMoreNotifications();
     }
   }, [hasMore, loadingMore, fetchMoreNotifications]);
 
-  // Render footer component for loading indicator
+ 
   const renderFooter = () => {
-    if (!loadingMore) return null;
-    
+    if (!loadingMore || !hasToken) return null;
+
     return (
       <View className="py-4 items-center">
-        <LoadingSpinner/>
+        <LoadingSpinner />
       </View>
     );
   };

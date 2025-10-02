@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import Button from "@/common/Button";
 import { useRouter } from "expo-router";
+import Storage from "@/utils/Storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Slide = {
   id: string;
@@ -44,7 +46,7 @@ export default function OnboardingScreen() {
       let nextIndex = currentIndex + 1;
 
       if (nextIndex >= slides.length) {
-        nextIndex = 0; 
+        nextIndex = 0;
       }
 
       flatListRef.current?.scrollToIndex({
@@ -95,21 +97,34 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Buttons */}
-      <View className="flex-col items-center justify-between mb-[15%] mx-[20px]">
-        <View className="w-full">
+      <View className="flex-row items-center justify-between  mx-[20px]">
+        <View className="w-[49%]">
           <Button
             title="Create Account"
             variant="solid"
             onPress={() => router.push("/createAccountSteps/CreateAccount")}
           />
         </View>
-        <View className="w-full mt-[24px]">
+        <View className="w-[49%] ">
           <Button
             title="Log into your account"
             variant="outline"
             onPress={() => router.push("/Login")}
           />
         </View>
+      </View>
+      <View className="mt-[24px] mx-[20px] mb-[15%]">
+        <Button
+          title="Login as a guest"
+          backgroundColor="#ECF1F0"
+          borderColor="#AEC5BF"
+          textColor="#0C513F"
+          onPress={async () => {
+            await Storage.set("isLoggedIn", "true");
+            await Storage.set("isGuest", "true");
+            router.replace("/(tabs)");
+          }}
+        />
       </View>
     </SafeAreaView>
   );

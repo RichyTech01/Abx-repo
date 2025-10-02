@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useRouter } from "expo-router";
 import NoData from "@/common/NoData";
+import Storage from "@/utils/Storage";
 
 type OrderStatus = "processing" | "delivered";
 
@@ -35,8 +36,29 @@ export default function OngoingOrders() {
     }
   }, []);
 
+
   useEffect(() => {
-    fetchOngoingOrders();
+    const checkOrders = async () => {
+      try {
+        setLoading(true);
+        const token = await Storage.get("accessToken");
+        const guest = await Storage.get("isGuest");
+
+        if (!token || guest) {
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
+
+        await fetchOngoingOrders();
+      } catch (err) {
+        console.error("Error checking orders", err);
+        setOrders([]);
+        setLoading(false);
+      }
+    };
+
+    checkOrders();
   }, [fetchOngoingOrders]);
 
   if (loading) {

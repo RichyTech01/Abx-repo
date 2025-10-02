@@ -20,13 +20,22 @@ import SupportApi from "@/api/SupportApi";
 import { useState } from "react";
 import ChatLoadingModal from "@/Modals/ChatLoadingModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import Storage from "@/utils/Storage";
+import LogoutModal from "@/Modals/LogoutModal";
 
 export default function Support() {
   const router = useRouter();
   const [showLodaing, setShowLoading] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleStartSession = async () => {
+    const token = await Storage.get("accessToken");
+    const guest = await Storage.get("isGuest");
+
+    if (!token || guest) {
+      setShowLoginModal(true);
+      return;
+    }
     setShowLoading(true);
     try {
       const response = await SupportApi.startChatSession();
@@ -42,6 +51,8 @@ export default function Support() {
       return response;
     } catch (error: any) {
       console.error("Failed to start chat session:", error.response?.data);
+    } finally {
+      setShowLoading(false);
     }
   };
 
@@ -55,7 +66,7 @@ export default function Support() {
 
   const handleCopyNumber = async () => {
     await Clipboard.setStringAsync("+442012345678");
-    showToast("success", "Copied ");
+    showToast("success", "Phone Number Copied ");
   };
 
   return (
@@ -125,6 +136,18 @@ export default function Support() {
       <ChatLoadingModal
         visible={showLodaing}
         onClose={() => setShowLoading(false)}
+      />
+
+      <LogoutModal
+        visible={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        title="Login Required"
+        message="You need to go back log in to start a support chat."
+        confirmText="Go to Login"
+        cancelText="Cancel"
+        onConfirm={() => router.replace("/Login")}
+        confirmButtonColor="#0C513F"
+        cancelButtonColor="#F04438"
       />
     </ScreenWrapper>
   );

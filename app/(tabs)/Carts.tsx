@@ -26,7 +26,7 @@ export default function Carts() {
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
-    const fetchCart = async () => {
+  const fetchCart = async () => {
     try {
       setLoading(true);
       const res = await OrderApi.getCart();
@@ -46,8 +46,9 @@ export default function Carts() {
       const checkLoginAndFetch = async () => {
         try {
           const wasLoggedIn = await AsyncStorage.getItem("accessToken");
-          const cartId = await AsyncStorage.getItem("cartId"); 
-          if (wasLoggedIn && cartId) {
+          const cartId = await AsyncStorage.getItem("cartId");
+          const guest = await AsyncStorage.getItem("isGuest");
+          if ((wasLoggedIn && cartId) || guest && cartId) {
             fetchCart();
           } else {
             setCartItems([]);
@@ -63,7 +64,6 @@ export default function Carts() {
       checkLoginAndFetch();
     }, [])
   );
-
 
   const updateQuantity = async (
     cartItemId: number,

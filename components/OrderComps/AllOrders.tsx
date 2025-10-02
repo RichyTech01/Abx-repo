@@ -8,6 +8,7 @@ import { groupOrdersByDate, Section } from "@/utils/groupOrdersByDate";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useRouter } from "expo-router";
 import NoData from "@/common/NoData";
+import Storage from "@/utils/Storage";
 
 export default function AllOrders() {
   const router = useRouter();
@@ -29,7 +30,27 @@ export default function AllOrders() {
   }, []);
 
   useEffect(() => {
-    fetchOrders();
+    const checkOrders = async () => {
+      try {
+        setLoading(true);
+        const token = await Storage.get("accessToken");
+        const guest = await Storage.get("isGuest");
+
+        if (!token || guest) {
+          setSections([]);
+          setLoading(false);
+          return;
+        }
+
+        await fetchOrders();
+      } catch (err) {
+        console.error("Error checking orders", err);
+        setSections([]);
+        setLoading(false);
+      }
+    };
+
+    checkOrders();
   }, [fetchOrders]);
 
   const toggleExpand = (title: string) => {

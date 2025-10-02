@@ -1,134 +1,201 @@
-import { View, Text } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  Modal,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  View,
+  Text,
+} from "react-native";
 import Button from "@/common/Button";
-import { useRouter } from "expo-router";
+import OrderApi from "@/api/OrderApi";
+import showToast from "@/utils/showToast";
 import { AddressData } from "@/hooks/useAddressAutocomplete";
 import AddressAutocompleteInput from "@/common/AddressAutocompleteInputProps";
-import OrderApi from "@/api/OrderApi";
+import OreAppText from "@/common/OreApptext";
 
-export default function AdditionalinfoStepTwo({
-  onSubmit,
-  loading,
-  goBackStep,
-}: {
-  onSubmit: () => void;
-  loading?: boolean;
-  goBackStep: () => void;
-}) {
-  const router = useRouter();
+type ChangeAddressModalProps = {
+  visible: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+  defaultAddress?: {
+    addr: string;
+    city: string;
+    post_code: string;
+  } | null;
+};
 
+export default function ChangeAddressModal({
+  visible,
+  onClose,
+  onSaved,
+  defaultAddress,
+}: ChangeAddressModalProps) {
   const [addressData, setAddressData] = useState<AddressData>({
-    address: "",
-    city: "",
     postCode: "",
+    city: "",
+    address: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{
+    postCode?: string;
+    city?: string;
+    address?: string;
+  }>({});
+
+  // Store original values to compare against
+  const [originalValues, setOriginalValues] = useState<AddressData>({
+    postCode: "",
+    city: "",
+    address: "",
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
+  useEffect(() => {
+    if (defaultAddress) {
+      const values: AddressData = {
+        postCode: defaultAddress.post_code || "",
+        city: defaultAddress.city || "",
+        address: defaultAddress.addr || "",
+      };
 
-  // Update address form
-  const handleAddressChange = (data: AddressData) => {
-    setAddressData(data);
-    setErrors({});
+      setAddressData(values);
+      setOriginalValues(values);
+    } else {
+      const emptyValues: AddressData = { postCode: "", city: "", address: "" };
+      setAddressData(emptyValues);
+      setOriginalValues(emptyValues);
+    }
+  }, [defaultAddress, visible]);
+
+  const handleAddressChange = (newAddressData: AddressData) => {
+    setAddressData(newAddressData);
+    // Clear related errors when user makes changes
+    const newErrors = { ...errors };
+    if (newAddressData.postCode !== addressData.postCode) {
+      delete newErrors.postCode;
+    }
+    if (newAddressData.city !== addressData.city) {
+      delete newErrors.city;
+    }
+    if (newAddressData.address !== addressData.address) {
+      delete newErrors.address;
+    }
+    setErrors(newErrors);
   };
 
-  // Validation check + API call
-  const handleVerify = async () => {
-    let newErrors: Record<string, string> = {};
+  const handlePostCodeChange = (postCode: string) => {
+    setAddressData(prev => ({ ...prev, postCode }));
+    if (errors.postCode) {
+      setErrors(prev => ({ ...prev, postCode: undefined }));
+    }
+  };
 
-    if (!addressData.postCode) newErrors.post_code = "Post code is required";
-    if (!addressData.city) newErrors.city = "City is required";
-    if (!addressData.address) newErrors.addr = "Home address is required";
+  const isFormEdited = () => {
+    return (
+      addressData.postCode !== originalValues.postCode ||
+      addressData.city !== originalValues.city ||
+      addressData.address !== originalValues.address
+    );
+  };
+
+  const canSave = () => {
+    const isValid = addressData.postCode.trim() && addressData.city.trim() && addressData.address.trim();
+    const isEdited = isFormEdited();
+    const hasOriginalAddress =
+      originalValues.postCode || originalValues.city || originalValues.address;
+
+    if (!hasOriginalAddress) {
+      return isValid;
+    }
+
+    return isValid && isEdited;
+  };
+
+  const handleSave = async () => {
+    const newErrors: typeof errors = {};
+
+    if (!addressData.postCode.trim()) newErrors.postCode = "Postcode is required";
+    if (!addressData.city.trim()) newErrors.city = "City is required";
+    if (!addressData.address.trim()) newErrors.address = "Address is required";
 
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length > 0) return;
+    if (Object.keys(newErrors).length > 0) {
+      showToast("error", "Please fill in all required fields");
+      return;
+    }
+
+    if (
+      !isFormEdited() &&
+      (originalValues.postCode || originalValues.city || originalValues.address)
+    ) {
+      showToast("info", "No changes made to save");
+      return;
+    }
 
     try {
-      setSubmitting(true);
-
-      await OrderApi.addAddress({
-        addr: addressData.address,
-        post_code: addressData.postCode,
-        city: addressData.city,
+      setLoading(true);
+      await OrderApi.addAddress({ 
+        addr: addressData.address, 
+        post_code: addressData.postCode, 
+        city: addressData.city 
       });
-
-      // Move to next onboarding step
-      onSubmit();
+      showToast("success", "Address updated successfully");
+      onSaved();
     } catch (err: any) {
-      console.log("Address submission error:", err.response?.data || err);
-      setErrors({
-        addr: "Could not save address. Please try again.",
-      });
+      console.log("Change address error:", err.response?.data || err);
+      showToast(
+        "error",
+        err.response?.data?.message ||
+          "Something went wrong while updating address"
+      );
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <View style={{ position: "relative", marginTop: 20 }}>
-      <View className="gap-[6%]">
-        <AddressAutocompleteInput
-          postCodeValue={addressData.postCode}
-          cityValue={addressData.city}
-          addressValue={addressData.address}
-          onAddressChange={handleAddressChange}
-          onPostCodeChange={(postCode) =>
-            setAddressData((prev) => ({ ...prev, postCode }))
-          }
-          errors={{
-            postCode: errors.post_code,
-            city: errors.city,
-            address: errors.addr,
-          }}
-          cityLabel="What city do you currently reside in?"
-          cityPlaceholder="e.g London"
-        />
-      </View>
-
-      {/* Terms */}
-      <Text
-        style={{
-          fontSize: 12,
-          textAlign: "center",
-          color: "#4A3223",
-        }}
-        className="font-urbanist mt-[24px]"
+    <Modal
+      transparent
+      animationType="fade"
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <Pressable
+        className="flex-1 justify-center items-center bg-black/30"
+        onPress={onClose}
       >
-        By creating an account, you agree to AfrobasketXpress{" "}
-        <Text
-          style={{ color: "#0C513F" }}
-          onPress={() =>
-            router.push("/Screens/AccountScreen/PrivacyAndPolicyScreen")
-          }
-          className="font-urbanist"
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="w-[90%]"
         >
-          Terms and Conditions
-        </Text>
-      </Text>
+          <Pressable
+            className="bg-white py-[16px] px-[24px] border border-[#F1EAE7] rounded-lg"
+            onPress={(e) => e.stopPropagation()}
+          >
+            <OreAppText className="text-[20px] leading-[28px] mb-6 mx-auto">Add New Address</OreAppText>
 
-      {/* Submit buttons */}
-      <View
-        style={{ marginTop: 24 }}
-        className="flex-row items-center w-full justify-between "
-      >
-        <View className="w-[40%]">
-          <Button
-            title="Previous"
-            onPress={goBackStep}
-            textColor="#0C513F"
-            backgroundColor="#ECF1F0"
-            borderColor="#AEC5BF"
-          />
-        </View>
-        <View className="w-[58%]">
-          <Button
-            title="Verify your account"
-            loading={loading || submitting}
-            onPress={handleVerify}
-          />
-        </View>
-      </View>
-    </View>
+            <AddressAutocompleteInput
+              postCodeValue={addressData.postCode}
+              cityValue={addressData.city}
+              addressValue={addressData.address}
+              onAddressChange={handleAddressChange}
+              onPostCodeChange={handlePostCodeChange}
+              errors={errors}
+            />
+
+            <View className="w-full mt-[16px]">
+              <Button
+                title={"Save changes"}
+                onPress={handleSave}
+                loading={loading}
+                disabled={loading || !canSave()}
+                paddingVertical={12}
+              />
+            </View>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Pressable>
+    </Modal>
   );
 }

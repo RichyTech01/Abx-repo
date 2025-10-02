@@ -1,24 +1,25 @@
-import {
-  View,
-  ScrollView,
-  ActivityIndicator,
-  Platform
-} from "react-native";
+import { View, ScrollView, ActivityIndicator, Platform } from "react-native";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
 import StoreApi from "@/api/StoreApi";
 import NoData from "@/common/NoData";
+import Storage from "@/utils/Storage";
+import LogoutModal from "@/Modals/LogoutModal";
+import { useRouter } from "expo-router";
 
 export default function AllStore() {
+  const router = useRouter();
   const queryClient = useQueryClient();
+  const [loginVisible, setLoginVisible] = useState(false);
 
   // Fetch all stores
   const { data: shops = [], isLoading } = useQuery<Shop[]>({
     queryKey: ["allStores"],
     queryFn: async () => {
-      const res = await StoreApi.getAllStores(); 
+      const res = await StoreApi.getAllStores();
       return res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
@@ -29,7 +30,7 @@ export default function AllStore() {
         store_close: store.close_time,
         isFavorite: store.is_favorited ?? false,
         rating: store.store_rating,
-        distance: store.distance_km || "N/A"
+        distance: store.distance_km || "N/A",
       }));
     },
   });
@@ -40,10 +41,18 @@ export default function AllStore() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["allStores"] }),
   });
 
+  const handleFavoritePress = async (storeId: string) => {
+    const token = await Storage.get("accessToken");
+    if (!token) {
+      setLoginVisible(true);
+      return;
+    }
+    favoriteMutation.mutate(storeId);
+  };
+
   return (
     <ScreenWrapper>
-      <View
-      >
+      <View>
         <HeaderWithSearchInput label="All available stores on ABX" />
       </View>
 
@@ -55,7 +64,10 @@ export default function AllStore() {
         />
       ) : shops.length === 0 ? (
         <View className="py-10  ">
-           <NoData title="No data " subtitle="No shop available at the moment."/>
+          <NoData
+            title="No data "
+            subtitle="No shop available at the moment."
+          />
         </View>
       ) : (
         <ScrollView
@@ -71,11 +83,23 @@ export default function AllStore() {
             <ShopCard
               key={shop.id}
               shop={shop}
-              onFavoritePress={() => favoriteMutation.mutate(shop.id)}
+              onFavoritePress={() => handleFavoritePress(shop.id)}
             />
           ))}
         </ScrollView>
       )}
+
+      <LogoutModal
+        title="Login Required"
+        message="You need to go back log in to favorite a shop."
+        confirmText="Go to Login"
+        cancelText="Cancel"
+        onConfirm={() => router.replace("/Login")}
+        confirmButtonColor="#0C513F"
+        cancelButtonColor="#F04438"
+        visible={loginVisible}
+        onClose={() => setLoginVisible(false)}
+      />
     </ScreenWrapper>
   );
 }

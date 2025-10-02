@@ -44,6 +44,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       hasNewNotifications: notifications.some((n) => !n.is_read),
       unreadCount: notifications.filter((n) => !n.is_read).length,
       lastFetchTime: Date.now(),
+      
     }),
 
   addRealtimeNotification: (notification) =>
@@ -58,6 +59,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         hasNewNotifications: true,
         unreadCount: updated.filter((n) => !n.is_read).length, 
       };
+      
     }),
 
   markNotificationAsRead: (notificationId) =>

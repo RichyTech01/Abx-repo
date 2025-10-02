@@ -1,4 +1,5 @@
 import { View, ScrollView, ActivityIndicator, Platform } from "react-native";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useRouter } from "expo-router";
@@ -7,11 +8,29 @@ import ShopCard, { Shop } from "@/common/ShopCard";
 import StoreApi from "@/api/StoreApi";
 import NoData from "@/common/NoData";
 import { useNavigation } from "@react-navigation/native";
+import Storage from "@/utils/Storage";
 
 export default function FavouriteStore() {
   const router = useRouter();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
+
+  const [isGuest, setIsGuest] = useState<boolean>(true);
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      const token = await Storage.get("accessToken");
+      const guest = await Storage.get("isGuest");
+
+      if (token && !guest) {
+        setIsGuest(false);
+      } else {
+        setIsGuest(true);
+      }
+    };
+
+    checkLogin();
+  }, []);
 
   const { data: shops = [], isLoading } = useQuery<Shop[]>({
     queryKey: ["favoriteStores"],
@@ -29,6 +48,7 @@ export default function FavouriteStore() {
         distance: store.distance_km ? `${store.distance_km}Km` : "N/A",
       }));
     },
+    enabled: !isGuest,
   });
 
   const favoriteMutation = useMutation({

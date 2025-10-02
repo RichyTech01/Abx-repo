@@ -17,9 +17,12 @@ import Help from "@/components/AccountComps/Help";
 import { useUserStore } from "@/store/useUserStore";
 import LogoutIcon from "@/assets/svgs/LogOutIcon.svg";
 import LogoutModal from "@/Modals/LogoutModal";
+import { useRouter } from "expo-router";
+import { logoutUser } from "@/utils/logoutUser";
 
 export default function Account() {
   const [showModal, setShowModal] = useState(false);
+  const router = useRouter();
 
   const { user, fetchUser } = useUserStore();
   useEffect(() => {
@@ -36,12 +39,12 @@ export default function Account() {
         <View className="mx-auto items-center  ">
           <View className="bg-[#ECF1F0] h-[30px] w-[30px] rounded-full items-center justify-center">
             <Text className="text-[14px] leading-[20px] text-[#2D2220] font-urbanist-medium">
-              {user?.first_name?.charAt(0).toUpperCase()}
+              {user?.first_name?.charAt(0).toUpperCase() || "G"}
             </Text>
           </View>
 
           <OreAppText className="text-[14px] leading-[20px] text-white mt-[8px]">
-            {user?.first_name} {user?.last_name}
+            {user?.first_name || "Guest"} {user?.last_name || "Guest"}
           </OreAppText>
           <OreAppText className="text-[14px] leading-[20px] text-white mt-[2px]">
             {user?.email}
@@ -81,6 +84,11 @@ export default function Account() {
       <LogoutModal
         visible={showModal}
         onClose={() => setShowModal((prev) => !prev)}
+        title="Log out"
+        message="Are you sure you want to log out of your account?"
+        confirmText="Yes, Log out"
+        cancelText="No, Cancel"
+        onConfirm={() => logoutUser(router)}
       />
     </ScreenWrapper>
   );

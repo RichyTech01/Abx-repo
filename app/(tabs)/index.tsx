@@ -39,7 +39,6 @@ const banners = [
   <Welcomebanner key="banner-2" />,
 ];
 
-// Clone banners to simulate infinite loop
 const loopedBanners = [...banners, ...banners];
 
 function BannerSlider() {
@@ -109,10 +108,12 @@ export default function Home() {
   const { unreadCount, checkNotificationStatus } = useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
+
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
-console.log(unreadCount)
+  console.log(unreadCount);
+
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
@@ -134,7 +135,6 @@ console.log(unreadCount)
           const res = await OrderApi.getCart();
           const items = res.cart?.items || [];
           const cartId = res.cart?.id;
-
 
           if (cartId) {
             await AsyncStorage.setItem("cartId", cartId);
@@ -159,7 +159,7 @@ console.log(unreadCount)
           <ActivityIndicator size="small" color="#000" />
         ) : (
           <Text className="text-[20px] text-[#2D2220] leading-[28px] font-orelega">
-            Welcome, {user?.first_name || "User"}!
+            Welcome, {user?.first_name || "Guest"}!
           </Text>
         )}
 

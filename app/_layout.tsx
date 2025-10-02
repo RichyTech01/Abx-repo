@@ -40,22 +40,17 @@ const queryClient = new QueryClient();
 const STRIPE_PUBLISHABLE_KEY =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
 
-// Global MQTT Handler Component
+// 🔔 Global MQTT handler (same as yours)
 function GlobalMQTTHandler() {
   const { user, fetchUser } = useUserStore();
-  const { handleRealtimeNotification,  } =
-    useNotificationStore();
-    
+  const { handleRealtimeNotification } = useNotificationStore();
 
-  // In your GlobalMQTTHandler component in _layout.tsx
   const handleNewNotification = useCallback(
     (newNotification: Notification) => {
       console.log("🔔 Global notification received:", newNotification);
 
-      // Update the store (this will update all screens using the store)
       handleRealtimeNotification(newNotification);
 
-      // Show toast notification message - FIXED: Pass title and message correctly
       showToast(
         "success",
         newNotification.notification_type ?? "Notification",
@@ -65,15 +60,12 @@ function GlobalMQTTHandler() {
     [handleRealtimeNotification]
   );
 
-  // Connect to MQTT when user is available
   useEffect(() => {
-    // fetchNotifications();
     if (!user) {
       fetchUser();
       return;
     }
 
-    
     if (user?.id) {
       console.log("🚀 Connecting to global MQTT for user:", user.id);
       MQTTClient.connect(String(user.id), handleNewNotification);
@@ -104,7 +96,9 @@ export default function RootLayout() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("accessToken");
-      setIsLoggedIn(!!token);
+      const guest = await AsyncStorage.getItem("isLoggedIn");
+
+      setIsLoggedIn(!!token || guest === "true");
 
       if (fontsLoaded) {
         await SplashScreen.hideAsync();
@@ -112,6 +106,7 @@ export default function RootLayout() {
     };
     checkAuth();
   }, [fontsLoaded]);
+
   console.log(
     "🏠 Current state - isLoggedIn:",
     isLoggedIn,

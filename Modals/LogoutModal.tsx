@@ -6,21 +6,33 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useRouter } from "expo-router";
 import Button from "@/common/Button";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
-import { logoutUser } from "@/utils/logoutUser";
 
-type LogoutModalProps = {
+type ConfirmModalProps = {
   visible: boolean;
   onClose: () => void;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm: () => void;
+  confirmButtonColor?: string;
+  cancelButtonColor?: string;
 };
 
-export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
-
-    const router = useRouter();
-
+export default function LogoutModal({
+  visible,
+  onClose,
+  title,
+  message,
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  onConfirm,
+  confirmButtonColor = "#F04438", 
+  cancelButtonColor = "#0C513F",  
+}: ConfirmModalProps) {
   return (
     <Modal
       transparent
@@ -41,25 +53,31 @@ export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
             onPress={(e) => e.stopPropagation()}
           >
             <OreAppText className="text-[16px] mx-auto leading-[20px] text-[#2D2220]">
-              Log out
+              {title}
             </OreAppText>
 
-            <UrbanistText className="text-[#2D2220] text-[16px] leading-[22px] text-center mt-[8px] max-w-[288px] mx-auto   ">
-              Are you sure you want to log out of your account?
+            <UrbanistText className="text-[#2D2220] text-[16px] leading-[22px] text-center mt-[8px] max-w-[288px] mx-auto">
+              {message}
             </UrbanistText>
 
-            <View className="mt-[10px] gap-[10px]  ">
+            <View className="mt-[10px] gap-[10px]">
               <Button
-                title="Yes, log out"
+                title={confirmText}
                 paddingVertical={10}
                 borderWidth={0}
-                backgroundColor="#F04438"
-                onPress={() => {onClose(), logoutUser(router)}}
+                backgroundColor={confirmButtonColor}
+                textColor="#fff"
+                onPress={() => {
+                  onClose();
+                  onConfirm();
+                }}
               />
               <Button
-                title="No, cancel"
+                title={cancelText}
                 paddingVertical={10}
                 borderWidth={0}
+                backgroundColor={cancelButtonColor}
+                textColor="#fff"
                 onPress={onClose}
               />
             </View>

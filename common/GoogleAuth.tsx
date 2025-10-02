@@ -6,7 +6,7 @@ import * as WebBrowser from "expo-web-browser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
-import * as AuthSession from "expo-auth-session";
+// import * as AuthSession from "expo-auth-session";
 import { useUserStore } from "@/store/useUserStore";
 
 import GoogleIcon from "@/assets/svgs/GoogleIcon";
@@ -18,7 +18,7 @@ interface Props {
 }
 
 const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_IOS_CLIENT_ID;
-const IOS_ANDROID_ID = process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID;
+const ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID;
 
 const GoogleAuth: React.FC<Props> = ({
   buttonText = "Continue with Google",
@@ -28,10 +28,10 @@ const GoogleAuth: React.FC<Props> = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    androidClientId: IOS_ANDROID_ID,
+    androidClientId: ANDROID_CLIENT_ID,
     iosClientId: IOS_CLIENT_ID,
   });
-  console.log(AuthSession.makeRedirectUri());
+  // console.log(AuthSession.makeRedirectUri());
 
   useEffect(() => {
     if (response?.type === "success") {
@@ -74,6 +74,7 @@ const GoogleAuth: React.FC<Props> = ({
     }
   };
 
+  
   return (
     <Pressable
       className="border border-[#F1EAE7] rounded-[8px] h-[42px] mx-auto flex-row items-center justify-between px-[10px] mt-[32px]"

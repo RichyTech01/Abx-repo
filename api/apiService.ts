@@ -53,7 +53,7 @@ class ApiService {
             // Show toast only if user was actually logged in
             showToast("error", "Session expired. Please log in again.");
 
-            router.replace("/(auth)/onboarding");
+            // router.replace("/(auth)/onboarding");
           } else {
             console.log(
               "🔇 401 received but user already logged out - ignoring"

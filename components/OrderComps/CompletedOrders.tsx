@@ -8,6 +8,7 @@ import { LoadingSpinner } from "@/common/LoadingSpinner";
 import NoData from "@/common/NoData";
 import { useRouter } from "expo-router";
 import dayjs from "dayjs";
+import Storage from "@/utils/Storage";
 
 export default function CompletedOrders() {
   const router = useRouter();
@@ -19,6 +20,14 @@ export default function CompletedOrders() {
     const fetchOrders = async () => {
       try {
         setLoading(true);
+        const token = await Storage.get("accessToken");
+        const guest = await Storage.get("isGuest");
+        if (!token || guest) {
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
+
         const res = await OrderApi.getCustomerOrders({ is_completed: true });
 
         setOrders(res.results);

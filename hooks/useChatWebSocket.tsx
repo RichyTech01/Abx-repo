@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import showToast from '@/utils/showToast';
 
 interface Message {
@@ -18,6 +19,14 @@ interface WebSocketMessage {
   sender?: 'user' | 'agent';
   timestamp?: string;
   agent_name?: string;
+  user_id?: string;
+  data?: {
+    id: string;
+    message: string;
+    sender_id: string;
+    attachments: string[];
+    created_at: string;
+  };
 }
 
 interface UseChatWebSocketProps {
@@ -115,28 +124,56 @@ export const useChatWebSocket = ({
 
           switch (data.type) {
             case 'message':
-              if (data.sender === 'agent' && data.message) {
-                const newMessage: Message = {
-                  id: Date.now().toString(),
-                  text: data.message,
-                  isUser: false,
-                  timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
-                  attachments: data.attachments,
-                };
-                setMessages((prev) => [...prev, newMessage]);
-                setIsAgentTyping(false);
+              // Backend sends messages in 'data' object
+              if (data.data && data.data.message) {
+                const messageData = data.data;
+                const isUserMessage = messageData.sender_id === userId;
+                
+                // ONLY add agent messages - user messages are already added optimistically
+                if (!isUserMessage) {
+                  const newMessage: Message = {
+                    id: messageData.id || Date.now().toString(),
+                    text: messageData.message,
+                    isUser: false,
+                    timestamp: messageData.created_at ? new Date(messageData.created_at) : new Date(),
+                    attachments: messageData.attachments?.length > 0 ? messageData.attachments : undefined,
+                  };
+                  
+                  setMessages((prev) => [...prev, newMessage]);
+                  setIsAgentTyping(false);
+                }
               }
               break;
 
             case 'typing':
-              if (data.sender === 'agent') {
+              console.log('Typing event received:', {
+                user_id: data.user_id,
+                is_typing: data.is_typing,
+                currentUserId: userId,
+                isAgent: data.user_id !== userId
+              });
+              
+              // Check if typing is from agent (not from current user)
+              if (data.user_id && data.user_id !== userId) {
+                console.log('Setting agent typing to:', data.is_typing);
                 setIsAgentTyping(data.is_typing || false);
+              } else {
+                console.log('Ignoring typing from self');
               }
               break;
 
             case 'session_closed':
               console.log('Session closed by agent');
-              showToast('info', 'Chat session has been closed by the agent');
+              showToast('info', 'Chat session has been closed');
+              
+              // Clear the stored session ID
+              AsyncStorage.removeItem('ChatSessionId').catch(err => 
+                console.error('Error clearing session:', err)
+              );
+              
+              // Clear messages
+              setMessages([]);
+              
               disconnect();
               onSessionClosed?.();
               break;
@@ -211,8 +248,16 @@ export const useChatWebSocket = ({
 
         wsRef.current.send(JSON.stringify(payload));
 
-        // Don't add to local state - let the server echo back
-        // This prevents duplicate messages
+        // Add message locally for immediate feedback
+        const newMessage: Message = {
+          id: 'temp-' + Date.now().toString(),
+          text: message.trim(),
+          isUser: true,
+          timestamp: new Date(),
+          attachments: attachments.length > 0 ? attachments : undefined,
+        };
+        setMessages((prev) => [...prev, newMessage]);
+
         return true;
       } catch (error) {
         console.error('Error sending message:', error);

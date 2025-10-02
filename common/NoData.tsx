@@ -31,7 +31,7 @@ export default function NoData({
           {subtitle}
         </UrbanistText>
 
-        {buttonTitle && onButtonPress && (
+        {buttonTitle && onButtonPress && ( 
           <View className="mt-[24px]">
             <Button title={buttonTitle} onPress={onButtonPress} />
           </View>
