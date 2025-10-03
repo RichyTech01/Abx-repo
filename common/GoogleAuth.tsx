@@ -56,6 +56,7 @@ const GoogleAuth: React.FC<Props> = ({
         router.push("/AdditionalInfo/AdditionalInfo");
       } else {
         await AsyncStorage.setItem("isLoggedIn", "true");
+        await AsyncStorage.removeItem("cartId");
         fetchUser();
         router.dismissAll();
         router.replace("/(tabs)");
@@ -74,7 +75,6 @@ const GoogleAuth: React.FC<Props> = ({
     }
   };
 
-  
   return (
     <Pressable
       className="border border-[#F1EAE7] rounded-[8px] h-[42px] mx-auto flex-row items-center justify-between px-[10px] mt-[32px]"

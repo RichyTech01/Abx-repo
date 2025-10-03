@@ -7,7 +7,7 @@ import { useNotificationStore } from "@/store/useNotificationStore";
 export const logoutUser = async (router: ReturnType<typeof useRouter>) => {
   try {
     // Clear AsyncStorage
-    await AsyncStorage.multiRemove(["accessToken", "isGuest", "cartId"]);
+    await AsyncStorage.multiRemove(["accessToken", "isGuest", ]);
 
     // Reset all Zustand stores
     useUserStore.getState().clearUser();
