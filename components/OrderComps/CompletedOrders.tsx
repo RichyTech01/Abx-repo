@@ -20,6 +20,7 @@ export default function CompletedOrders() {
     const fetchOrders = async () => {
       try {
         setLoading(true);
+
         const token = await Storage.get("accessToken");
         const guest = await Storage.get("isGuest");
         if (!token || guest) {
@@ -27,10 +28,19 @@ export default function CompletedOrders() {
           setLoading(false);
           return;
         }
+        let page = 1;
+        let completedOrders: any[] = [];
+        let hasNext = true;
+        while (hasNext) {
+          const res = await OrderApi.getCustomerOrders({ is_completed: true });
+          const completedorders = res.results || [];
 
-        const res = await OrderApi.getCustomerOrders({ is_completed: true });
+          completedOrders = [...completedOrders, ...completedorders];
 
-        setOrders(res.results);
+          hasNext = !!res.next;
+          page++;
+        }
+        setOrders(completedOrders);
       } catch (err) {
         console.error("Error fetching completed orders", err);
       } finally {

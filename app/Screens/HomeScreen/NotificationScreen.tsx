@@ -19,7 +19,7 @@ import Storage from "@/utils/Storage";
 export default function NotificationScreen() {
   const [hasToken, setHasToken] = useState<boolean | null>(null);
 
-  const { user, fetchUser } = useUserStore();
+  const { user,  } = useUserStore();
   const {
     notifications,
     loading,
@@ -151,13 +151,14 @@ export default function NotificationScreen() {
 
   return (
     <ScreenWrapper>
+      
       <Header title="Notifications" />
 
       <View className="mt-[22px]">
         {notifications.length > 0 && unread.length > 0 && (
           <Pressable
             onPress={handleMarkAllAsRead}
-            className="items-center mx-[20px] flex-row justify-end"
+            className="items-center mx-[20px] flex-row justify-end "
           >
             <MarkIcon />
             <Text
@@ -169,7 +170,7 @@ export default function NotificationScreen() {
           </Pressable>
         )}
 
-        <View className="mx-[20px] mt-[16px] h-screen">
+        <View className="mx-[20px] mt-[16px] h-scree">
           {loading ? (
             <LoadingSpinner />
           ) : (

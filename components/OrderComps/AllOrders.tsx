@@ -16,18 +16,32 @@ export default function AllOrders() {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await OrderApi.getCustomerOrders();
+ const fetchOrders = useCallback(async () => {
+  try {
+    setLoading(true);
+
+    let page = 1;
+    let allOrders: any[] = [];
+    let hasNext = true;
+
+    while (hasNext) {
+      const res = await OrderApi.getCustomerOrders({page});
       const orders = res.results || [];
-      setSections(groupOrdersByDate(orders));
-    } catch (err) {
-      console.error("Failed to fetch orders", err);
-    } finally {
-      setLoading(false);
+
+      allOrders = [...allOrders, ...orders];
+
+      hasNext = !!res.next; 
+      page++;
     }
-  }, []);
+
+    setSections(groupOrdersByDate(allOrders));
+  } catch (err) {
+    console.error("Failed to fetch orders", err);
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
 
   useEffect(() => {
     const checkOrders = async () => {
