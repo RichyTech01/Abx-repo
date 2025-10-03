@@ -49,7 +49,7 @@ export default function ChatScreen() {
   const hasLoadedSession = useRef(false);
   const isMounted = useRef(true);
 
-  // Load session ID and chat history on mount FIRST
+
   useEffect(() => {
     let cancelled = false;
 
@@ -59,7 +59,7 @@ export default function ChatScreen() {
 
         if (!cancelled && !hasLoadedSession.current && setSessionIdd) {
           hasLoadedSession.current = true;
-          await loadChatSession(); // <-- await so errors can be caught here
+          await loadChatSession(); 
         }
       } catch (err) {
         console.error("Failed to init chat session:", err);
@@ -76,7 +76,6 @@ export default function ChatScreen() {
     };
   }, []);
 
-  // Initialize WebSocket connection ONLY after sessionId is loaded
   const {
     messages,
     setMessages,
@@ -310,6 +309,7 @@ export default function ChatScreen() {
       hour12: true,
     });
   };
+
   const getAttachmentUrl = (attachments: any[] | undefined): string | null => {
     if (!attachments || attachments.length === 0) return null;
 
@@ -341,13 +341,10 @@ export default function ChatScreen() {
     const attachmentUrl = getAttachmentUrl(message.attachments);
 
     // Safe text
-    const msgText =
-      typeof message.text === "string"
-        ? message.text
-        : "";
+    const msgText = typeof message.text === "string" ? message.text : "";
 
     // Safe timestamp
-    const timeLabel = message.timestamp ? formatTime(message.timestamp) : "";
+    const timeLabel = message.timestamp ? formatTime(message.timestamp).toLocaleLowerCase() : "";
 
     // Safe id
     const key = message.id || Math.random().toString();
@@ -428,7 +425,13 @@ export default function ChatScreen() {
               </Text>
             ) : null}
 
-            <Text className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/40 text-white text-[12px] leading-[16px] font-urbanist-medium">
+            <Text
+              className={`${
+                attachmentUrl
+                  ? "absolute bottom-2 right-2 px-2 py-1 "
+                  : "pr-2"
+              } text-[#2D2220] text-[14px] leading-[20px] font-urbanist self-end`}
+            >
               {timeLabel}
             </Text>
           </View>

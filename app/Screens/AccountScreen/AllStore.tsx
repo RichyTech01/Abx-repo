@@ -126,9 +126,11 @@ export default function AllStore() {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0}
           ListFooterComponent={
-            <View className="py-4 items-center">
-              <LoadingSpinner />
-            </View>
+            loadingMore && hasMore ? (
+              <View className="py-4 items-center">
+                <LoadingSpinner />
+              </View>
+            ) : null
           }
           ListEmptyComponent={
             <View className="py-10  ">

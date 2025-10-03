@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   Text,
 } from "react-native";
-import { useEffect } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
@@ -29,14 +28,6 @@ export default function Support() {
   const [showLodaing, setShowLoading] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // useEffect(() => {
-  //   const fetchHistory = async () => {
-  //     try {
-  //       const history = await SupportApi.getActiveChatMessages(storedSessionId);
-
-  //     } catch (error) {}
-  //   };
-  // });
 
  const handleStartSession = async () => {
   const token = await Storage.get("accessToken");
@@ -49,52 +40,45 @@ export default function Support() {
 
   setShowLoading(true);
 
-  try {
-    // 1. Check if session exists in storage
-    const storedSessionId = await Storage.get("ChatSessionId");
-    let sessionId = storedSessionId;
+ try {
+  const storedSessionId = await Storage.get("ChatSessionId");
+  let sessionId = storedSessionId;
 
-    if (sessionId) {
-      // 2. If exists, fetch history
+  if (sessionId) {
+    try {
       const history = await SupportApi.getActiveChatMessages(sessionId);
       const hasHistory = history?.results?.length > 0;
 
       if (hasHistory) {
-        // 👉 existing chat, go straight to chat screen
         router.push("/Screens/Support/ChatScreen");
-        setShowLoading(false);
         return;
       } else {
-        // 👉 no messages, start new session
-        const response = await SupportApi.startChatSession();
-        await AsyncStorage.setItem("ChatSessionId", response.session_id);
-        if (response.is_active) {
-          router.push("/Screens/Support/ChatScreen");
-        } else {
-          showToast("error", "No support available. Try again later.");
-        }
-        setShowLoading(false);
-        return;
+        // expired or empty → start new
+        throw new Error("Session expired");
       }
+    } catch (err) {
+      // if we hit "Active chat session not found or have ended."
+      console.warn("Session not active, starting new...");
+      await AsyncStorage.removeItem("ChatSessionId");
     }
-
-    // 3. No session in storage at all → start fresh session
-    const response = await SupportApi.startChatSession();
-    await AsyncStorage.setItem("ChatSessionId", response.session_id);
-
-    if (response.is_active) {
-      router.push("/Screens/Support/ChatScreen");
-    } else {
-      showToast("error", "No support available. Try again later.");
-    }
-  } catch (error: any) {
-    console.error("Failed to start chat session:", error.response?.data || error);
-    showToast("error", "Something went wrong while starting chat.");
-  } finally {
-    setShowLoading(false);
   }
-};
 
+  // Always start new session if no valid session
+  const response = await SupportApi.startChatSession();
+  await AsyncStorage.setItem("ChatSessionId", response.session_id);
+
+  if (response.is_active) {
+    router.push("/Screens/Support/ChatScreen");
+  } else {
+    showToast("error", "No support available. Try again later.");
+  }
+} catch (error: any) {
+  console.error("Failed to start chat session:", error.response?.data || error);
+  showToast("error", "Something went wrong while starting chat.");
+} finally {
+  setShowLoading(false);
+}
+ }
 
   const handleEmailPress = () => {
     Linking.openURL("mailto:support@abx.com");
