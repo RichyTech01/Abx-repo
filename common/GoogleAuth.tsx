@@ -56,7 +56,6 @@ const GoogleAuth: React.FC<Props> = ({
         router.push("/AdditionalInfo/AdditionalInfo");
       } else {
         await AsyncStorage.setItem("isLoggedIn", "true");
-        await AsyncStorage.removeItem("cartId");
         fetchUser();
         router.dismissAll();
         router.replace("/(tabs)");

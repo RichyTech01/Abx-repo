@@ -1,4 +1,4 @@
-import { View,  Platform, FlatList } from "react-native";
+import { View, Platform, FlatList } from "react-native";
 import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
@@ -119,7 +119,11 @@ export default function AllTopRatedStores() {
           )}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0}
-          ListFooterComponent={loading ? <LoadingSpinner /> : null}
+          ListFooterComponent={
+            <View className="py-4 items-center">
+              <LoadingSpinner />
+            </View>
+          }
           ListEmptyComponent={
             <View className="py-10  ">
               <NoData

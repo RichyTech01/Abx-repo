@@ -1,9 +1,4 @@
-import {
-  View,
-  ActivityIndicator,
-  FlatList,
-  Platform,
-} from "react-native";
+import { View, ActivityIndicator, FlatList, Platform } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -14,6 +9,7 @@ import StoreApi from "@/api/StoreApi";
 import NoData from "@/common/NoData";
 import { useNavigation } from "@react-navigation/native";
 import Storage from "@/utils/Storage";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
 
 export default function FavouriteStore() {
   const router = useRouter();
@@ -146,7 +142,11 @@ export default function FavouriteStore() {
           )}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0}
-          ListFooterComponent={loading ? <ActivityIndicator /> : null}
+          ListFooterComponent={
+            <View className="py-4 items-center">
+              <LoadingSpinner />
+            </View>
+          }
           ListEmptyComponent={
             <NoData
               title="No favorite stores"

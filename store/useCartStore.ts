@@ -14,10 +14,15 @@ type CartState = {
   removeItem: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
+  reset: () => void;
   // Computed getter for cart count
   getCartCount: () => number;
   // Computed getter for total cart value
   getTotalValue: () => number;
+};
+
+const initialState: Pick<CartState, "cartItems"> = {
+  cartItems: [],
 };
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -33,16 +38,24 @@ export const useCartStore = create<CartState>((set, get) => ({
     set((state) => ({
       cartItems: state.cartItems.map((i) =>
         i.id === id
-          ? { ...i, quantity, total_item_price: quantity * parseFloat(i.item.price) }
+          ? {
+              ...i,
+              quantity,
+              total_item_price: quantity * parseFloat(i.item.price),
+            }
           : i
       ),
     })),
   clearCart: () => set({ cartItems: [] }),
-  
+
+  reset: () => set(initialState),
   // Get total number of items in cart
   getCartCount: () => get().cartItems.length,
-  
+
   // Get total value of cart
-  getTotalValue: () => 
-    get().cartItems.reduce((acc, item) => acc + parseFloat(String(item.total_item_price)), 0),
+  getTotalValue: () =>
+    get().cartItems.reduce(
+      (acc, item) => acc + parseFloat(String(item.total_item_price)),
+      0
+    ),
 }));

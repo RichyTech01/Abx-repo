@@ -12,6 +12,7 @@ module.exports = {
     extend: {
        fontFamily: {
         orelega: ["OrelegaOne"], 
+        "Urbanist-Light": ["UrbanistLight"],
         urbanist: ["UrbanistRegular"],
         "urbanist-medium": ["UrbanistMedium"],
         "urbanist-semibold": ["UrbanistSemiBold"],
@@ -21,3 +22,4 @@ module.exports = {
   },
   plugins: [],
 }
+// UrbanistLight

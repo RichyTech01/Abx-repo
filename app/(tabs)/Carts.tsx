@@ -179,7 +179,7 @@ export default function Carts() {
       </View>
 
       {cartItems.length === 0 && !loading ? (
-        <View className="flex-1 justify-center items-center px-4">
+        <View className="py-[10%] justify-center items-center px-4">
           <NoData
             title="Your cart is empty"
             subtitle="Browse our products and add items to your cart."

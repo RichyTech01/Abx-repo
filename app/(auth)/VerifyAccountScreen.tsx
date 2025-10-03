@@ -82,7 +82,6 @@ export default function VerifyAccountScreen() {
       if (!accessToken || !refreshToken) {
         console.log("⚠️ No tokens found, user may not be fully logged in yet.");
       }
-      await AsyncStorage.removeItem("cartId");
       await AsyncStorage.setItem("isLoggedIn", "true");
       fetchUser();
 

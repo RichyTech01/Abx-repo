@@ -108,7 +108,6 @@ export default function Home() {
   const { unreadCount, checkNotificationStatus } = useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
 
-
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
@@ -123,7 +122,7 @@ export default function Home() {
     useCallback(() => {
       const init = async () => {
         const access = await AsyncStorage.getItem("accessToken");
-
+        // await fetchCartCount();
         if (!access) return;
 
         checkNotificationStatus();

@@ -9,6 +9,7 @@ import NoData from "@/common/NoData";
 import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
 import { useRouter } from "expo-router";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
 
 export default function AllStore() {
   const router = useRouter();
@@ -124,7 +125,11 @@ export default function AllStore() {
           )}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0}
-          ListFooterComponent={loading ? <ActivityIndicator /> : null}
+          ListFooterComponent={
+            <View className="py-4 items-center">
+              <LoadingSpinner />
+            </View>
+          }
           ListEmptyComponent={
             <View className="py-10  ">
               <NoData

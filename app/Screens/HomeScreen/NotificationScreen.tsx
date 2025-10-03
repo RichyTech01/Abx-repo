@@ -42,18 +42,13 @@ export default function NotificationScreen() {
     checkToken();
   }, []);
 
-  // Watch token separately
-  // useEffect(() => {
-  //   if (hasToken) {
-  //     fetchUser();
-  //   }
-  // }, [hasToken, fetchUser]);
 
   // Fetch notifications whenever user becomes available
   useEffect(() => {
-    if (user && hasToken) {
-      fetchNotifications();
+    if (!user && !hasToken) {
+     return
     }
+     fetchNotifications();
   }, [user, hasToken, fetchNotifications]);
 
   useEffect(() => {

@@ -19,6 +19,7 @@ import {
   OrelegaOne_400Regular,
 } from "@expo-google-fonts/orelega-one";
 import {
+  Urbanist_300Light_Italic,
   Urbanist_400Regular,
   Urbanist_500Medium,
   Urbanist_600SemiBold,
@@ -83,6 +84,7 @@ function GlobalMQTTHandler() {
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     OrelegaOne: OrelegaOne_400Regular,
+    UrbanistLight: Urbanist_300Light_Italic,
     UrbanistRegular: Urbanist_400Regular,
     UrbanistMedium: Urbanist_500Medium,
     UrbanistSemiBold: Urbanist_600SemiBold,

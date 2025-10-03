@@ -67,7 +67,6 @@ export default function Login() {
       await AsyncStorage.setItem("accessToken", res.access);
       await AsyncStorage.setItem("isLoggedIn", "true");
       fetchUser();
-      await AsyncStorage.removeItem("cartId");
       // console.log("Login successful:", res);
       showToast("success", "Login successful! Welcome back.");
       router.dismissAll();
