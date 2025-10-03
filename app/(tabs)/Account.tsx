@@ -88,7 +88,7 @@ export default function Account() {
                     "cartId",
                   ]);
 
-                  router.push("/Login");
+                  router.replace("/onboarding");
                 }
               }}
             >

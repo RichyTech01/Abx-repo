@@ -111,7 +111,6 @@ export default function Home() {
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
-  console.log(unreadCount);
 
   useEffect(() => {
     if (!user) fetchUser();

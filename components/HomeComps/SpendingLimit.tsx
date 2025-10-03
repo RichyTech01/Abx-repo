@@ -41,7 +41,7 @@ export default function SpendingLimit() {
         message="Sorry! you have to login to set a spending limit"
         confirmText="Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/Login")}
+        onConfirm={() => router.replace("/onboarding")}
       />
     </View>
   );

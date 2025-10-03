@@ -155,7 +155,7 @@ export default function AddtoCartModal({
         message="You need to go back log in to Proceed checkout."
         confirmText="Go to Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/Login")}
+        onConfirm={() => router.replace("/onboarding")}
         confirmButtonColor="#0C513F"
         cancelButtonColor="#F04438"
       />

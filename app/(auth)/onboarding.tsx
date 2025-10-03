@@ -11,7 +11,6 @@ import {
 import Button from "@/common/Button";
 import { useRouter } from "expo-router";
 import Storage from "@/utils/Storage";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Slide = {
   id: string;
@@ -38,6 +37,7 @@ const slides = [
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   // Auto slide effect
@@ -116,10 +116,12 @@ export default function OnboardingScreen() {
       <View className="mt-[24px] mx-[20px] mb-[15%]">
         <Button
           title="Login as a guest"
+          loading={loading}
           backgroundColor="#ECF1F0"
           borderColor="#AEC5BF"
           textColor="#0C513F"
           onPress={async () => {
+            setLoading(true);
             await Storage.set("isLoggedIn", "true");
             await Storage.set("isGuest", "true");
             router.replace("/(tabs)");

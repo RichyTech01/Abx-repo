@@ -69,7 +69,7 @@ export default function General() {
         message="Sorry! you have to login to access this screen"
         confirmText="Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/Login")}
+        onConfirm={() => router.replace("/onboarding")}
       />
     </View>
   );
