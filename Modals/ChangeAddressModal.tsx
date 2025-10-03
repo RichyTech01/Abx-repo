@@ -146,7 +146,7 @@ export default function ChangeAddressModal({
       console.log("Change address error:", err.response?.data || err);
       showToast(
         "error",
-        err.response?.data?.message ||
+        err.response?.data?.detail ||
           "Something went wrong while updating address"
       );
     } finally {

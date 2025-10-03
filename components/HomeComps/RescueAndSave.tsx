@@ -5,7 +5,9 @@ import ImageIcon from "@/assets/svgs/Image.svg";
 import ArrowRight from "@/assets/svgs/DoubleArrowRight.svg";
 import Button from "@/common/Button";
 
+
 export default function RescueAndSave() {
+
   const router = useRouter();
   return (
     <View>
@@ -40,6 +42,7 @@ export default function RescueAndSave() {
           </View>
         </View>
       </View>
+      
     </View>
   );
 }

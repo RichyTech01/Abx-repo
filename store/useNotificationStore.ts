@@ -9,8 +9,8 @@ interface NotificationStore {
   loadingMore: boolean;
   unreadCount: number;
   lastFetchTime: number | null;
-  currentPage: number; // Track current page number
-  hasMore: boolean; // Track if there are more notifications to load
+  currentPage: number;
+  hasMore: boolean;
 
   // Actions
   setNotifications: (notifications: Notification[]) => void;
@@ -20,12 +20,14 @@ interface NotificationStore {
   setHasNewNotifications: (hasNew: boolean) => void;
   setLoading: (loading: boolean) => void;
   fetchNotifications: (force?: boolean) => Promise<void>;
-  fetchMoreNotifications: () => Promise<void>; // New method for pagination
+  fetchMoreNotifications: () => Promise<void>;
   markNotificationsAsSeen: () => void;
   checkNotificationStatus: () => Promise<void>;
 
   // Real-time handler
   handleRealtimeNotification: (notification: Notification) => void;
+
+  reset: () => void;
 }
 
 export const useNotificationStore = create<NotificationStore>((set, get) => ({
@@ -44,7 +46,6 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       hasNewNotifications: notifications.some((n) => !n.is_read),
       unreadCount: notifications.filter((n) => !n.is_read).length,
       lastFetchTime: Date.now(),
-      
     }),
 
   addRealtimeNotification: (notification) =>
@@ -57,9 +58,8 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       return {
         notifications: updated,
         hasNewNotifications: true,
-        unreadCount: updated.filter((n) => !n.is_read).length, 
+        unreadCount: updated.filter((n) => !n.is_read).length,
       };
-      
     }),
 
   markNotificationAsRead: (notificationId) =>
@@ -71,7 +71,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       return {
         notifications: updatedNotifications,
         hasNewNotifications: updatedNotifications.some((n) => !n.is_read),
-         unreadCount: updatedNotifications.filter((n) => !n.is_read).length,
+        unreadCount: updatedNotifications.filter((n) => !n.is_read).length,
       };
     }),
 
@@ -79,7 +79,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set((state) => ({
       notifications: state.notifications.map((n) => ({ ...n, is_read: true })),
       hasNewNotifications: false,
-      unreadCount: 0, 
+      unreadCount: 0,
     })),
 
   setHasNewNotifications: (hasNew) => set({ hasNewNotifications: hasNew }),
@@ -89,34 +89,35 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   markNotificationsAsSeen: () => set({ hasNewNotifications: false }),
 
   // Lightweight method - just check if there are unread notifications
-checkNotificationStatus: async () => {
-  try {
-    let page = 1;
-    let unreadTotal = 0;
-    let hasNext = true;
+  checkNotificationStatus: async () => {
+    try {
+      let page = 1;
+      let unreadTotal = 0;
+      let hasNext = true;
 
-    while (hasNext) {
-      const data = await NotificationApi.getNotifications(page);
+      while (hasNext) {
+        const data = await NotificationApi.getNotifications(page);
 
-      unreadTotal += data.results.filter((n: Notification) => !n.is_read).length;
+        unreadTotal += data.results.filter(
+          (n: Notification) => !n.is_read
+        ).length;
 
-      hasNext = !!data.next;
-      page++;
+        hasNext = !!data.next;
+        page++;
+      }
+
+      set({
+        hasNewNotifications: unreadTotal > 0,
+        unreadCount: unreadTotal,
+      });
+    } catch (err) {
+      console.error("Error checking notification status:", err);
     }
-
-    set({
-      hasNewNotifications: unreadTotal > 0,
-      unreadCount: unreadTotal,
-    });
-  } catch (err) {
-    console.error("Error checking notification status:", err);
-  }
-},
-
-
+  },
 
   // Full fetch method - initial load
   fetchNotifications: async () => {
+    
     try {
       set({ loading: true });
       const data = await NotificationApi.getNotifications(1);
@@ -171,4 +172,16 @@ checkNotificationStatus: async () => {
     const { addRealtimeNotification } = get();
     addRealtimeNotification(newNotification);
   },
+
+  reset: () =>
+    set({
+      notifications: [],
+      hasNewNotifications: false,
+      loading: false,
+      loadingMore: false,
+      unreadCount: 0,
+      lastFetchTime: null,
+      currentPage: 1,
+      hasMore: true,
+    }),
 }));

@@ -1,4 +1,5 @@
 import { View, ScrollView, Text, ActivityIndicator } from "react-native";
+import { useState } from "react";
 import React from "react";
 import SectionHeader from "@/common/SectionHeader";
 import { useRouter } from "expo-router";
@@ -6,11 +7,14 @@ import ShopCard from "@/common/ShopCard";
 import { useClosestStores } from "@/hooks/useClosestStores";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
+import LogoutModal from "@/Modals/LogoutModal";
+import Storage from "@/utils/Storage";
 
 
 export default function ClosestShops() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [loginVisible, setLoginVisible] = useState(false);
 
   const {
     data: shops,
@@ -20,10 +24,8 @@ export default function ClosestShops() {
     locationError,
   } = useClosestStores();
 
- 
   const favoriteMutation = useMutation({
-    mutationFn: (storeId: string) =>
-      StoreApi.toggleFavorite(Number(storeId)),
+    mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["closestStores"] }),
   });
@@ -78,7 +80,14 @@ export default function ClosestShops() {
               store_close: shop.close_time,
             }}
             width={254}
-            onFavoritePress={() => favoriteMutation.mutate(shop.id)}
+            onFavoritePress={async () => {
+              const token = await Storage.get("accessToken");
+              if (!token) {
+                setLoginVisible(true);
+                return;
+              }
+              favoriteMutation.mutate(shop.id);
+            }}
           />
         ))}
       </ScrollView>
@@ -92,6 +101,18 @@ export default function ClosestShops() {
         onPress={() => router.push("/Screens/HomeScreen/AllClosestShops")}
       />
       {content}
+
+      <LogoutModal
+        title="Login Required"
+        message="Sorry! you need to go back to log in to favorite a shop."
+        confirmText="Go to Login"
+        cancelText="Cancel"
+        onConfirm={() => router.replace("/Login")}
+        confirmButtonColor="#0C513F"
+        cancelButtonColor="#F04438"
+        visible={loginVisible}
+        onClose={() => setLoginVisible(false)}
+      />
     </View>
   );
 }

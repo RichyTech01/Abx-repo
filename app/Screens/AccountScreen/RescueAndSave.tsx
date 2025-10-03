@@ -3,7 +3,7 @@ import {
   Dimensions,
   FlatList,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
 } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
@@ -56,7 +56,7 @@ export default function RescueAndSave() {
     (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
 
   const products = data?.results ?? [];
-
+ 
   return (
     <ScreenWrapper>
       <Header title="Rescue and save" />
@@ -104,6 +104,7 @@ export default function RescueAndSave() {
                     name={item.item_name}
                     price={`€${item.min_price} - €${item.max_price}`}
                     rating={2}
+                    // discountPercent={item?.rescue_n_save}
                     onPress={() =>
                       router.push({
                         pathname: "/Screens/HomeScreen/ProductDetails",
@@ -122,6 +123,9 @@ export default function RescueAndSave() {
                             item.store.close_time
                           )
                         : false
+                    }
+                    discountPercent={
+                      Number(item.variations?.[0]?.discount_per) || 0
                     }
                   />
                 </View>

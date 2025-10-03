@@ -7,14 +7,11 @@ import { useUserStore } from "@/store/useUserStore";
 import ChangeAddressModal from "@/Modals/ChangeAddressModal";
 import AddressCard from "@/common/AddressCard";
 import NoData from "@/common/NoData";
-import Storage from "@/utils/Storage";
-import LogoutModal from "@/Modals/LogoutModal";
 import { useRouter } from "expo-router";
 
 export default function ChangeAddressScreen() {
   const router = useRouter();
   const { user, fetchUser } = useUserStore();
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
@@ -24,17 +21,8 @@ export default function ChangeAddressScreen() {
   }, [user, fetchUser]);
 
   const hasAddresses = user?.address && user.address.length > 0;
+
   const handleAddAddress = async () => {
-    const token = await Storage.get("accessToken");
-    const guest = await Storage.get("isGuest");
-
-    if (!token || guest) {
-      // 🚨 guest or no token → show login modal instead
-      setShowLoginModal(true);
-      return;
-    }
-
-    // ✅ logged-in user → show normal modal
     setShowAddressModal(true);
   };
 
@@ -82,7 +70,6 @@ export default function ChangeAddressScreen() {
           </View>
         )}
 
-        {/* Sticky bottom button */}
         <View style={{ padding: 16 }}>
           <Button
             title="Add new address"
@@ -101,18 +88,6 @@ export default function ChangeAddressScreen() {
           setShowAddressModal(false);
         }}
         defaultAddress={user?.address?.find((a: any) => a.default_addr) || null}
-      />
-
-      <LogoutModal
-        visible={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        title="Login Required"
-        message="You need to go back log in to add address"
-        confirmText="Go to Login"
-        cancelText="Cancel"
-        onConfirm={() => router.replace("/Login")}
-        confirmButtonColor="#0C513F"
-        cancelButtonColor="#F04438"
       />
     </ScreenWrapper>
   );

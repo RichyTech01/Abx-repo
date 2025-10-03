@@ -49,7 +49,7 @@ export default function LogoutModal({
           className="w-[90%]"
         >
           <Pressable
-            className="bg-white py-[24px] px-[10px] rounded-[16px] border border-[#F1EAE7]"
+            className="bg-white py-[24px] px-[20px] rounded-[16px] border border-[#F1EAE7]"
             onPress={(e) => e.stopPropagation()}
           >
             <OreAppText className="text-[16px] mx-auto leading-[20px] text-[#2D2220]">

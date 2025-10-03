@@ -32,7 +32,7 @@ export default function ProductCard({
   productName,
   priceRange,
   discountPercent,
-  rating = 0,
+  rating = 0, 
   // sizes = 0,
   onAddToCart,
   ProductImg,

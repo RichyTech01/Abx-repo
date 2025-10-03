@@ -6,9 +6,13 @@ import AllStoreIcon from "@/assets/svgs/AllStoresIcon.svg";
 import ArrowRIght from "@/assets/svgs/ArrowRight.svg";
 import FavoriterIcon from "@/assets/svgs/FavoriteIcon.svg";
 import RescueAndSave from "@/assets/svgs/RAndSIcon.svg";
+import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
+import LogoutModal from "@/Modals/LogoutModal";
 
 export default function General() {
   const router = useRouter();
+  const { showModal, setShowModal, handleProtectedNavigation } =
+    useProtectedNavigation();
 
   return (
     <View className="mt-[24px]   ">
@@ -32,7 +36,9 @@ export default function General() {
 
         <TouchableOpacity
           className="py-[10px] pl-[4px] border-b border-[#F1EAE7] flex-row items-center justify-between "
-          onPress={() => router.push("/Screens/AccountScreen/FavouriteStore")}
+          onPress={() =>
+            handleProtectedNavigation("/Screens/AccountScreen/FavouriteStore")
+          }
         >
           <View className="flex-row items-center ">
             <FavoriterIcon />
@@ -56,6 +62,15 @@ export default function General() {
           <ArrowRIght />
         </TouchableOpacity>
       </View>
+      <LogoutModal
+        visible={showModal}
+        onClose={() => setShowModal((prev) => !prev)}
+        title="Login Required"
+        message="Sorry! you have to login to access this screen"
+        confirmText="Login"
+        cancelText="Cancel"
+        onConfirm={() => router.replace("/Login")}
+      />
     </View>
   );
 }

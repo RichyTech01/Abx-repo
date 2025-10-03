@@ -16,6 +16,7 @@ import { ProductVariation } from "@/types/store";
 import VariationCard from "@/common/VariationCard";
 import OrderApi from "@/api/OrderApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import LogoutModal from "./LogoutModal";
 
 type AddtoCartModalProps = {
   value: boolean;
@@ -35,12 +36,13 @@ export default function AddtoCartModal({
   const router = useRouter();
 
   const [cartItems, setCartItems] = useState([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const fetchCart = async () => {
     try {
-      const cartId = await AsyncStorage.getItem("cartId"); 
+      const cartId = await AsyncStorage.getItem("cartId");
       if (!cartId) {
-        setCartItems([]); 
+        setCartItems([]);
         return;
       }
       const res = await OrderApi.getCart();
@@ -128,7 +130,13 @@ export default function AddtoCartModal({
               title="Proceed to checkout"
               variant="outline"
               disabled={!isOpen || cartItems.length === 0}
-              onPress={() => {
+              onPress={async () => {
+                const token = await AsyncStorage.getItem("accessToken");
+                if (!token) {
+                  setShowLoginModal(true);
+                  return;
+                }
+
                 setValue(!value);
                 router.push("/Screens/Carts/CheckOut");
               }}
@@ -140,6 +148,17 @@ export default function AddtoCartModal({
           </View>
         </Pressable>
       </Pressable>
+      <LogoutModal
+        visible={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        title="Login Required"
+        message="You need to go back log in to Proceed checkout."
+        confirmText="Go to Login"
+        cancelText="Cancel"
+        onConfirm={() => router.replace("/Login")}
+        confirmButtonColor="#0C513F"
+        cancelButtonColor="#F04438"
+      />
     </Modal>
   );
 }

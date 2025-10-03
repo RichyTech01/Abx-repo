@@ -6,8 +6,13 @@ import ChangePAssIcon from "@/assets/svgs/ChangePasswordIcon.svg";
 import ArrowRIght from "@/assets/svgs/ArrowRight.svg";
 import PersonalInfo from "@/assets/svgs/PersonalInfo.svg";
 import AddressIcon from "@/assets/svgs/Address.Icon.svg";
+import LogoutModal from "@/Modals/LogoutModal";
+import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 
 export default function MyAccountComps() {
+  const { showModal, setShowModal, handleProtectedNavigation } =
+    useProtectedNavigation();
+
   const router = useRouter();
 
   return (
@@ -20,7 +25,9 @@ export default function MyAccountComps() {
         <TouchableOpacity
           className="py-[10px] pl-[4px] border-b border-[#F1EAE7] flex-row items-center justify-between "
           onPress={() =>
-            router.push("/Screens/AccountScreen/ProfileInformationScreen")
+            handleProtectedNavigation(
+              "/Screens/AccountScreen/ProfileInformationScreen"
+            )
           }
         >
           <View className="flex-row items-center ">
@@ -35,7 +42,9 @@ export default function MyAccountComps() {
         <TouchableOpacity
           className="py-[10px] pl-[4px] border-b border-[#F1EAE7] flex-row items-center justify-between "
           onPress={() =>
-            router.push("/Screens/AccountScreen/ChangeAddressScreen")
+            handleProtectedNavigation(
+              "/Screens/AccountScreen/ChangeAddressScreen"
+            )
           }
         >
           <View className="flex-row items-center ">
@@ -50,7 +59,9 @@ export default function MyAccountComps() {
         <TouchableOpacity
           className="py-[10px] pl-[4px] flex-row items-center justify-between "
           onPress={() =>
-            router.push("/Screens/AccountScreen/ChangePasswordSCreen")
+            handleProtectedNavigation(
+              "/Screens/AccountScreen/ChangePasswordSCreen"
+            )
           }
         >
           <View className="flex-row items-center ">
@@ -62,6 +73,16 @@ export default function MyAccountComps() {
           <ArrowRIght />
         </TouchableOpacity>
       </View>
+
+      <LogoutModal  
+        visible={showModal}
+        onClose={() => setShowModal((prev) => !prev)}
+        title="Login Required"
+        message="Sorry! you have to login to access this screen"
+        confirmText="Login"
+        cancelText="Cancel"
+        onConfirm={() => router.replace("/Login")}
+      />
     </View>
   );
 }

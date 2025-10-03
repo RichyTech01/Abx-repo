@@ -1,4 +1,5 @@
-import { View, ScrollView, ActivityIndicator,  } from "react-native";
+import { View, ScrollView, ActivityIndicator } from "react-native";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import React from "react";
@@ -6,9 +7,12 @@ import SectionHeader from "@/common/SectionHeader";
 import { useRouter } from "expo-router";
 import ShopCard, { Shop } from "@/common/ShopCard";
 import OreAppText from "@/common/OreApptext";
+import Storage from "@/utils/Storage";
+import LogoutModal from "@/Modals/LogoutModal";
 
 export default function TopratedShops() {
   const router = useRouter();
+  const [loginVisible, setLoginVisible] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -45,7 +49,8 @@ export default function TopratedShops() {
 
       {isLoading ? (
         <ActivityIndicator
-          size="small" color={"black"}
+          size="small"
+          color={"black"}
           style={{ marginTop: 16 }}
         />
       ) : shops.length === 0 ? (
@@ -74,11 +79,29 @@ export default function TopratedShops() {
               key={shop.id}
               shop={shop}
               width={254}
-              onFavoritePress={() => favoriteMutation.mutate(shop.id)}
+              onFavoritePress={async () => {
+                const token = await Storage.get("accessToken");
+                if (!token) {
+                  setLoginVisible(true);
+                  return;
+                }
+                favoriteMutation.mutate(shop.id);
+              }}
             />
           ))}
         </ScrollView>
       )}
+      <LogoutModal
+        title="Login Required"
+        message="Sorry! you need to go back to log in to favorite a shop."
+        confirmText="Go to Login"
+        cancelText="Cancel"
+        onConfirm={() => router.replace("/Login")}
+        confirmButtonColor="#0C513F"
+        cancelButtonColor="#F04438"
+        visible={loginVisible}
+        onClose={() => setLoginVisible(false)}
+      />
     </View>
   );
 }

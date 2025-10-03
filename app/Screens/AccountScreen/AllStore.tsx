@@ -1,6 +1,6 @@
-import { View, ScrollView, ActivityIndicator, Platform } from "react-native";
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { View, ActivityIndicator, Platform, FlatList } from "react-native";
+import { useState, useEffect, useCallback } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
@@ -13,14 +13,22 @@ import { useRouter } from "expo-router";
 export default function AllStore() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [shops, setShops] = useState<Shop[]>([]);
   const [loginVisible, setLoginVisible] = useState(false);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Fetch all stores
-  const { data: shops = [], isLoading } = useQuery<Shop[]>({
-    queryKey: ["allStores"],
-    queryFn: async () => {
-      const res = await StoreApi.getAllStores();
-      return res.results.map((store: any) => ({
+  const fetchStores = async (pageNum: number, append = false) => {
+    if (loading || loadingMore) return;
+
+    append ? setLoadingMore(true) : setLoading(true);
+
+    try {
+      const res = await StoreApi.getAllStores(pageNum);
+      const newShops: Shop[] = res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
         image:
@@ -32,8 +40,20 @@ export default function AllStore() {
         rating: store.store_rating,
         distance: store.distance_km || "N/A",
       }));
-    },
-  });
+
+      setShops((prev) => (append ? [...prev, ...newShops] : newShops));
+
+      if (res.pagination) {
+        setHasMore(res.pagination.hasNextPage);
+      } else {
+        if (newShops.length < 12) setHasMore(false);
+      }
+    } catch (err) {
+      console.error("Error fetching stores:", err);
+    } finally {
+      append ? setLoadingMore(false) : setLoading(false);
+    }
+  };
 
   // Toggle favorite
   const favoriteMutation = useMutation({
@@ -47,8 +67,31 @@ export default function AllStore() {
       setLoginVisible(true);
       return;
     }
-    favoriteMutation.mutate(storeId);
+
+    favoriteMutation.mutate(storeId, {
+      onSuccess: () => {
+        setShops((prevShops) =>
+          prevShops.map((shop) =>
+            shop.id === storeId
+              ? { ...shop, isFavorite: !shop.isFavorite }
+              : shop
+          )
+        );
+      },
+    });
   };
+
+  useEffect(() => {
+    fetchStores(1, false);
+  }, []);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loadingMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchStores(nextPage, true);
+    }
+  }, [page, hasMore, loadingMore]);
 
   return (
     <ScreenWrapper>
@@ -56,37 +99,41 @@ export default function AllStore() {
         <HeaderWithSearchInput label="All available stores on ABX" />
       </View>
 
-      {isLoading ? (
+      {loading ? (
         <ActivityIndicator
           size="large"
           color="#00000"
           style={{ marginTop: 16 }}
         />
-      ) : shops.length === 0 ? (
-        <View className="py-10  ">
-          <NoData
-            title="No data "
-            subtitle="No shop available at the moment."
-          />
-        </View>
       ) : (
-        <ScrollView
+        <FlatList
+          data={shops}
           contentContainerStyle={{
             paddingBottom: Platform.OS === "ios" ? 20 : 40,
             marginHorizontal: 20,
             paddingTop: 15,
             gap: 24,
           }}
-          showsVerticalScrollIndicator={false}
-        >
-          {shops.map((shop) => (
+          keyExtractor={(shop) => shop.id}
+          renderItem={({ item: shop }) => (
             <ShopCard
               key={shop.id}
               shop={shop}
               onFavoritePress={() => handleFavoritePress(shop.id)}
             />
-          ))}
-        </ScrollView>
+          )}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0}
+          ListFooterComponent={loading ? <ActivityIndicator /> : null}
+          ListEmptyComponent={
+            <View className="py-10  ">
+              <NoData
+                title="No data "
+                subtitle="No shop available at the moment."
+              />
+            </View>
+          }
+        />
       )}
 
       <LogoutModal

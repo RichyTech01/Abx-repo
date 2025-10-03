@@ -42,12 +42,19 @@ export default function NotificationScreen() {
     checkToken();
   }, []);
 
+  // Watch token separately
+  // useEffect(() => {
+  //   if (hasToken) {
+  //     fetchUser();
+  //   }
+  // }, [hasToken, fetchUser]);
+
+  // Fetch notifications whenever user becomes available
   useEffect(() => {
-    if (hasToken && !user) {
-      fetchUser();
+    if (user && hasToken) {
       fetchNotifications();
     }
-  }, [hasToken, user, fetchUser, fetchNotifications]);
+  }, [user, hasToken, fetchNotifications]);
 
   useEffect(() => {
     if (user?.id && MQTTClient.isClientConnected()) {
@@ -135,9 +142,8 @@ export default function NotificationScreen() {
     if (hasMore && !loadingMore && hasToken) {
       fetchMoreNotifications();
     }
-  }, [hasMore, loadingMore, fetchMoreNotifications]);
+  }, [hasMore, loadingMore, hasToken, fetchMoreNotifications]);
 
- 
   const renderFooter = () => {
     if (!loadingMore || !hasToken) return null;
 
@@ -191,7 +197,7 @@ export default function NotificationScreen() {
               )}
               showsVerticalScrollIndicator={false}
               onEndReached={handleLoadMore}
-              onEndReachedThreshold={0.5}
+              onEndReachedThreshold={0}
               ListFooterComponent={renderFooter}
               ListEmptyComponent={
                 <View className="py-10 mx-auto text-[16px] ">

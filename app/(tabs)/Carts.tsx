@@ -18,6 +18,7 @@ import NoData from "@/common/NoData";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useCartStore } from "@/store/useCartStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import LogoutModal from "@/Modals/LogoutModal";
 
 export default function Carts() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function Carts() {
   const { cartItems, setCartItems } = useCartStore();
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const fetchCart = async () => {
     try {
@@ -41,6 +43,29 @@ export default function Carts() {
     }
   };
 
+  const handleContinue = async () => {
+    try {
+      const token = await AsyncStorage.getItem("accessToken");
+      if (!token) {
+        setShowLoginModal(true); 
+        return;
+      }
+
+      // ✅ proceed to checkout
+      router.push({
+        pathname: "/Screens/Carts/CheckOut",
+        params: {
+          cartData: JSON.stringify({
+            items: cartItems,
+            total: total,
+          }),
+        },
+      });
+    } catch (err) {
+      console.error("Error checking token:", err);
+      setShowLoginModal(true);
+    }
+  };
   useFocusEffect(
     useCallback(() => {
       const checkLoginAndFetch = async () => {
@@ -48,7 +73,7 @@ export default function Carts() {
           const wasLoggedIn = await AsyncStorage.getItem("accessToken");
           const cartId = await AsyncStorage.getItem("cartId");
           const guest = await AsyncStorage.getItem("isGuest");
-          if ((wasLoggedIn && cartId) || guest && cartId) {
+          if ((wasLoggedIn && cartId) || (guest && cartId)) {
             fetchCart();
           } else {
             setCartItems([]);
@@ -227,17 +252,7 @@ export default function Carts() {
                   variant="outline"
                   borderColor="#0C513F"
                   fontClassName="urbanist-medium"
-                  onPress={() => {
-                    router.push({
-                      pathname: "/Screens/Carts/CheckOut",
-                      params: {
-                        cartData: JSON.stringify({
-                          items: cartItems,
-                          total: total,
-                        }),
-                      },
-                    });
-                  }}
+                  onPress={handleContinue}
                 />
                 <Button
                   title="Keep shopping"
@@ -251,6 +266,18 @@ export default function Carts() {
           )}
         </View>
       )}
+
+      <LogoutModal
+        visible={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        title="Login Required"
+        message="You need to go back log in to continue checkout."
+        confirmText="Go to Login"
+        cancelText="Cancel"
+        onConfirm={() => router.replace("/Login")}
+        confirmButtonColor="#0C513F"
+        cancelButtonColor="#F04438"
+      />
     </SafeAreaView>
   );
 }

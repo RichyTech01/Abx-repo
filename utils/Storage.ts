@@ -17,6 +17,14 @@ class Storage {
     }
   }
 
+  async multiRemove(keys: string[]): Promise<void> {
+    try {
+      await AsyncStorage.multiRemove(keys);
+    } catch (error) {
+      console.error(`Storage.multiRemove error for keys [${keys.join(", ")}]:`, error);
+    }
+  }
+
   async set<T = string>(key: string, value: T): Promise<void> {
     try {
       const data =

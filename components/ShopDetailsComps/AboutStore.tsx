@@ -16,12 +16,7 @@ export interface StoreProductProps {
   products: ShopProductType[];
 }
 
-export default function AboutStore({
-  id,
-}: {
-  id: number;
-  image: string;
-}) {
+export default function AboutStore({ id }: { id: number; image: string }) {
   const [shopProduct, setShopProduct] = useState<StoreProductProps | null>(
     null
   );
@@ -106,6 +101,11 @@ export default function AboutStore({
                     item.store
                       ? isStoreOpen(item.store.open_time, item.store.close_time)
                       : false
+                  }
+                  discountPercent={
+                    item.variations?.[0]?.discount_per
+                      ? Number(item.variations[0].discount_per)
+                      : 0
                   }
                 />
               </View>

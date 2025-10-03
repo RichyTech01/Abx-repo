@@ -19,15 +19,26 @@ import LogoutIcon from "@/assets/svgs/LogOutIcon.svg";
 import LogoutModal from "@/Modals/LogoutModal";
 import { useRouter } from "expo-router";
 import { logoutUser } from "@/utils/logoutUser";
+import Storage from "@/utils/Storage";
 
 export default function Account() {
   const [showModal, setShowModal] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
+
   const router = useRouter();
 
   const { user, fetchUser } = useUserStore();
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = await Storage.get("accessToken");
+      setHasToken(!!token);
+    };
+    checkToken();
+  }, []);
 
   return (
     <ScreenWrapper>
@@ -67,12 +78,24 @@ export default function Account() {
           <View className="border border-[#F1EAE7] rounded-[8px] py-[8px] px-[8px] bg-white  mt-[16px] ">
             <TouchableOpacity
               className="py-[4px] pl-[4px] flex-row items-center justify-between "
-              onPress={() => setShowModal((prev) => !prev)}
+              onPress={async () => {
+                if (hasToken) {
+                  setShowModal(true);
+                } else {
+                  await Storage.multiRemove([
+                    "accessToken",
+                    "isGuest",
+                    "cartId",
+                  ]);
+
+                  router.push("/Login");
+                }
+              }}
             >
               <View className="flex-row items-center ">
                 <LogoutIcon />
                 <Text className="font-urbanist-medium text-[#F04438] text-[16px] leading-[22px] ml-[8px]  ">
-                  Log out
+                  {hasToken ? "Log out" : "Log in"}
                 </Text>
               </View>
               <ArrowRIght />

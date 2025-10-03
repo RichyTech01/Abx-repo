@@ -1,34 +1,56 @@
-import {
-  SafeAreaView,
-  View,
-  ScrollView,
-  ActivityIndicator,
-  Text,
-  Platform,
-} from "react-native";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { View,  Platform, FlatList } from "react-native";
+import { useState, useCallback, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
 import StoreApi from "@/api/StoreApi";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import NoData from "@/common/NoData";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
+import Storage from "@/utils/Storage";
+import LogoutModal from "@/Modals/LogoutModal";
+import { useRouter } from "expo-router";
 
 export default function AllTopRatedStores() {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
-  const { data: shops = [], isLoading } = useQuery<Shop[]>({
-    queryKey: ["topRatedStores"],
-    queryFn: async () => {
-      const res = await StoreApi.getAllStores(1);
-      return res.results.map((store: any) => ({
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [loginVisible, setLoginVisible] = useState(false);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const fetchStores = async (pageNum: number, append = false) => {
+    if (loading || loadingMore) return;
+
+    append ? setLoadingMore(true) : setLoading(true);
+
+    try {
+      const res = await StoreApi.getTopRatedStores(pageNum);
+      const newShops: Shop[] = res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
-        image: store.store_img || "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
+        image:
+          store.store_img ||
+          "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
         store_open: store.open_time,
         store_close: store.close_time,
         isFavorite: store.is_favorited ?? false,
+        rating: store.store_rating,
+        distance: store.distance_km || "N/A",
       }));
-    },
-  });
+
+      setShops((prev) => (append ? [...prev, ...newShops] : newShops));
+
+      setHasMore(res.next !== null);
+    } catch (err) {
+      console.error("Error fetching stores:", err);
+    } finally {
+      append ? setLoadingMore(false) : setLoading(false);
+    }
+  };
 
   const favoriteMutation = useMutation({
     mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
@@ -36,50 +58,90 @@ export default function AllTopRatedStores() {
       queryClient.invalidateQueries({ queryKey: ["topRatedStores"] }),
   });
 
+  const handleFavoritePress = async (storeId: string) => {
+    const token = await Storage.get("accessToken");
+    if (!token) {
+      setLoginVisible(true);
+      return;
+    }
+
+    favoriteMutation.mutate(storeId, {
+      onSuccess: () => {
+        setShops((prevShops) =>
+          prevShops.map((shop) =>
+            shop.id === storeId
+              ? { ...shop, isFavorite: !shop.isFavorite }
+              : shop
+          )
+        );
+      },
+    });
+  };
+
+  useEffect(() => {
+    fetchStores(1, false);
+  }, []);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loadingMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchStores(nextPage, true);
+    }
+  }, [page, hasMore, loadingMore]);
+
   return (
-    <ScreenWrapper >
-      <View
-        className={` pb-[15px]`}
-      >
+    <ScreenWrapper>
+      <View className={` pb-[15px]`}>
         <HeaderWithSearchInput label="Top rated stores" />
       </View>
 
-      {isLoading ? (
-        <ActivityIndicator
-          size="large"
-          color="#05A85A"
-          style={{ marginTop: 16 }}
-        />
-      ) : shops.length === 0 ? (
-        <Text
-          style={{
-            textAlign: "center",
-            marginTop: 16,
-            color: "#666",
-            fontSize: 14,
-          }}
-        >
-          No top rated stores available at the moment.
-        </Text>
+      {loading ? (
+        <View className="py-10">
+          <LoadingSpinner />
+        </View>
       ) : (
-        <ScrollView
+        <FlatList
+          data={shops}
           contentContainerStyle={{
-            paddingBottom: 20,
+            paddingBottom: Platform.OS === "ios" ? 20 : 40,
             marginHorizontal: 20,
             paddingTop: 15,
             gap: 24,
           }}
-          showsVerticalScrollIndicator={false}
-        >
-          {shops.map((shop) => (
+          keyExtractor={(shop) => shop.id}
+          renderItem={({ item: shop }) => (
             <ShopCard
               key={shop.id}
               shop={shop}
-              onFavoritePress={() => favoriteMutation.mutate(shop.id)}
+              onFavoritePress={() => handleFavoritePress(shop.id)}
             />
-          ))}
-        </ScrollView>
+          )}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0}
+          ListFooterComponent={loading ? <LoadingSpinner /> : null}
+          ListEmptyComponent={
+            <View className="py-10  ">
+              <NoData
+                title="No data "
+                subtitle="No top rated stores available at the moment."
+              />
+            </View>
+          }
+        />
       )}
+
+      <LogoutModal
+        title="Login Required"
+        message="Sorry! you need to go back to log in to favorite a shop."
+        confirmText="Go to Login"
+        cancelText="Cancel"
+        onConfirm={() => router.replace("/Login")}
+        confirmButtonColor="#0C513F"
+        cancelButtonColor="#F04438"
+        visible={loginVisible}
+        onClose={() => setLoginVisible(false)}
+      />
     </ScreenWrapper>
   );
 }
