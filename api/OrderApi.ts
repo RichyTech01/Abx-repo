@@ -165,6 +165,42 @@ class OrderApi {
       throw error;
     }
   }
+
+  public async setDefaultCustomerAddress(addressId: string) {
+    try {
+      const res = await this.client.patch(`/api/customer/set-default-address`, {
+        addressId,
+      });
+      return res.data;
+    } catch (error: any) {
+      console.error(
+        "Failed to set default address:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  }
+
+  public async editCustomerAddress(
+    addressId: string,
+    payload: {
+      addr?: string;
+      post_code?: string;
+      city?: string;
+      is_guest?: boolean;
+    }
+  ) {
+    try {
+      const res = await this.client.patch(`/customer/edit-address`, {
+        id: addressId,
+        ...payload,
+      });
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to edit address (ID: ${addressId}):`, error);
+      throw error;
+    }
+  }
 }
 
 export default new OrderApi();

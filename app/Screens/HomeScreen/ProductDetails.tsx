@@ -173,7 +173,7 @@ export default function ProductDetails() {
                   </View>
                 </View>
 
-                <View className="mt-[18px]  ">
+                {/* <View className="mt-[18px]  ">
                   <Button
                     title="More information about this product"
                     variant="outline"
@@ -181,7 +181,7 @@ export default function ProductDetails() {
                     textColor="More information about this product"
                     onPress={() => {}}
                   />
-                </View>
+                </View> */}
 
                 <View className="mt-[24px]  ">
                   {/* <Text className="text-[#424242] text-[16px] font-urbanist-semibold mx-[16px] ">

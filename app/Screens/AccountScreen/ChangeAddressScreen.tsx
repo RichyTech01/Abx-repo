@@ -1,4 +1,4 @@
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Alert } from "react-native";
 import { useEffect, useState } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import Header from "@/common/Header";
@@ -8,13 +8,13 @@ import ChangeAddressModal from "@/Modals/ChangeAddressModal";
 import AddressCard from "@/common/AddressCard";
 import NoData from "@/common/NoData";
 import { useRouter } from "expo-router";
+import OrderApi from "@/api/OrderApi";
 
 export default function ChangeAddressScreen() {
   const router = useRouter();
   const { user, fetchUser } = useUserStore();
   const [showAddressModal, setShowAddressModal] = useState(false);
-
-  const [showModal, setShowModal] = useState(false);
+  const [loadingAddressId, setLoadingAddressId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) fetchUser();
@@ -24,6 +24,22 @@ export default function ChangeAddressScreen() {
 
   const handleAddAddress = async () => {
     setShowAddressModal(true);
+  };
+
+  const handleSetDefaultAddress = async (addressId: string) => {
+    try {
+      setLoadingAddressId(addressId);
+
+      const res = await OrderApi.setDefaultCustomerAddress(addressId);
+
+      Alert.alert("Success", "Default address updated successfully!");
+      await fetchUser(); 
+    } catch (error) {
+      console.error("Failed to set default address:", error);
+      Alert.alert("Error", "Unable to set default address. Please try again.");
+    } finally {
+      setLoadingAddressId(null);
+    }
   };
 
   return (
@@ -54,8 +70,8 @@ export default function ChangeAddressScreen() {
                 post_code={addr.post_code}
                 phone={user.phone_number}
                 isDefault={addr.default_addr}
-                onEdit={() => setShowModal(true)}
-                onSetDefault={() => console.log("set as default", addr.id)}
+                onEdit={() => setShowAddressModal(true)}
+                onSetDefault={() => handleSetDefaultAddress(addr.id)}
               />
             ))}
           </ScrollView>

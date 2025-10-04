@@ -440,8 +440,8 @@ export default function ChatScreen() {
 
           {/* Bubble with border & overflow-hidden */}
           <View
-            className={`border border-[#0C513F] rounded-[20px] rounded-bl-none overflow-hidden z-50 ${
-              attachmentUrl ? "w-[70%]" : "px-4 py-2"
+            className={` border-[#0C513F] rounded-[20px] rounded-bl-none overflow-hidden z-50 ${
+              attachmentUrl ? "w-[70%]" : "px-4 py-2 border"
             }`}
           >
             {attachmentUrl && (
@@ -463,7 +463,7 @@ export default function ChatScreen() {
                 attachmentUrl
                   ? "absolute bottom-2 right-2 px-2 py-1 "
                   : "pr-2"
-              } text-[#2D2220] text-[14px] leading-[20px] font-urbanist self-end`}
+              } text-[#2D2220] bg-white/50 rounded text-[14px] leading-[20px] font-urbanist self-end`}
             >
               {timeLabel}
             </Text>

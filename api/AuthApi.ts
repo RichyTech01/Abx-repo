@@ -39,7 +39,6 @@ class AuthApi {
     return res.data;
   }
 
-
   public async changePassword(data: {
     current_password: string;
     new_password: string;
@@ -61,7 +60,7 @@ class AuthApi {
   }
 
   // update Profile
-   public async setNewProfile(data: {
+  public async setNewProfile(data: {
     first_name: string;
     last_name: string;
     phone_number: string;
@@ -108,7 +107,10 @@ class AuthApi {
   }
 
   // Validate email or phone before registration
-  public async validateCredential(data: { email?: string; phone_number?: string }) {
+  public async validateCredential(data: {
+    email?: string;
+    phone_number?: string;
+  }) {
     const res = await this.client.post("/auth/validated-credential", data);
     return res.data;
   }
@@ -124,6 +126,16 @@ class AuthApi {
       `${ADDRESS_BASE_URL}/autocomplete/${term}?api-key=${GET_ADDRESS_API_KEY}`
     );
     return res.data.suggestions;
+  }
+
+  public async sendDeviceToken(token: string) {
+    try {
+      const res = await this.client.post(`/auth/send-device-tokens`, { token });
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to send device token:`, error);
+      throw error;
+    }
   }
 }
 

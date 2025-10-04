@@ -13,6 +13,7 @@ import Toast from "react-native-toast-message";
 import { toastConfig } from "@/toastConfig";
 import { StatusBar } from "expo-status-bar";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import * as Notifications from "expo-notifications";
 
 import {
   useFonts,
@@ -33,6 +34,7 @@ import MQTTClient from "@/utils/mqttClient";
 import PushNotificationService from "@/utils/pushNotificationService";
 import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
+import AuthApi from "@/api/AuthApi"; // Using AuthApi instead
 import showToast from "@/utils/showToast";
 import type { Notification } from "@/types/NotificationType";
 
@@ -42,9 +44,11 @@ const queryClient = new QueryClient();
 const STRIPE_PUBLISHABLE_KEY =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
 
+// 🔔 Global notification handler with both MQTT and Push
 function GlobalNotificationHandler() {
   const { user, fetchUser } = useUserStore();
-  const { handleRealtimeNotification, checkNotificationStatus } = useNotificationStore();
+  const { handleRealtimeNotification, checkNotificationStatus } =
+    useNotificationStore();
   const router = useRouter();
   const appState = useRef(AppState.currentState);
   const [pushToken, setPushToken] = useState<string | null>(null);
@@ -75,21 +79,51 @@ function GlobalNotificationHandler() {
 
     const initializePushNotifications = async () => {
       try {
-        // Register for push notifications
-        const token = await PushNotificationService.registerForPushNotifications();
-        
+        // Check if token already exists locally
+        const storedToken = await AsyncStorage.getItem("PushNotificationToken");
+        const guest = await AsyncStorage.getItem("isGuest");
+        if (guest === "true" || storedToken) {
+          console.log("⏩ Skipping push notification registration");
+          if (storedToken) setPushToken(storedToken); 
+          return; 
+        }
+
+        // Register for push notifications (get new token)
+        const token =
+          await PushNotificationService.registerForPushNotifications();
+
         if (token) {
           setPushToken(token);
-          console.log("✅ Push token obtained:", token);
-          
-          // TODO: Send token to your backend
-          // await YourApi.registerPushToken(user.id, token);
-          // Example:
-          // await fetch(`${API_URL}/users/${user.id}/push-token`, {
-          //   method: 'POST',
-          //   headers: { 'Content-Type': 'application/json' },
-          //   body: JSON.stringify({ push_token: token })
-          // });
+          console.log("✅ New push token obtained:", token);
+
+          // Store token locally
+          await AsyncStorage.setItem("PushNotificationToken", token);
+
+          // Send token to backend
+          try {
+            await AuthApi.sendDeviceToken(token);
+            console.log("✅ Push token registered with backend");
+          } catch (error) {
+            console.error(
+              "❌ Failed to register push token with backend:",
+              error
+            );
+            // Store temporarily to retry later
+            await AsyncStorage.setItem("pendingPushToken", token);
+          }
+        }
+
+        // Retry any pending token if exists
+        const pendingToken = await AsyncStorage.getItem("pendingPushToken");
+        if (pendingToken && pendingToken !== token) {
+          console.log("🔄 Retrying pending push token registration...");
+          try {
+            await AuthApi.sendDeviceToken(pendingToken);
+            console.log("✅ Pending push token registered successfully");
+            await AsyncStorage.removeItem("pendingPushToken");
+          } catch (error) {
+            console.error("❌ Failed to register pending push token:", error);
+          }
         }
       } catch (error) {
         console.error("❌ Error initializing push notifications:", error);
@@ -114,55 +148,60 @@ function GlobalNotificationHandler() {
 
   // Handle push notification received while app is in foreground
   useEffect(() => {
-    const notificationListener = PushNotificationService.addNotificationReceivedListener(
-      (notification) => {
-        console.log("📬 Push notification received (foreground):", notification);
-        
-        // Extract notification data
-        const data = notification.request.content.data as any;
-        
-        // Convert to your Notification type
-        const notificationData: Notification = {
-          id: data.id || Date.now(),
-          title: notification.request.content.title || "",
-          message: notification.request.content.body || "",
-          notification_type: data.notification_type || "general",
-          data: data,
-          is_read: false,
-          created_at: new Date().toISOString(),
-        };
+    const notificationListener =
+      PushNotificationService.addNotificationReceivedListener(
+        (notification) => {
+          console.log(
+            "📬 Push notification received (foreground):",
+            notification
+          );
 
-        handleNewNotification(notificationData);
-      }
-    );
+          // Extract notification data
+          const data = notification.request.content.data as any;
+
+          // Convert to your Notification type
+          const notificationData: Notification = {
+            id: data.id || Date.now(),
+            title: notification.request.content.title || "",
+            message: notification.request.content.body || "",
+            notification_type: data.notification_type || "general",
+            data: data,
+            is_read: false,
+            created_at: new Date().toISOString(),
+          };
+
+          handleNewNotification(notificationData);
+        }
+      );
 
     // Handle notification tap (when user taps on notification)
-    const responseListener = PushNotificationService.addNotificationResponseReceivedListener(
-      (response) => {
-        console.log("👆 User tapped on notification:", response);
-        
-        const data = response.notification.request.content.data as any;
-        
-        // Navigate based on notification type
-        if (data.order_id) {
-          router.push({
-            pathname: "/Screens/OrderScreen/OrderDetailsScrenn",
-            params: { id: data.order_id },
+    const responseListener =
+      PushNotificationService.addNotificationResponseReceivedListener(
+        (response) => {
+          console.log("👆 User tapped on notification:", response);
+
+          const data = response.notification.request.content.data as any;
+
+          // Navigate based on notification type
+          if (data.order_id) {
+            router.push({
+              pathname: "/Screens/OrderScreen/OrderDetailsScrenn",
+              params: { id: data.order_id },
+            });
+          }
+
+          // Update notification as read
+          handleRealtimeNotification({
+            id: data.id,
+            title: response.notification.request.content.title || "",
+            message: response.notification.request.content.body || "",
+            notification_type: data.notification_type,
+            data: data,
+            is_read: true,
+            created_at: data.created_at || new Date().toISOString(),
           });
         }
-
-        // Update notification as read
-        handleRealtimeNotification({
-          id: data.id,
-          title: response.notification.request.content.title || "",
-          message: response.notification.request.content.body || "",
-          notification_type: data.notification_type,
-          data: data,
-          is_read: true,
-          created_at: data.created_at || new Date().toISOString(),
-        });
-      }
-    );
+      );
 
     return () => {
       notificationListener.remove();
@@ -172,26 +211,29 @@ function GlobalNotificationHandler() {
 
   // Handle app state changes (reconnect MQTT when coming back to foreground)
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-      if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === 'active' &&
-        user?.id
-      ) {
-        console.log('🔄 App came to foreground, checking MQTT connection');
-        
-        // Reconnect MQTT if disconnected
-        if (!MQTTClient.isClientConnected()) {
-          console.log('🔌 Reconnecting MQTT...');
-          MQTTClient.connect(String(user.id), handleNewNotification);
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextAppState: AppStateStatus) => {
+        if (
+          appState.current.match(/inactive|background/) &&
+          nextAppState === "active" &&
+          user?.id
+        ) {
+          console.log("🔄 App came to foreground, checking MQTT connection");
+
+          // Reconnect MQTT if disconnected
+          if (!MQTTClient.isClientConnected()) {
+            console.log("🔌 Reconnecting MQTT...");
+            MQTTClient.connect(String(user.id), handleNewNotification);
+          }
+
+          // Refresh notifications
+          checkNotificationStatus();
         }
 
-        // Refresh notifications
-        checkNotificationStatus();
+        appState.current = nextAppState;
       }
-
-      appState.current = nextAppState;
-    });
+    );
 
     return () => {
       subscription.remove();
