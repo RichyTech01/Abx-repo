@@ -66,7 +66,7 @@ export default function AddressCard({
           className="w-9 h-9 items-end justify-center"
           onPress={onEdit}
         >
-          <EditIcon stroke={isDefault ? "#000" : "#F4B551"} />
+          <EditIcon stroke={isDefault ? "#05A85A" : "#F4B551"} />
         </Pressable>
       </View>
     </View>

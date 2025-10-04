@@ -112,7 +112,6 @@ class OrderApi {
     }
   }
 
-  // ✅ Change order status (PUT)
   public async changeOrderStatus(
     id: string,
     payload: ChangeOrderStatus
@@ -168,13 +167,13 @@ class OrderApi {
 
   public async setDefaultCustomerAddress(addressId: string) {
     try {
-      const res = await this.client.patch(`/api/customer/set-default-address`, {
-        addressId,
-      });
+      const res = await this.client.patch(
+        `/customer/${addressId}/set-default-address`
+      );
       return res.data;
     } catch (error: any) {
       console.error(
-        "Failed to set default address:",
+        `Failed to set default address (ID: ${addressId}):`,
         error.response?.data || error.message
       );
       throw error;
@@ -191,10 +190,10 @@ class OrderApi {
     }
   ) {
     try {
-      const res = await this.client.patch(`/customer/edit-address`, {
-        id: addressId,
-        ...payload,
-      });
+      const res = await this.client.patch(
+        `/customer/${addressId}/edit-address`,
+        payload
+      );
       return res.data;
     } catch (error) {
       console.error(`Failed to edit address (ID: ${addressId}):`, error);

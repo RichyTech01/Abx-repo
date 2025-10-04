@@ -9,12 +9,26 @@ import AddressCard from "@/common/AddressCard";
 import NoData from "@/common/NoData";
 import { useRouter } from "expo-router";
 import OrderApi from "@/api/OrderApi";
+import showToast from "@/utils/showToast";
 
 export default function ChangeAddressScreen() {
   const router = useRouter();
   const { user, fetchUser } = useUserStore();
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [loadingAddressId, setLoadingAddressId] = useState<string | null>(null);
+  const [editAddressId, setEditAddressId] = useState<string | undefined>(
+    undefined
+  );
+
+  const handleAddAddress = () => {
+    setEditAddressId(undefined); // clear edit id
+    setShowAddressModal(true);
+  };
+
+  const handleEditAddress = (id: string) => {
+    setEditAddressId(id); // set id to edit
+    setShowAddressModal(true);
+  };
 
   useEffect(() => {
     if (!user) fetchUser();
@@ -22,23 +36,14 @@ export default function ChangeAddressScreen() {
 
   const hasAddresses = user?.address && user.address.length > 0;
 
-  const handleAddAddress = async () => {
-    setShowAddressModal(true);
-  };
-
   const handleSetDefaultAddress = async (addressId: string) => {
     try {
-      setLoadingAddressId(addressId);
-
-      const res = await OrderApi.setDefaultCustomerAddress(addressId);
-
-      Alert.alert("Success", "Default address updated successfully!");
-      await fetchUser(); 
+      await OrderApi.setDefaultCustomerAddress(addressId);
+      showToast("success", "Default address updated successfully!");
+      await fetchUser();
     } catch (error) {
       console.error("Failed to set default address:", error);
-      Alert.alert("Error", "Unable to set default address. Please try again.");
-    } finally {
-      setLoadingAddressId(null);
+      showToast("error", "Unable to set default address. Please try again.");
     }
   };
 
@@ -70,7 +75,7 @@ export default function ChangeAddressScreen() {
                 post_code={addr.post_code}
                 phone={user.phone_number}
                 isDefault={addr.default_addr}
-                onEdit={() => setShowAddressModal(true)}
+                onEdit={() => handleEditAddress(addr.id)}
                 onSetDefault={() => handleSetDefaultAddress(addr.id)}
               />
             ))}
@@ -103,7 +108,7 @@ export default function ChangeAddressScreen() {
           fetchUser();
           setShowAddressModal(false);
         }}
-        defaultAddress={user?.address?.find((a: any) => a.default_addr) || null}
+        addressId={editAddressId} 
       />
     </ScreenWrapper>
   );
