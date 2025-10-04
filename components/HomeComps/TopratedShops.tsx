@@ -9,8 +9,11 @@ import ShopCard, { Shop } from "@/common/ShopCard";
 import OreAppText from "@/common/OreApptext";
 import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
+import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 
 export default function TopratedShops() {
+  const { showModal, setShowModal, handleProtectedNavigation } =
+    useProtectedNavigation();
   const router = useRouter();
   const [loginVisible, setLoginVisible] = useState(false);
 
@@ -44,7 +47,9 @@ export default function TopratedShops() {
     <View className=" ">
       <SectionHeader
         title="Top Rated Shops"
-        onPress={() => router.push("/Screens/HomeScreen/AllTopRatedStores")}
+        onPress={() =>
+          handleProtectedNavigation("/Screens/HomeScreen/AllTopRatedStores")
+        }
       />
 
       {isLoading ? (
@@ -104,6 +109,18 @@ export default function TopratedShops() {
         cancelButtonColor="#F04438"
         visible={loginVisible}
         onClose={() => setLoginVisible(false)}
+      />
+      <LogoutModal
+        visible={showModal}
+        onClose={() => setShowModal((prev) => !prev)}
+        title="Login Required"
+        message="Sorry! you have to login to access this screen"
+        confirmText="Login"
+        cancelText="Cancel"
+        onConfirm={async () => {
+          await Storage.multiRemove(["isGuest", "cartId"]);
+          router.replace("/onboarding");
+        }}
       />
     </View>
   );

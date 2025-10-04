@@ -148,7 +148,10 @@ export default function AllStore() {
         message="You need to go back log in to favorite a shop."
         confirmText="Go to Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/Login")}
+        onConfirm={async () => {
+          await Storage.multiRemove(["isGuest", "cartId"]);
+          router.replace("/onboarding");
+        }}
         confirmButtonColor="#0C513F"
         cancelButtonColor="#F04438"
         visible={loginVisible}
