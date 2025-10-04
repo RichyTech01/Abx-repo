@@ -19,6 +19,7 @@ import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useCartStore } from "@/store/useCartStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LogoutModal from "@/Modals/LogoutModal";
+import Storage from "@/utils/Storage";
 
 export default function Carts() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function Carts() {
     try {
       const token = await AsyncStorage.getItem("accessToken");
       if (!token) {
-        setShowLoginModal(true); 
+        setShowLoginModal(true);
         return;
       }
 
@@ -274,7 +275,10 @@ export default function Carts() {
         message="You need to go back log in to continue checkout."
         confirmText="Go to Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/onboarding")}
+        onConfirm={async () => {
+          await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
+          router.replace("/onboarding");
+        }}
         confirmButtonColor="#0C513F"
         cancelButtonColor="#F04438"
       />

@@ -8,6 +8,7 @@ import FavoriterIcon from "@/assets/svgs/FavoriteIcon.svg";
 import RescueAndSave from "@/assets/svgs/RAndSIcon.svg";
 import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import LogoutModal from "@/Modals/LogoutModal";
+import Storage from "@/utils/Storage";
 
 export default function General() {
   const router = useRouter();
@@ -69,7 +70,10 @@ export default function General() {
         message="Sorry! you have to login to access this screen"
         confirmText="Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/onboarding")}
+        onConfirm={async () => {
+          await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
+          router.replace("/onboarding");
+        }}
       />
     </View>
   );

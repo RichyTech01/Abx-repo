@@ -5,11 +5,14 @@ import { useRouter } from "expo-router";
 import SpendingLimgitImg from "@/assets/svgs/SpendingLimitIcon.svg";
 import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import LogoutModal from "@/Modals/LogoutModal";
+import Storage from "@/utils/Storage";
+
 
 export default function SpendingLimit() {
   const { showModal, setShowModal, handleProtectedNavigation } =
     useProtectedNavigation();
   const router = useRouter();
+
   return (
     <View className="bg-[#FFDACA] flex-row items-center rounded-[18px] px-[20px] py-[16px] border border-[#F1EAE7] shadow shadow-[#0000000A]/5 mx-[20px] gap-[19.98px]  ">
       <View className="w-[65%]">
@@ -25,7 +28,9 @@ export default function SpendingLimit() {
             title="Set up now"
             borderWidth={0}
             onPress={() =>
-              handleProtectedNavigation("/Screens/AccountScreen/SpendingBudgetScreen")
+              handleProtectedNavigation(
+                "/Screens/AccountScreen/SpendingBudgetScreen"
+              )
             }
           />
         </View>
@@ -41,7 +46,10 @@ export default function SpendingLimit() {
         message="Sorry! you have to login to set a spending limit"
         confirmText="Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/onboarding")}
+        onConfirm={async () => {
+          await Storage.multiRemove(["isGuest", "cartId"]);
+          router.replace("/onboarding");
+        }}
       />
     </View>
   );

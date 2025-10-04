@@ -1,9 +1,9 @@
 import "./global.css";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import * as SplashScreen from "expo-splash-screen";
-import { View } from "react-native";
+import { View, AppState, AppStateStatus } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   SafeAreaProvider,
@@ -30,6 +30,7 @@ import { Manrope_600SemiBold } from "@expo-google-fonts/manrope";
 
 // Import MQTT and stores
 import MQTTClient from "@/utils/mqttClient";
+import PushNotificationService from "@/utils/pushNotificationService";
 import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import showToast from "@/utils/showToast";
@@ -41,16 +42,20 @@ const queryClient = new QueryClient();
 const STRIPE_PUBLISHABLE_KEY =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
 
-// 🔔 Global MQTT handler (same as yours)
-function GlobalMQTTHandler() {
+function GlobalNotificationHandler() {
   const { user, fetchUser } = useUserStore();
-  const { handleRealtimeNotification } = useNotificationStore();
+  const { handleRealtimeNotification, checkNotificationStatus } = useNotificationStore();
+  const router = useRouter();
+  const appState = useRef(AppState.currentState);
+  const [pushToken, setPushToken] = useState<string | null>(null);
 
+  // Unified notification handler
   const handleNewNotification = useCallback(
     (newNotification: Notification) => {
-      console.log("🔔 Global notification received:", newNotification);
+      console.log("🔔 Notification received:", newNotification);
 
       handleRealtimeNotification(newNotification);
+      checkNotificationStatus();
 
       showToast(
         "success",
@@ -58,25 +63,140 @@ function GlobalMQTTHandler() {
         newNotification.message ?? "You have a new notification."
       );
     },
-    [handleRealtimeNotification]
+    [handleRealtimeNotification, checkNotificationStatus]
   );
 
+  // Initialize push notifications and register token
   useEffect(() => {
-    if (!user) {
+    if (!user?.id) {
       fetchUser();
       return;
     }
 
-    if (user?.id) {
-      console.log("🚀 Connecting to global MQTT for user:", user.id);
-      MQTTClient.connect(String(user.id), handleNewNotification);
-    }
+    const initializePushNotifications = async () => {
+      try {
+        // Register for push notifications
+        const token = await PushNotificationService.registerForPushNotifications();
+        
+        if (token) {
+          setPushToken(token);
+          console.log("✅ Push token obtained:", token);
+          
+          // TODO: Send token to your backend
+          // await YourApi.registerPushToken(user.id, token);
+          // Example:
+          // await fetch(`${API_URL}/users/${user.id}/push-token`, {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/json' },
+          //   body: JSON.stringify({ push_token: token })
+          // });
+        }
+      } catch (error) {
+        console.error("❌ Error initializing push notifications:", error);
+      }
+    };
+
+    initializePushNotifications();
+  }, [user?.id, fetchUser]);
+
+  // Setup MQTT connection
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log("🚀 Connecting to MQTT for user:", user.id);
+    MQTTClient.connect(String(user.id), handleNewNotification);
 
     return () => {
-      console.log("🧹 Cleaning up global MQTT connection");
+      console.log("🧹 Cleaning up MQTT connection");
       MQTTClient.disconnect();
     };
-  }, [user?.id, handleNewNotification, fetchUser]);
+  }, [user?.id, handleNewNotification]);
+
+  // Handle push notification received while app is in foreground
+  useEffect(() => {
+    const notificationListener = PushNotificationService.addNotificationReceivedListener(
+      (notification) => {
+        console.log("📬 Push notification received (foreground):", notification);
+        
+        // Extract notification data
+        const data = notification.request.content.data as any;
+        
+        // Convert to your Notification type
+        const notificationData: Notification = {
+          id: data.id || Date.now(),
+          title: notification.request.content.title || "",
+          message: notification.request.content.body || "",
+          notification_type: data.notification_type || "general",
+          data: data,
+          is_read: false,
+          created_at: new Date().toISOString(),
+        };
+
+        handleNewNotification(notificationData);
+      }
+    );
+
+    // Handle notification tap (when user taps on notification)
+    const responseListener = PushNotificationService.addNotificationResponseReceivedListener(
+      (response) => {
+        console.log("👆 User tapped on notification:", response);
+        
+        const data = response.notification.request.content.data as any;
+        
+        // Navigate based on notification type
+        if (data.order_id) {
+          router.push({
+            pathname: "/Screens/OrderScreen/OrderDetailsScrenn",
+            params: { id: data.order_id },
+          });
+        }
+
+        // Update notification as read
+        handleRealtimeNotification({
+          id: data.id,
+          title: response.notification.request.content.title || "",
+          message: response.notification.request.content.body || "",
+          notification_type: data.notification_type,
+          data: data,
+          is_read: true,
+          created_at: data.created_at || new Date().toISOString(),
+        });
+      }
+    );
+
+    return () => {
+      notificationListener.remove();
+      responseListener.remove();
+    };
+  }, [handleNewNotification, router]);
+
+  // Handle app state changes (reconnect MQTT when coming back to foreground)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active' &&
+        user?.id
+      ) {
+        console.log('🔄 App came to foreground, checking MQTT connection');
+        
+        // Reconnect MQTT if disconnected
+        if (!MQTTClient.isClientConnected()) {
+          console.log('🔌 Reconnecting MQTT...');
+          MQTTClient.connect(String(user.id), handleNewNotification);
+        }
+
+        // Refresh notifications
+        checkNotificationStatus();
+      }
+
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [user?.id, handleNewNotification, checkNotificationStatus]);
 
   return null;
 }
@@ -109,13 +229,6 @@ export default function RootLayout() {
     checkAuth();
   }, [fontsLoaded]);
 
-  console.log(
-    "🏠 Current state - isLoggedIn:",
-    isLoggedIn,
-    "fontsLoaded:",
-    fontsLoaded
-  );
-
   if (!fontsLoaded || isLoggedIn === null) return null;
 
   return (
@@ -127,7 +240,7 @@ export default function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <StatusBar style="dark" backgroundColor="#fff" />
 
-            {isLoggedIn && <GlobalMQTTHandler />}
+            {isLoggedIn && <GlobalNotificationHandler />}
 
             <Stack screenOptions={{ headerShown: false }}>
               {isLoggedIn ? (

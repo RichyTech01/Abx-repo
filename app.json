@@ -15,24 +15,33 @@
     "newArchEnabled": true,
     "extra": {
       "GET_ADDRESS_API_KEY": "LmRcb8Qk50mEojODY5sv3w46906",
-
       "router": {},
       "eas": {
         "projectId": "8e52f21a-83fe-434f-ab77-05345693e72a"
       }
     },
+    "notification": {
+      "icon": "./assets/Images/MainLogo.png",
+      "color": "#0C513F",
+      "androidMode": "default",
+      "androidCollapsedTitle": "#{unread_notifications} new notifications"
+    },
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We need your location to show nearby stores.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"]
       },
       "bundleIdentifier": "com.henry23.abxmobileapp"
     },
     "android": {
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "CAMERA"
+        "CAMERA",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/Images/MainLogo.png",
@@ -40,7 +49,8 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.henry23.abxmobileapp",
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "useNextNotificationsApi": true
     },
     "web": {
       "bundler": "metro",
@@ -62,6 +72,14 @@
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos to let you share them in chat."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/Images/MainLogo.png",
+          "color": "#0C513F",
+          "sounds": []
         }
       ]
     ],

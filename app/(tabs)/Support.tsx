@@ -23,62 +23,65 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
 
+
 export default function Support() {
   const router = useRouter();
   const [showLodaing, setShowLoading] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  const handleStartSession = async () => {
+    const token = await Storage.get("accessToken");
+    const guest = await Storage.get("isGuest");
 
- const handleStartSession = async () => {
-  const token = await Storage.get("accessToken");
-  const guest = await Storage.get("isGuest");
-
-  if (!token || guest) {
-    setShowLoginModal(true);
-    return;
-  }
-
-  setShowLoading(true);
-
- try {
-  const storedSessionId = await Storage.get("ChatSessionId");
-  let sessionId = storedSessionId;
-
-  if (sessionId) {
-    try {
-      const history = await SupportApi.getActiveChatMessages(sessionId);
-      const hasHistory = history?.results?.length > 0;
-
-      if (hasHistory) {
-        router.push("/Screens/Support/ChatScreen");
-        return;
-      } else {
-        // expired or empty → start new
-        throw new Error("Session expired");
-      }
-    } catch (err) {
-      // if we hit "Active chat session not found or have ended."
-      console.warn("Session not active, starting new...");
-      await AsyncStorage.removeItem("ChatSessionId");
+    if (!token || guest) {
+      setShowLoginModal(true);
+      return;
     }
-  }
 
-  // Always start new session if no valid session
-  const response = await SupportApi.startChatSession();
-  await AsyncStorage.setItem("ChatSessionId", response.session_id);
+    setShowLoading(true);
 
-  if (response.is_active) {
-    router.push("/Screens/Support/ChatScreen");
-  } else {
-    showToast("error", "No support available. Try again later.");
-  }
-} catch (error: any) {
-  console.error("Failed to start chat session:", error.response?.data || error);
-  showToast("error", "Something went wrong while starting chat.");
-} finally {
-  setShowLoading(false);
-}
- }
+    try {
+      const storedSessionId = await Storage.get("ChatSessionId");
+      let sessionId = storedSessionId;
+
+      if (sessionId) {
+        try {
+          const history = await SupportApi.getActiveChatMessages(sessionId);
+          const hasHistory = history?.results?.length > 0;
+
+          if (hasHistory) {
+            router.push("/Screens/Support/ChatScreen");
+            return;
+          } else {
+            // expired or empty → start new
+            throw new Error("Session expired");
+          }
+        } catch (err) {
+          // if we hit "Active chat session not found or have ended."
+          console.warn("Session not active, starting new...");
+          await AsyncStorage.removeItem("ChatSessionId");
+        }
+      }
+
+      // Always start new session if no valid session
+      const response = await SupportApi.startChatSession();
+      await AsyncStorage.setItem("ChatSessionId", response.session_id);
+
+      if (response.is_active) {
+        router.push("/Screens/Support/ChatScreen");
+      } else {
+        showToast("error", "No support available. Try again later.");
+      }
+    } catch (error: any) {
+      console.error(
+        "Failed to start chat session:",
+        error.response?.data || error
+      );
+      showToast("error", "Something went wrong while starting chat.");
+    } finally {
+      setShowLoading(false);
+    }
+  };
 
   const handleEmailPress = () => {
     Linking.openURL("mailto:support@abx.com");
@@ -169,7 +172,10 @@ export default function Support() {
         message="You need to go back log in to start a support chat."
         confirmText="Go to Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/onboarding")}
+        onConfirm={async () => {
+          await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
+          router.replace("/onboarding");
+        }}
         confirmButtonColor="#0C513F"
         cancelButtonColor="#F04438"
       />

@@ -49,7 +49,7 @@ export default function NotificationScreen() {
      return
     }
      fetchNotifications();
-  }, [user, hasToken, fetchNotifications]);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     if (user?.id && MQTTClient.isClientConnected()) {

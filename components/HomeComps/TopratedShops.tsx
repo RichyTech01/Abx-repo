@@ -96,7 +96,10 @@ export default function TopratedShops() {
         message="Sorry! you need to go back to log in to favorite a shop."
         confirmText="Go to Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/Login")}
+        onConfirm={async () => {
+          await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
+          router.replace("/onboarding");
+        }}
         confirmButtonColor="#0C513F"
         cancelButtonColor="#F04438"
         visible={loginVisible}

@@ -17,6 +17,8 @@ import VariationCard from "@/common/VariationCard";
 import OrderApi from "@/api/OrderApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LogoutModal from "./LogoutModal";
+import Storage from "@/utils/Storage";
+
 
 type AddtoCartModalProps = {
   value: boolean;
@@ -46,9 +48,7 @@ export default function AddtoCartModal({
         return;
       }
       const res = await OrderApi.getCart();
-      // console.log("Full API response:", res);
       setCartItems(res.cart.items || []);
-      // console.log("Modal - Fetched cart items:", res.items);
     } catch (err) {
       console.error("Failed to fetch cart:", err);
     } finally {
@@ -155,7 +155,10 @@ export default function AddtoCartModal({
         message="You need to go back log in to Proceed checkout."
         confirmText="Go to Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/onboarding")}
+        onConfirm={async () => {
+          await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
+          router.replace("/onboarding");
+        }}
         confirmButtonColor="#0C513F"
         cancelButtonColor="#F04438"
       />

@@ -2,7 +2,6 @@ import { View, Image, Pressable } from "react-native";
 import UrbanistText from "@/common/UrbanistText";
 import AddtoCartIcon from "@/assets/svgs/AddToCartIcon.svg";
 import { ProductVariation } from "@/types/store";
-import showToast from "@/utils/showToast";
 import { CartItem } from "@/types/carts";
 import { useCartOperations } from "@/hooks/useCartOperations";
 

@@ -8,6 +8,7 @@ import PersonalInfo from "@/assets/svgs/PersonalInfo.svg";
 import AddressIcon from "@/assets/svgs/Address.Icon.svg";
 import LogoutModal from "@/Modals/LogoutModal";
 import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
+import Storage from "@/utils/Storage";
 
 export default function MyAccountComps() {
   const { showModal, setShowModal, handleProtectedNavigation } =
@@ -74,14 +75,17 @@ export default function MyAccountComps() {
         </TouchableOpacity>
       </View>
 
-      <LogoutModal  
+      <LogoutModal
         visible={showModal}
         onClose={() => setShowModal((prev) => !prev)}
         title="Login Required"
         message="Sorry! you have to login to access this screen"
         confirmText="Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/onboarding")}
+        onConfirm={async () => {
+          await Storage.multiRemove(["isGuest", "cartId"]);
+          router.replace("/onboarding");
+        }}
       />
     </View>
   );
