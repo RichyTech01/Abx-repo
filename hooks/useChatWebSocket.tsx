@@ -24,7 +24,7 @@ interface WebSocketMessage {
     id: string;
     message: string;
     sender_id: string;
-    attachments: string[];
+    attachments: string[] | Array<{ file_url: string; id: number }>;
     created_at: string;
   };
 }
@@ -120,28 +120,59 @@ export const useChatWebSocket = ({
 
         try {
           const data: WebSocketMessage = JSON.parse(event.data);
-          console.log('WebSocket message received:', data);
+          console.log('WebSocket message received:', JSON.stringify(data, null, 2));
 
           switch (data.type) {
             case 'message':
               // Backend sends messages in 'data' object
-              if (data.data && data.data.message) {
+              if (data.data && data.data.message !== undefined) {
                 const messageData = data.data;
                 const isUserMessage = messageData.sender_id === userId;
                 
+                console.log('Processing message:', {
+                  isUserMessage,
+                  hasAttachments: !!messageData.attachments,
+                  attachmentsLength: messageData.attachments?.length,
+                  attachments: messageData.attachments,
+                  message: messageData.message
+                });
+                
                 // ONLY add agent messages - user messages are already added optimistically
                 if (!isUserMessage) {
+                  // Normalize attachments - handle both string[] and object[] formats
+                  let normalizedAttachments: string[] | undefined = undefined;
+                  
+                  if (messageData.attachments && messageData.attachments.length > 0) {
+                    normalizedAttachments = messageData.attachments.map((att: any) => {
+                      if (typeof att === 'string') {
+                        return att;
+                      } else if (att && typeof att === 'object' && att.file_url) {
+                        return att.file_url;
+                      }
+                      return null;
+                    }).filter((url): url is string => url !== null);
+                    
+                    console.log('Normalized attachments:', normalizedAttachments);
+                  }
+
                   const newMessage: Message = {
                     id: messageData.id || Date.now().toString(),
-                    text: messageData.message,
+                    text: messageData.message || '',
                     isUser: false,
                     timestamp: messageData.created_at ? new Date(messageData.created_at) : new Date(),
-                    attachments: messageData.attachments?.length > 0 ? messageData.attachments : undefined,
+                    attachments: normalizedAttachments && normalizedAttachments.length > 0 
+                      ? normalizedAttachments 
+                      : undefined,
                   };
                   
+                  console.log('Adding agent message to state:', newMessage);
                   setMessages((prev) => [...prev, newMessage]);
                   setIsAgentTyping(false);
+                } else {
+                  console.log('Skipping user message (already added optimistically)');
                 }
+              } else {
+                console.warn('Received message without data object:', data);
               }
               break;
 
@@ -246,6 +277,7 @@ export const useChatWebSocket = ({
           attachments: attachments.length > 0 ? attachments : undefined,
         };
 
+        console.log('Sending message:', payload);
         wsRef.current.send(JSON.stringify(payload));
 
         // Add message locally for immediate feedback

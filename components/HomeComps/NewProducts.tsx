@@ -44,12 +44,15 @@ export default function NewProducts() {
           style={{ marginTop: 16 }}
         />
       ) : error ? (
-        <Text style={{ marginTop: 16, color: "red" }}>
+        <Text
+          className="items-center justify-center mx-auto"
+          style={{ marginTop: 16, color: "red", textAlign: "center" }}
+        >
           Failed to load new products
         </Text>
       ) : products.length === 0 ? (
         <Text
-          className="items-center justify-center"
+          className="items-center justify-center mx-auto"
           style={{ marginTop: 16, color: "#666", textAlign: "center" }}
         >
           No new products available at the moment.

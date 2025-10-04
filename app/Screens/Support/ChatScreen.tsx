@@ -160,11 +160,38 @@ export default function ChatScreen() {
     }, 2000);
   }
 
-  const handleSendMessage = () => {
+  const checkSessionActive = async (): Promise<boolean> => {
+    try {
+      if (!sessionId) return false;
+      
+      await SupportApi.getActiveChatMessages(sessionId);
+      return true;
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.detail || error?.message || "";
+      
+      if (errorMessage.includes("Active chat session not found") || 
+          errorMessage.includes("have ended")) {
+        showToast("error", "Session has ended. Please create a new session.");
+        handleSessionClosed();
+        return false;
+      }
+      
+      // For other errors, allow the message to be sent (could be network issues)
+      return true;
+    }
+  };
+
+  const handleSendMessage = async () => {
     if (!inputText.trim() || !isConnected) {
       if (!isConnected) {
         showToast("error", "Not connected to chat");
       }
+      return;
+    }
+
+    // Check if session is still active before sending
+    const isActive = await checkSessionActive();
+    if (!isActive) {
       return;
     }
 
@@ -234,6 +261,12 @@ export default function ChatScreen() {
   const handleImageSend = async (imageUri: string, caption?: string) => {
     if (!isConnected) {
       showToast("error", "Not connected to chat");
+      return;
+    }
+
+    // Check if session is still active before sending
+    const isActive = await checkSessionActive();
+    if (!isActive) {
       return;
     }
 
