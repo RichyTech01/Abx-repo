@@ -80,7 +80,7 @@ const ShopCard: React.FC<ShopCardProps> = ({
             {shop.name}
           </Text>
           <Text className="text-[12px] leading-[16px] font-urbanist-semibold text-[#2D2220] my-[4px]">
-            {shop.distance}
+            {shop.distance}km
           </Text>
           <StarRating rating={shop.rating ?? 0} />
         </View>

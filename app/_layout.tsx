@@ -146,7 +146,6 @@ function GlobalNotificationHandler() {
     };
   }, [user?.id, handleNewNotification]);
 
-  // Handle push notification received while app is in foreground
   useEffect(() => {
     const notificationListener =
       PushNotificationService.addNotificationReceivedListener(

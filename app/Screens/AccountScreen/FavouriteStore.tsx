@@ -10,8 +10,11 @@ import NoData from "@/common/NoData";
 import { useNavigation } from "@react-navigation/native";
 import Storage from "@/utils/Storage";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
+import { useLocationStore } from "@/store/locationStore";
 
 export default function FavouriteStore() {
+  const { latitude, longitude } = useLocationStore();
+
   const router = useRouter();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
@@ -45,7 +48,15 @@ export default function FavouriteStore() {
     append ? setLoadingMore(true) : setLoading(true);
 
     try {
-      const res = await StoreApi.getFavoriteStores(pageNum);
+      if (latitude == null || longitude == null) {
+        throw new Error("Location not available");
+      }
+
+      const res = await StoreApi.getFavoriteStores(
+        latitude,
+        longitude,
+        pageNum
+      );
       const newShops: Shop[] = res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
@@ -56,8 +67,9 @@ export default function FavouriteStore() {
         store_close: store.close_time,
         isFavorite: store.is_favorited ?? false,
         rating: store.store_rating,
-        distance: store.distance_km || "N/A",
+         distance: store.distance_km || "N/A",
       }));
+      console.log("fav",newShops)
 
       setShops((prev) => (append ? [...prev, ...newShops] : newShops));
 
@@ -93,7 +105,6 @@ export default function FavouriteStore() {
     // Call API
     favoriteMutation.mutate(storeId, {
       onError: () => {
-        // Rollback if API fails
         setShops(prevShops);
       },
     });

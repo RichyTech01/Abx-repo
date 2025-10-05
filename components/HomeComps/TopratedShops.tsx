@@ -10,19 +10,25 @@ import OreAppText from "@/common/OreApptext";
 import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
 import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
+import { useLocationStore } from "@/store/locationStore";
 
 export default function TopratedShops() {
   const { showModal, setShowModal, handleProtectedNavigation } =
     useProtectedNavigation();
+  const { latitude, longitude } = useLocationStore();
+
   const router = useRouter();
   const [loginVisible, setLoginVisible] = useState(false);
 
   const queryClient = useQueryClient();
 
   const { data: shops = [], isLoading } = useQuery<Shop[]>({
-    queryKey: ["topRatedStores"],
+    queryKey: ["topRatedStores", latitude, longitude],
     queryFn: async () => {
-      const res = await StoreApi.getTopRatedStores();
+      if (latitude == null || longitude == null) {
+        return [];
+      }
+      const res = await StoreApi.getTopRatedStores(latitude, longitude);
       return res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
@@ -32,9 +38,10 @@ export default function TopratedShops() {
         store_open: store.open_time,
         store_close: store.close_time,
         isFavorite: store.is_favorited ?? false,
-        distance: store.distance_km ? `${store.distance_km} km` : "N/A",
+        distance: store.distance_km ? `${store.distance_km} ` : "N/A",
       }));
     },
+    enabled: latitude != null && longitude != null,
   });
 
   const favoriteMutation = useMutation({

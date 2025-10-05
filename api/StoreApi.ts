@@ -5,7 +5,7 @@ import {
   StoreDetails,
   StoreProductProps,
 } from "@/types/store";
- 
+
 class StoreApi {
   private client = ApiService.getClient();
 
@@ -34,20 +34,26 @@ class StoreApi {
 
   // Top rated
   public async getTopRatedStores(
+    lat: number,
+    lon: number,
     page?: number
   ): Promise<TopRatedStoresResponse> {
     const res = await this.client.get<TopRatedStoresResponse>(
       "/store/top-rated-stores",
       {
-        params: { page },
+        params: { lat, lon, page },
       }
-    ); 
+    );
     return res.data;
   }
   //  Get all favorite stores of the current user
-  public async getFavoriteStores(page?: number): Promise<any> {
+  public async getFavoriteStores(
+    lat: number,
+    lon: number,
+    page?: number
+  ): Promise<any> {
     const res = await this.client.get<any>("/store/favorite-stores", {
-      params: { page },
+      params: { lat, lon, page },
     });
     return res.data;
   }
@@ -71,11 +77,23 @@ class StoreApi {
   }
 
   // Get all approved stores
-  public async getAllStores(page?: number): Promise<any> {
-    const res = await this.client.get<any>("/store/all", {
-      params: { page },
-    });
-    return res.data;
+  public async getAllStores(
+    lat: number,
+    lon: number,
+    page?: number
+  ): Promise<any> {
+    try {
+      const res = await this.client.get("/store/nearest", {
+        params: { lat, lon, page },
+      });
+      return res.data;
+    } catch (error: any) {
+      console.error(
+        "Failed to fetch nearest stores:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
   }
 
   //  Get all products (with filters)

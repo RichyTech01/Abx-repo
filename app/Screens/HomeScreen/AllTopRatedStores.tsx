@@ -10,8 +10,11 @@ import { LoadingSpinner } from "@/common/LoadingSpinner";
 import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
 import { useRouter } from "expo-router";
+import { useLocationStore } from "@/store/locationStore";
 
 export default function AllTopRatedStores() {
+  const { latitude, longitude } = useLocationStore();
+
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -28,7 +31,14 @@ export default function AllTopRatedStores() {
     append ? setLoadingMore(true) : setLoading(true);
 
     try {
-      const res = await StoreApi.getTopRatedStores(pageNum);
+      if (latitude == null || longitude == null) {
+        throw new Error("Location not available");
+      }
+      const res = await StoreApi.getTopRatedStores(
+        latitude,
+        longitude,
+        pageNum
+      );
       const newShops: Shop[] = res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
@@ -109,10 +119,9 @@ export default function AllTopRatedStores() {
             paddingTop: 15,
             gap: 24,
           }}
-          keyExtractor={(shop) => shop.id}
+          keyExtractor={(shop, index) => `store-${shop.id}-${index}`}
           renderItem={({ item: shop }) => (
             <ShopCard
-              key={shop.id}
               shop={shop}
               onFavoritePress={() => handleFavoritePress(shop.id)}
             />

@@ -97,15 +97,23 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Buttons */}
-      <View className="flex-row items-center justify-between  mx-[20px]">
-        <View className="w-[49%]">
+      <View className="flex-ro w-ful items-cente gap-[16px] mx-[20px]">
+        <View className="w-full">
           <Button
-            title="Create Account"
-            variant="solid"
-            onPress={() => router.push("/createAccountSteps/CreateAccount")}
+            title="continue as a guest"
+            loading={loading}
+            backgroundColor="#ECF1F0"
+            borderColor="#AEC5BF"
+            textColor="#0C513F"
+            onPress={async () => {
+              setLoading(true);
+              await Storage.set("isLoggedIn", "true");
+              await Storage.set("isGuest", "true");
+              router.replace("/(tabs)");
+            }}
           />
         </View>
-        <View className="w-[49%] ">
+        <View className="w-ful">
           <Button
             title="Log into your account"
             variant="outline"
@@ -113,20 +121,14 @@ export default function OnboardingScreen() {
           />
         </View>
       </View>
-      <View className="mt-[24px] mx-[20px] mb-[15%]">
-        <Button
-          title="Login as a guest"
-          loading={loading}
-          backgroundColor="#ECF1F0"
-          borderColor="#AEC5BF"
-          textColor="#0C513F"
-          onPress={async () => {
-            setLoading(true);
-            await Storage.set("isLoggedIn", "true");
-            await Storage.set("isGuest", "true");
-            router.replace("/(tabs)");
-          }}
-        />
+      <View className="mt-[16px] mx-[20px] mb-[15%]">
+        <View className="w-full">
+          <Button
+            title="Create Account"
+            variant="solid"
+            onPress={() => router.push("/createAccountSteps/CreateAccount")}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -137,7 +139,7 @@ const styles = StyleSheet.create({
     width,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 20, 
   },
   image: {
     width: width * 0.9,
@@ -148,7 +150,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginVertical: 5,
-    bottom: Platform.OS === "android" ? "7%" : "6%",
+    bottom: Platform.OS === "android" ? "4%" : "6%",
   },
   dot: {
     width: 8,
