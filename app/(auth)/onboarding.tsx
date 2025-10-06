@@ -67,7 +67,7 @@ export default function OnboardingScreen() {
   );
 
   return (
-    <SafeAreaView className="bg-white flex-1">
+    <SafeAreaView className="bg-white flex-1 flex-col justify-between">
       <FlatList
         maxToRenderPerBatch={1}
         data={slides}
@@ -97,7 +97,7 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Buttons */}
-      <View className="flex-ro w-ful items-cente gap-[16px] mx-[20px]">
+      <View className="flex-ro w-ful items-cente gap-[16px] mx-[20px] ">
         <View className="w-full">
           <Button
             title="continue as a guest"
@@ -120,14 +120,14 @@ export default function OnboardingScreen() {
             onPress={() => router.push("/Login")}
           />
         </View>
-      </View>
-      <View className="mt-[16px] mx-[20px] mb-[15%]">
-        <View className="w-full">
-          <Button
-            title="Create Account"
-            variant="solid"
-            onPress={() => router.push("/createAccountSteps/CreateAccount")}
-          />
+        <View className="mt-[16px] mb-[5%]">
+          <View className="w-full">
+            <Button
+              title="Create Account"
+              variant="solid"
+              onPress={() => router.push("/createAccountSteps/CreateAccount")}
+            />
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     width,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20, 
+    paddingHorizontal: 20,
   },
   image: {
     width: width * 0.9,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginVertical: 5,
-    bottom: Platform.OS === "android" ? "4%" : "6%",
+    bottom: Platform.OS === "android" ? "4%" : "3%",
   },
   dot: {
     width: 8,

@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { useEffect } from "react";
 import { Platform, View } from "react-native";
 import OrderTabIcon from "@/assets/svgs/OrderTabIcon";
 import SupportTabIcon from "@/assets/svgs/SupportTabIcon";
@@ -10,6 +11,8 @@ import ActiveHomeTabBar from "@/assets/svgs/ActiveHomeTabBar";
 import ActiveOrderTab from "@/assets/svgs/ActiveOrderTab";
 import ActiveSupporticon from "@/assets/svgs/ActiveSupporticon";
 import { useRouter } from "expo-router";
+import Storage from "@/utils/Storage";
+
 
 type TabIconWithBorderProps = {
   children: React.ReactNode;
@@ -19,15 +22,16 @@ type TabIconWithBorderProps = {
 const TabIconWithBorder = ({ children, focused }: TabIconWithBorderProps) => {
   const router = useRouter();
 
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     const token = await AsyncStorage.getItem("accessToken");
-  //     if (!token) {
-  //       router.replace("/(auth)/onboarding"); 
-  //     }
-  //   };
-  //   checkAuth();
-  // }, []);
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await Storage.get("accessToken");
+      const isGuest = await Storage.get("isGuest");
+      if (!token || !isGuest) {
+        router.replace("/(auth)/onboarding"); 
+      }
+    };
+    checkAuth();
+  }, []);
 
   return (
     <View style={{ alignItems: "center" }}>
