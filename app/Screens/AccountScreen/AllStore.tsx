@@ -107,11 +107,9 @@ export default function AllStore() {
       </View>
 
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#00000"
-          style={{ marginTop: 16 }}
-        />
+        <View className="py-[16px] ">
+          <LoadingSpinner />
+        </View>
       ) : (
         <FlatList
           data={shops}

@@ -1,4 +1,10 @@
-import { View, Text, Pressable, SectionList } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  SectionList,
+  RefreshControl,
+} from "react-native";
 import OrderCard from "@/common/OrderCard";
 import { useEffect, useState, useCallback } from "react";
 import OreAppText from "@/common/OreApptext";
@@ -15,33 +21,33 @@ export default function AllOrders() {
   const [sections, setSections] = useState<Section[]>([]);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
- const fetchOrders = useCallback(async () => {
-  try {
-    setLoading(true);
+  const fetchOrders = useCallback(async () => {
+    try {
+      setLoading(true);
 
-    let page = 1;
-    let allOrders: any[] = [];
-    let hasNext = true;
+      let page = 1;
+      let allOrders: any[] = [];
+      let hasNext = true;
 
-    while (hasNext) {
-      const res = await OrderApi.getCustomerOrders({page});
-      const orders = res.results || [];
+      while (hasNext) {
+        const res = await OrderApi.getCustomerOrders({ page });
+        const orders = res.results || [];
 
-      allOrders = [...allOrders, ...orders];
+        allOrders = [...allOrders, ...orders];
 
-      hasNext = !!res.next; 
-      page++;
+        hasNext = !!res.next;
+        page++;
+      }
+
+      setSections(groupOrdersByDate(allOrders));
+    } catch (err) {
+      console.error("Failed to fetch orders", err);
+    } finally {
+      setLoading(false);
     }
-
-    setSections(groupOrdersByDate(allOrders));
-  } catch (err) {
-    console.error("Failed to fetch orders", err);
-  } finally {
-    setLoading(false);
-  }
-}, []);
-
+  }, []);
 
   useEffect(() => {
     const checkOrders = async () => {
@@ -72,6 +78,12 @@ export default function AllOrders() {
       prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
     );
   };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchOrders();
+    setRefreshing(false);
+  }, [fetchOrders]);
 
   const getStatus = (order: any) => {
     const status = order.status;
@@ -135,6 +147,20 @@ export default function AllOrders() {
           sections={sections}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
+          onScroll={({ nativeEvent }) => {
+            // Detect pull-down
+            if (nativeEvent.contentOffset.y < -120 && !refreshing) {
+              onRefresh();
+            }
+          }}
+          scrollEventThrottle={16}
+          ListHeaderComponent={
+            refreshing ? (
+              <View className="py-4">
+                <LoadingSpinner />
+              </View>
+            ) : null
+          }
           renderItem={({ item, section }) => {
             const expanded = expandedSections.includes(section.title);
             const index = section.data.indexOf(item);
