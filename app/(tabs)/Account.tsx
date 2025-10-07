@@ -20,6 +20,7 @@ import LogoutModal from "@/Modals/LogoutModal";
 import { useRouter } from "expo-router";
 import { logoutUser } from "@/utils/logoutUser";
 import Storage from "@/utils/Storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Account() {
   const [showModal, setShowModal] = useState(false);
@@ -82,8 +83,7 @@ export default function Account() {
                 if (hasToken) {
                   setShowModal(true);
                 } else {
-                  await Storage.multiRemove([
-                    "accessToken",
+                  await AsyncStorage.multiRemove([
                     "isGuest",
                     "cartId",
                   ]);

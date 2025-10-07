@@ -26,7 +26,7 @@ const TabIconWithBorder = ({ children, focused }: TabIconWithBorderProps) => {
     const checkAuth = async () => {
       const token = await Storage.get("accessToken");
       const isGuest = await Storage.get("isGuest");
-      if (!token || !isGuest) {
+      if (!token && !isGuest) {
         router.replace("/(auth)/onboarding"); 
       }
     };
