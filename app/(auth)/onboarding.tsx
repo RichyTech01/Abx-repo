@@ -11,6 +11,7 @@ import {
 import Button from "@/common/Button";
 import { useRouter } from "expo-router";
 import Storage from "@/utils/Storage";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 type Slide = {
   id: string;
@@ -67,7 +68,7 @@ export default function OnboardingScreen() {
   );
 
   return (
-    <SafeAreaView className="bg-white flex-1 flex-col justify-between">
+    <ScreenWrapper style={{backgroundColor:"white", display:"flex", justifyContent:"space-between",flexDirection: "column", flex:1}}>
       <FlatList
         maxToRenderPerBatch={1}
         data={slides}
@@ -120,7 +121,7 @@ export default function OnboardingScreen() {
             onPress={() => router.push("/Login")}
           />
         </View>
-        <View className="mt-[16px] mb-[5%]">
+        <View className={` ${Platform.OS === "ios"? "mb-[5%]":"mb-[4%]"} `}>
           <View className="w-full">
             <Button
               title="Create Account"
@@ -130,7 +131,7 @@ export default function OnboardingScreen() {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginVertical: 5,
-    bottom: Platform.OS === "android" ? "4%" : "3%",
+    bottom: Platform.OS === "android" ? "2%" : "3%",
   },
   dot: {
     width: 8,
