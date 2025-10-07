@@ -1,33 +1,33 @@
+import React, { useEffect, useRef, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  Image,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
+  View,
 } from "react-native";
-import React, { useState, useRef, useEffect } from "react";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
-import * as ImagePicker from "expo-image-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import ScreenWrapper from "@/common/ScreenWrapper";
-import OreAppText from "@/common/OreApptext";
-import ChatHeader from "@/components/Support/ChatHeader";
-import SupportImg from "@/assets/svgs/SupportImg.svg";
-import UrbanistText from "@/common/UrbanistText";
+import SupportApi from "@/api/SupportApi";
 import ChatSendIcon from "@/assets/svgs/ChatSendIcon.svg";
 import PickImageIcon from "@/assets/svgs/PickImageIcon.svg";
-import { useUserStore } from "@/store/useUserStore";
+import SupportImg from "@/assets/svgs/SupportImg.svg";
+import OreAppText from "@/common/OreApptext";
+import ScreenWrapper from "@/common/ScreenWrapper";
+import UrbanistText from "@/common/UrbanistText";
+import ChatHeader from "@/components/Support/ChatHeader";
 import { useChatWebSocket } from "@/hooks/useChatWebSocket";
-import SupportApi from "@/api/SupportApi";
+import { useUserStore } from "@/store/useUserStore";
 import showToast from "@/utils/showToast";
-import { useRouter } from "expo-router";
 import Storage from "@/utils/Storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
 
 interface Message {
   id: string;
@@ -487,7 +487,7 @@ export default function ChatScreen() {
     return (
       <ScreenWrapper>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#0C513F" />
+          <LoadingSpinner />
           <Text className="mt-4 text-[#2D2220]">Loading chat...</Text>
         </View>
       </ScreenWrapper>
@@ -496,7 +496,11 @@ export default function ChatScreen() {
 
   return (
     <ScreenWrapper>
-      <View className="flex-1">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 5 : 0} 
+        style={{ flex: 1 }}
+      >
         {/* Header */}
         <View>
           <OreAppText className="mx-auto text-[20px] leading-[28px] text-[#2D2220] font-semibold ">
@@ -514,15 +518,11 @@ export default function ChatScreen() {
           </View>
         )}
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-          className="flex-1 bg-white"
-        >
+        <View className="flex-1 bg-white">
           {/* Messages */}
           <ScrollView
             ref={scrollViewRef}
-            className="flex-1 px-4"
+            className="flex-1 px-4 "
             showsVerticalScrollIndicator={false}
           >
             <View className="items-center py-4">
@@ -547,7 +547,6 @@ export default function ChatScreen() {
                 </View>
               </View>
             )}
-
           </ScrollView>
 
           {/* Image Picker */}
@@ -575,7 +574,7 @@ export default function ChatScreen() {
           )}
 
           {/* Input Area */}
-          <View className="px-4 pb-2 pt-2 bg-[#FAF8F7]">
+          <View className="px-4 pt-2 bg-[#FAF8F7] mb-1">
             <View className="bg-transparent rounded-[8px] border border-[#0C513F] flex-row items-center px-[31px] py-[16px]">
               <TextInput
                 value={inputText}
@@ -604,8 +603,8 @@ export default function ChatScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAvoidingView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </ScreenWrapper>
   );
 }

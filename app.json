@@ -43,6 +43,7 @@
         "android.permission.VIBRATE",
         "android.permission.POST_NOTIFICATIONS"
       ],
+      
       "adaptiveIcon": {
         "foregroundImage": "./assets/Images/MainLogo.png",
         "backgroundColor": "#0C513F"
