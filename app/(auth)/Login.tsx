@@ -68,7 +68,7 @@ export default function Login() {
       await AsyncStorage.setItem("isLoggedIn", "true");
       fetchUser();
       // console.log("Login successful:", res);
-      showToast("success", "Login successful! Welcome back.");
+      showToast("success", "success","Login successful! Welcome back.");
       router.dismissAll();
       router.replace("/(tabs)");
 

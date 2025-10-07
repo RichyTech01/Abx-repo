@@ -1,6 +1,5 @@
 import {
   View,
-  SafeAreaView,
   FlatList,
   Platform,
   StatusBar,
@@ -20,6 +19,7 @@ import { useCartStore } from "@/store/useCartStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LogoutModal from "@/Modals/LogoutModal";
 import Storage from "@/utils/Storage";
+import ScreenWrapper from "@/common/ScreenWrapper";
 
 export default function Carts() {
   const router = useRouter();
@@ -170,7 +170,7 @@ export default function Carts() {
   );
 
   return (
-    <SafeAreaView className="bg-[#FFF6F2] flex-1">
+    <ScreenWrapper>
       <View
         style={{
           paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
@@ -230,7 +230,7 @@ export default function Carts() {
           )}
 
           {!loading && (
-            <View className="bg-white px-[12px] py-[8px] rounded-[8px] mt-[8px]">
+            <View className="bg-white px-[12px] py-[8px] rounded-[8px] mt-[8px] ">
               <UrbanistText className="text-[#656565] text-[16px] leading-[22px] font-urbanist-medium">
                 Cart summary
               </UrbanistText>
@@ -246,7 +246,7 @@ export default function Carts() {
                 Delivery fees not included yet
               </UrbanistText>
 
-              <View className="gap-[8px] mt-[8px]">
+              <View className={`gap-[8px] mt-[8px]  `}>
                 <Button
                   title="Continue"
                   textColor="#0C513F"
@@ -276,12 +276,12 @@ export default function Carts() {
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
+          await Storage.multiRemove(["isGuest", "cartId"]);
           router.replace("/onboarding");
         }}
         confirmButtonColor="#0C513F"
         cancelButtonColor="#F04438"
       />
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

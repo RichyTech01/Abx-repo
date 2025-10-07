@@ -16,7 +16,7 @@ type Props = {
 
 export default function SpendingBudgetTransactions({ transactions }: Props) {
   return (
-    <View className="mt-[8%] mx-[18px]">
+    <View className="mt-[6%] mx-[18px]">
       <View className="flex-row items-center justify-between pb-[18px]">
         <OreAppText className="text-[16px] leading-[20px] text-[#111827]">
           Transactions
@@ -27,18 +27,12 @@ export default function SpendingBudgetTransactions({ transactions }: Props) {
           </Text>
         </Pressable>
       </View>
-
-      {transactions.length === 0 ? (
-        <View className=" justify-center items-center">
-          <NoData
-            title="You are yet to set your spending buget"
-            subtitle="Set a spending limit to control how you spend your resources. this ensures you save and spend responsibly. "
-          />
-        </View>
-      ) : (
+      <View className="">
         <FlatList
           data={transactions}
           keyExtractor={(item) => item.id}
+          className="flex-grow"
+          scrollEnabled={false}
           renderItem={({ item }) => (
             <Transactioncard
               TotalAmount={Number(item.amount)}
@@ -46,8 +40,16 @@ export default function SpendingBudgetTransactions({ transactions }: Props) {
               OrderNumber={item.orderNumber}
             />
           )}
+          ListEmptyComponent={
+            <View className=" justify-center items-center">
+              <NoData
+                title="You are yet to set your spending buget"
+                subtitle="Set a spending limit to control how you spend your resources. this ensures you save and spend responsibly. "
+              />
+            </View>
+          }
         />
-      )}
+      </View>
     </View>
   );
 }

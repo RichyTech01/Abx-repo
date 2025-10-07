@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import React, { useState, useRef, useEffect } from "react";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -49,7 +51,6 @@ export default function ChatScreen() {
   const hasLoadedSession = useRef(false);
   const isMounted = useRef(true);
 
-
   useEffect(() => {
     let cancelled = false;
 
@@ -59,7 +60,7 @@ export default function ChatScreen() {
 
         if (!cancelled && !hasLoadedSession.current && setSessionIdd) {
           hasLoadedSession.current = true;
-          await loadChatSession(); 
+          await loadChatSession();
         }
       } catch (err) {
         console.error("Failed to init chat session:", err);
@@ -163,19 +164,22 @@ export default function ChatScreen() {
   const checkSessionActive = async (): Promise<boolean> => {
     try {
       if (!sessionId) return false;
-      
+
       await SupportApi.getActiveChatMessages(sessionId);
       return true;
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.detail || error?.message || "";
-      
-      if (errorMessage.includes("Active chat session not found") || 
-          errorMessage.includes("have ended")) {
+      const errorMessage =
+        error?.response?.data?.detail || error?.message || "";
+
+      if (
+        errorMessage.includes("Active chat session not found") ||
+        errorMessage.includes("have ended")
+      ) {
         showToast("error", "Session has ended. Please create a new session.");
         handleSessionClosed();
         return false;
       }
-      
+
       // For other errors, allow the message to be sent (could be network issues)
       return true;
     }
@@ -377,7 +381,9 @@ export default function ChatScreen() {
     const msgText = typeof message.text === "string" ? message.text : "";
 
     // Safe timestamp
-    const timeLabel = message.timestamp ? formatTime(message.timestamp).toLocaleLowerCase() : "";
+    const timeLabel = message.timestamp
+      ? formatTime(message.timestamp).toLocaleLowerCase()
+      : "";
 
     // Safe id
     const key = message.id || Math.random().toString();
@@ -460,9 +466,7 @@ export default function ChatScreen() {
 
             <Text
               className={`${
-                attachmentUrl
-                  ? "absolute bottom-2 right-2 px-2 py-1 "
-                  : "pr-2"
+                attachmentUrl ? "absolute bottom-2 right-2 px-2 py-1 " : "pr-2"
               } text-[#2D2220] bg-white/50 rounded text-[14px] leading-[20px] font-urbanist self-end`}
             >
               {timeLabel}
@@ -544,17 +548,6 @@ export default function ChatScreen() {
               </View>
             )}
 
-            {/* Uploading Indicator */}
-            {/* {isUploadingImage && (
-              <View className="mb-4 items-center">
-                <View className="bg-[#F5F5F5] rounded-[16px] px-4 py-3 flex-row items-center">
-                  <ActivityIndicator size="small" color="#0C513F" />
-                  <Text className="ml-2 text-[#666] text-[14px]">
-                    Uploading image...
-                  </Text>
-                </View>
-              </View>
-            )} */}
           </ScrollView>
 
           {/* Image Picker */}

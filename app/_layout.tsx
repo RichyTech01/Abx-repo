@@ -1,13 +1,14 @@
 import "./global.css";
 import { useEffect, useState, useCallback, useRef } from "react";
 import * as SplashScreen from "expo-splash-screen";
-import { View, AppState, AppStateStatus } from "react-native";
+import { View, AppState, AppStateStatus, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   SafeAreaProvider,
   initialWindowMetrics,
+  
 } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/toastConfig";
@@ -84,8 +85,8 @@ function GlobalNotificationHandler() {
         const guest = await AsyncStorage.getItem("isGuest");
         if (guest === "true" || storedToken) {
           console.log("⏩ Skipping push notification registration");
-          if (storedToken) setPushToken(storedToken); 
-          return; 
+          if (storedToken) setPushToken(storedToken);
+          return;
         }
 
         // Register for push notifications (get new token)
@@ -256,6 +257,15 @@ export default function RootLayout() {
 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
+  async function requestNotificationPermission() {
+    if (Platform.OS === "android") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== "granted") {
+        alert("Notification permissions not granted!");
+      }
+    }
+  }
+
   useEffect(() => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("accessToken");
@@ -266,6 +276,7 @@ export default function RootLayout() {
       if (fontsLoaded) {
         await SplashScreen.hideAsync();
       }
+      await requestNotificationPermission();
     };
     checkAuth();
   }, [fontsLoaded]);
@@ -273,7 +284,7 @@ export default function RootLayout() {
   if (!fontsLoaded || isLoggedIn === null) return null;
 
   return (
-    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+    <SafeAreaProvider>
       {!fontsLoaded || isLoggedIn === null ? (
         <View style={{ flex: 1, backgroundColor: "#FFF6F2" }} />
       ) : (

@@ -1,25 +1,30 @@
 import React from "react";
-import { StyleSheet, StyleProp, ViewStyle } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, View, StyleProp, ViewStyle } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ScreenWrapperProps = {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
-  edges?: Array<'top' | 'right' | 'bottom' | 'left'>;
 };
 
-const ScreenWrapper: React.FC<ScreenWrapperProps> = ({ 
-  children, 
-  style, 
-  edges = ['top', 'left', 'right', "bottom"]
-}) => {
+const ScreenWrapper: React.FC<ScreenWrapperProps> = ({ children, style }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView 
-      style={[styles.container, style]}
-      edges={edges}
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        },
+        style,
+      ]}
     >
       {children}
-    </SafeAreaView>
+    </View>
   );
 };
 

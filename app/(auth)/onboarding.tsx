@@ -101,7 +101,7 @@ export default function OnboardingScreen() {
       <View className="flex-ro w-ful items-cente gap-[16px] mx-[20px] ">
         <View className="w-full">
           <Button
-            title="continue as a guest"
+            title="Continue as a guest"
             loading={loading}
             backgroundColor="#ECF1F0"
             borderColor="#AEC5BF"
