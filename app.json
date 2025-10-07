@@ -4,7 +4,7 @@
     "slug": "abx-mobile-app",
     "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/Images/Group 5759.png",
+    "icon": "./assets/Images/MainLogo.png",
     "scheme": "abxmobileapplication",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -43,7 +43,7 @@
         "android.permission.VIBRATE",
         "android.permission.POST_NOTIFICATIONS"
       ],
-      
+
       "adaptiveIcon": {
         "foregroundImage": "./assets/Images/MainLogo.png",
         "backgroundColor": "#0C513F"
