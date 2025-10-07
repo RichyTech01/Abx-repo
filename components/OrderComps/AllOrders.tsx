@@ -148,7 +148,6 @@ export default function AllOrders() {
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           onScroll={({ nativeEvent }) => {
-            // Detect pull-down
             if (nativeEvent.contentOffset.y < -120 && !refreshing) {
               onRefresh();
             }
