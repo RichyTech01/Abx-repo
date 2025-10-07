@@ -91,7 +91,7 @@ export default function RescueAndSave() {
               contentContainerStyle={{
                 paddingHorizontal: SCREEN_PADDING,
                 paddingTop: 16,
-                paddingBottom: 80,
+                paddingBottom: 210,
               }}
               columnWrapperStyle={{
                 justifyContent: "space-between",
