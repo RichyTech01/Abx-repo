@@ -2,19 +2,26 @@ import { View, ScrollView, ActivityIndicator, Text } from "react-native";
 import React from "react";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
 import { ProductVariation, ShopProductType } from "@/types/store";
 
-export default function BestSelling() {
+type Props = {
+  refreshTrigger: boolean;
+};
+
+export default function BestSelling({ refreshTrigger }: Props) {
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedProductId, setSelectedProductId] = React.useState<
     number | null
   >(null);
 
-  const { data, isLoading, error } = useQuery<{ results: ShopProductType[] }>({
+  const { data, isLoading, error, refetch } = useQuery<{
+    results: ShopProductType[];
+  }>({
     queryKey: ["bestSellingProducts"],
     queryFn: async () => {
       const res = await StoreApi.getPopularProducts();
@@ -36,6 +43,9 @@ export default function BestSelling() {
     setModalVisible(true);
   };
 
+  useEffect(() => {
+    refetch();
+  }, [refreshTrigger]);
 
   return (
     <View>

@@ -1,5 +1,5 @@
 import { View, ScrollView, ActivityIndicator } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import React from "react";
@@ -12,7 +12,13 @@ import LogoutModal from "@/Modals/LogoutModal";
 import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import { useLocationStore } from "@/store/locationStore";
 
-export default function TopratedShops() {
+
+type Props = {
+  refreshTrigger: boolean;
+};
+
+
+export default function TopratedShops({ refreshTrigger }: Props) {
   const { showModal, setShowModal, handleProtectedNavigation } =
     useProtectedNavigation();
   const { latitude, longitude } = useLocationStore();
@@ -22,7 +28,11 @@ export default function TopratedShops() {
 
   const queryClient = useQueryClient();
 
-  const { data: shops = [], isLoading } = useQuery<Shop[]>({
+  const {
+    data: shops = [],
+    isLoading,
+    refetch,
+  } = useQuery<Shop[]>({
     queryKey: ["topRatedStores", latitude, longitude],
     queryFn: async () => {
       if (latitude == null || longitude == null) {
@@ -44,6 +54,11 @@ export default function TopratedShops() {
     enabled: latitude != null && longitude != null,
   });
 
+  useEffect(() => {
+    if (latitude && longitude) {
+      refetch();
+    }
+  }, [refreshTrigger]);
   const favoriteMutation = useMutation({
     mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
     onSuccess: () =>

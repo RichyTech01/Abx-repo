@@ -1,5 +1,5 @@
 import { View, ScrollView, Text, ActivityIndicator } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import SectionHeader from "@/common/SectionHeader";
 import { useRouter } from "expo-router";
@@ -10,7 +10,11 @@ import StoreApi from "@/api/StoreApi";
 import LogoutModal from "@/Modals/LogoutModal";
 import Storage from "@/utils/Storage";
 
-export default function ClosestShops() {
+type Props = {
+  refreshTrigger: boolean;
+};
+
+export default function ClosestShops({ refreshTrigger }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loginVisible, setLoginVisible] = useState(false);
@@ -19,6 +23,7 @@ export default function ClosestShops() {
     data: shops,
     isLoading,
     isError,
+    refetch,
     locationStatus,
     locationError,
   } = useClosestStores();
@@ -29,6 +34,12 @@ export default function ClosestShops() {
       queryClient.invalidateQueries({ queryKey: ["closestStores"] }),
   });
   // console.log(shops[5])
+
+  useEffect(() => {
+    if (locationStatus === "success") {
+      refetch();
+    }
+  }, [refreshTrigger]);
 
   let content;
   if (locationStatus === "pending" || isLoading) {

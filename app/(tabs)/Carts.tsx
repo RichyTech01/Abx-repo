@@ -21,6 +21,8 @@ import LogoutModal from "@/Modals/LogoutModal";
 import Storage from "@/utils/Storage";
 import ScreenWrapper from "@/common/ScreenWrapper";
 
+
+
 export default function Carts() {
   const router = useRouter();
 
@@ -28,6 +30,7 @@ export default function Carts() {
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
   const [showLoginModal, setShowLoginModal] = useState(false);
+  
 
   const fetchCart = async () => {
     try {
@@ -52,7 +55,7 @@ export default function Carts() {
         return;
       }
 
-      // ✅ proceed to checkout
+      //  proceed to checkout
       router.push({
         pathname: "/Screens/Carts/CheckOut",
         params: {
@@ -67,6 +70,7 @@ export default function Carts() {
       setShowLoginModal(true);
     }
   };
+
   useFocusEffect(
     useCallback(() => {
       const checkLoginAndFetch = async () => {

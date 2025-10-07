@@ -9,6 +9,7 @@ import React from "react";
 import { useRouter } from "expo-router";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import { ShopProductType, ProductVariation } from "@/types/store";
@@ -16,14 +17,20 @@ import AddtoCartModal from "@/Modals/AddtoCartModal";
 import showToast from "@/utils/showToast";
 import { isStoreOpen } from "@/utils/storeStatus";
 
-export default function RescueAndSaveProduct() {
+type Props = {
+  refreshTrigger: boolean;
+};
+
+export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
   const router = useRouter();
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedProductId, setSelectedProductId] = React.useState<
     number | null
   >(null);
 
-  const { data, isLoading, error } = useQuery<{ results: ShopProductType[] }>({
+  const { data, isLoading, error, refetch } = useQuery<{
+    results: ShopProductType[];
+  }>({
     queryKey: ["rescueAndSaveProducts"],
     queryFn: () =>
       StoreApi.getPublishedProducts({
@@ -51,6 +58,9 @@ export default function RescueAndSaveProduct() {
     setModalVisible(true);
   };
 
+  useEffect(() => {
+    refetch();
+  }, [refreshTrigger]);
 
   return (
     <View className={`${Platform.OS === "ios" ? "mb-16" : "mb-28"} mb-16`}>
@@ -81,7 +91,7 @@ export default function RescueAndSaveProduct() {
           }}
           className="font-orelega py-10 text-black text-[16px] mx-auto "
         >
-          No rescue and save products available at the moment. 
+          No rescue and save products available at the moment.
         </Text>
       ) : (
         <ScrollView

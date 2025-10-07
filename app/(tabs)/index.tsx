@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   FlatList,
   Dimensions,
+  RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useCallback, useRef, useState } from "react";
@@ -107,6 +108,8 @@ export default function Home() {
   const { user, loading, fetchUser } = useUserStore();
   const { unreadCount, checkNotificationStatus } = useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
@@ -150,6 +153,14 @@ export default function Home() {
     }, [checkNotificationStatus, setCartItems])
   );
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+
+    setRefreshTrigger((prev) => !prev);
+
+    setTimeout(() => setRefreshing(false), 1000);
+  }, []);
+
   return (
     <ScreenWrapper>
       <View className="mx-[20px] flex-row items-center justify-between mt-2">
@@ -186,6 +197,14 @@ export default function Home() {
       {/* Scrollable content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#0C513F"]}
+            tintColor="#0C513F"
+          />
+        }
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         {/* Auto sliding banners */}
@@ -195,14 +214,14 @@ export default function Home() {
 
         {/* Sections */}
         <View className="mt-[24px] gap-[24px]">
-          <Categories />
-          <TopratedShops />
-          <ClosestShops />
+          <Categories refreshTrigger={refreshTrigger} />
+          <TopratedShops refreshTrigger={refreshTrigger} />
+          <ClosestShops refreshTrigger={refreshTrigger} />
           <RescueAndSave />
-          <NewProducts />
-          <BestSelling />
+          <NewProducts refreshTrigger={refreshTrigger} />
+          <BestSelling refreshTrigger={refreshTrigger} />
           <SpendingLimit />
-          <RecueAndSaveProduct />
+          <RecueAndSaveProduct refreshTrigger={refreshTrigger} />
         </View>
       </ScrollView>
     </ScreenWrapper>

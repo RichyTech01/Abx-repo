@@ -5,6 +5,9 @@ import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
 import StoreApi from "@/api/StoreApi";
 
+type Props = {
+  refreshTrigger: boolean;
+};
 
 const CATEGORY_COLORS: Record<
   number,
@@ -18,28 +21,30 @@ const CATEGORY_COLORS: Record<
   7: { bgColor: "#FDF0DC", borderColor: "#F4D03F" },
 };
 
-export default function Categories() {
+export default function Categories({ refreshTrigger }: Props) {
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchCategories = async () => {
+    try {
+      const data = await StoreApi.getCategories();
+      const withColors = (data.results || []).map((cat: any) => ({
+        ...cat,
+        ...CATEGORY_COLORS[cat.id],
+      }));
+      setCategories(withColors.slice(0, 4));
+    } catch (err) {
+      console.error("Failed to fetch categories", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchCategories();
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await StoreApi.getCategories();
-        const withColors = (data.results || []).map((cat: any) => ({
-          ...cat,
-          ...CATEGORY_COLORS[cat.id],
-        }));
-        setCategories(withColors.slice(0, 4));
-      } catch (err) {
-        console.error("Failed to fetch categories", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchCategories();
-  }, []);
+  }, [refreshTrigger]);
 
   return (
     <View>
@@ -48,8 +53,10 @@ export default function Categories() {
         onPress={() => router.push("/Screens/HomeScreen/AllcateGories")}
       />
       {!loading && categories.length === 0 ? (
-        <View className="items-center justify-center py-10 "> 
-        <Text className="text-red-600 font-normal text-[14px]  ">No categories found</Text>
+        <View className="items-center justify-center py-10 ">
+          <Text className="text-red-600 font-normal text-[14px]  ">
+            No categories found
+          </Text>
         </View>
       ) : (
         <View>

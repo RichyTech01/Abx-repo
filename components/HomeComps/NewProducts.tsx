@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import React from "react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
@@ -8,13 +9,19 @@ import { ShopProductType, ProductVariation } from "@/types/store";
 import { isStoreOpen } from "@/utils/storeStatus";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 
-export default function NewProducts() {
+type Props = {
+  refreshTrigger: boolean;
+};
+
+export default function NewProducts({ refreshTrigger }: Props) {
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedProductId, setSelectedProductId] = React.useState<
     number | null
   >(null);
 
-  const { data, isLoading, error } = useQuery<{ results: ShopProductType[] }>({
+  const { data, isLoading, error, refetch } = useQuery<{
+    results: ShopProductType[];
+  }>({
     queryKey: ["newProducts"],
     queryFn: () => StoreApi.getPublishedProducts(),
   });
@@ -33,6 +40,10 @@ export default function NewProducts() {
     setModalVisible(true);
   };
 
+  useEffect(() => {
+    refetch();
+  }, [refreshTrigger]);
+  
   return (
     <View>
       <SectionHeader title="New products" onPress={() => {}} />
