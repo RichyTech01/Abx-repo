@@ -20,7 +20,6 @@ import LogoutModal from "./LogoutModal";
 import Storage from "@/utils/Storage";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 
-
 type AddtoCartModalProps = {
   value: boolean;
   setValue: React.Dispatch<React.SetStateAction<boolean>>;
@@ -83,6 +82,7 @@ export default function AddtoCartModal({
         onPress={() => setValue(false)}
       >
         <Pressable
+          pointerEvents="box-none"
           className="bg-white rounded-tl-[8px] rounded-tr-[8px] px-[20px] py-[30px] overflow-hidden"
           onPress={() => {}}
         >
@@ -108,7 +108,7 @@ export default function AddtoCartModal({
               <LoadingSpinner />
             </View>
           ) : (
-            <View style={{ maxHeight: 300 }} className="bg-black">
+            <View style={{ maxHeight: 300 }} className="">
               <FlatList
                 data={data}
                 keyExtractor={(item) => item.id.toString()}
