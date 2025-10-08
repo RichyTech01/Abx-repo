@@ -92,7 +92,7 @@ export default function CreateAccount() {
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 140 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >

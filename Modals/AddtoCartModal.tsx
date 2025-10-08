@@ -18,6 +18,7 @@ import OrderApi from "@/api/OrderApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LogoutModal from "./LogoutModal";
 import Storage from "@/utils/Storage";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
 
 
 type AddtoCartModalProps = {
@@ -62,7 +63,6 @@ export default function AddtoCartModal({
     }
   }, [value]);
 
-  //  Add focus listener to refresh when navigating back
   useFocusEffect(
     useCallback(() => {
       if (value) {
@@ -105,13 +105,14 @@ export default function AddtoCartModal({
 
           {loading ? (
             <View className="items-center justify-center py-10">
-              <ActivityIndicator size="large" color="#000" />
+              <LoadingSpinner />
             </View>
           ) : (
-            <View style={{ maxHeight: 300 }}>
+            <View style={{ maxHeight: 300 }} className="bg-black">
               <FlatList
                 data={data}
                 keyExtractor={(item) => item.id.toString()}
+                scrollEnabled={true}
                 renderItem={({ item }) => (
                   <VariationCard
                     item={item}
