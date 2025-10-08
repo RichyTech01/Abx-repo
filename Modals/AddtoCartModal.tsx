@@ -80,11 +80,11 @@ export default function AddtoCartModal({
       <Pressable
         className="bg-[#2D222033]/20 z-50 flex-1 justify-end"
         onPress={() => setValue(false)}
-      >
-        <Pressable
+      />
+        <View
           pointerEvents="box-none"
           className="bg-white rounded-tl-[8px] rounded-tr-[8px] px-[20px] py-[30px] overflow-hidden"
-          onPress={() => {}}
+          
         >
           {/* header */}
           <View className="flex-row items-center justify-between">
@@ -147,8 +147,7 @@ export default function AddtoCartModal({
               onPress={() => setValue(!value)}
             />
           </View>
-        </Pressable>
-      </Pressable>
+      </View>
       <LogoutModal
         visible={showLoginModal}
         onClose={() => setShowLoginModal(false)}
