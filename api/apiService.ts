@@ -1,6 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { InternalAxiosRequestConfig } from "axios";
-import { router } from "expo-router";
 import showToast from "@/utils/showToast";
 import MQTTClient from "@/utils/mqttClient";
 

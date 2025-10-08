@@ -7,6 +7,7 @@ import {
   FlatList,
   Dimensions,
   RefreshControl,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useCallback, useRef, useState } from "react";
@@ -14,7 +15,6 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import NotificationIcon from "@/assets/svgs/NotificationIcon";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";
-import Welcomebanner from "@/assets/svgs/Welcomebanner";
 import SearchInput from "@/common/SearchInput";
 
 import Categories from "@/components/HomeComps/Categories";
@@ -36,45 +36,79 @@ import ScreenWrapper from "@/common/ScreenWrapper";
 const { width } = Dimensions.get("window");
 
 const banners = [
-  <Welcomebanner key="banner-1" />,
-  <Welcomebanner key="banner-2" />,
+  require("@/assets/Images/FirstHomeImage.png"),
+  require("@/assets/Images/SecondHomeImage.png"),
 ];
 
-const loopedBanners = [...banners, ...banners];
+const loopedBanners = [
+  banners[banners.length - 1],
+  ...banners,
+  banners[0],
+];
 
 function BannerSlider() {
   const flatListRef = useRef<FlatList>(null);
-  const [currentIndex, setCurrentIndex] = useState(banners.length);
+  const [currentIndex, setCurrentIndex] = useState(1);
+  const scrollTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     flatListRef.current?.scrollToOffset({
-      offset: currentIndex * width,
+      offset: width,
       animated: false,
     });
   }, []);
 
+  // Auto-scroll logic
   useEffect(() => {
-    const interval = setInterval(() => {
-      let nextIndex = currentIndex + 1;
-      flatListRef.current?.scrollToOffset({
-        offset: nextIndex * width,
-        animated: true,
+    scrollTimer.current = setInterval(() => {
+      setCurrentIndex((prevIndex) => {
+        const nextIndex = prevIndex + 1;
+        
+        flatListRef.current?.scrollToOffset({
+          offset: nextIndex * width,
+          animated: true,
+        });
+
+        return nextIndex;
       });
-      setCurrentIndex(nextIndex);
+    }, 4000); 
 
-      if (nextIndex >= loopedBanners.length - 1) {
-        setTimeout(() => {
-          flatListRef.current?.scrollToOffset({
-            offset: banners.length * width,
-            animated: false,
-          });
-          setCurrentIndex(banners.length);
-        }, 1000);
+    return () => {
+      if (scrollTimer.current) {
+        clearInterval(scrollTimer.current);
       }
-    }, 3000);
+    };
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [currentIndex, banners, loopedBanners, width]);
+  // Handle loop reset when reaching clone
+  const handleMomentumScrollEnd = (e: any) => {
+    const offsetX = e.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(offsetX / width);
+
+    // If we scrolled to the last clone (first banner clone at end)
+    if (newIndex === loopedBanners.length - 1) {
+      // Jump back to the real first banner without animation
+      setTimeout(() => {
+        flatListRef.current?.scrollToOffset({
+          offset: width, // Index 1
+          animated: false,
+        });
+        setCurrentIndex(1);
+      }, 50);
+    }
+    // If somehow we scroll to the first clone (shouldn't happen with forward-only)
+    else if (newIndex === 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToOffset({
+          offset: banners.length * width,
+          animated: false,
+        });
+        setCurrentIndex(banners.length);
+      }, 50);
+    } else {
+      setCurrentIndex(newIndex);
+    }
+  };
 
   return (
     <FlatList
@@ -83,7 +117,8 @@ function BannerSlider() {
       horizontal
       pagingEnabled
       showsHorizontalScrollIndicator={false}
-      keyExtractor={(_, index) => index.toString()}
+      scrollEnabled={false} // Disable manual scrolling for auto-scroll only
+      keyExtractor={(_, index) => `banner-${index}`}
       renderItem={({ item }) => (
         <View
           style={{
@@ -92,16 +127,28 @@ function BannerSlider() {
             alignItems: "center",
           }}
         >
-          {item}
+          <Image
+            source={item}
+            resizeMode="cover"
+            style={{
+              width: width * 0.9,
+              height: 180,
+              borderRadius: 20,
+            }}
+          />
         </View>
       )}
-      onMomentumScrollEnd={(e) => {
-        const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
-        setCurrentIndex(newIndex);
-      }}
+      onMomentumScrollEnd={handleMomentumScrollEnd}
+      getItemLayout={(_, index) => ({
+        length: width,
+        offset: width * index,
+        index,
+      })}
     />
   );
 }
+
+
 
 export default function Home() {
   const router = useRouter();

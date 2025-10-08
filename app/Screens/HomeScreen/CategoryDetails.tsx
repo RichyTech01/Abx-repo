@@ -31,18 +31,36 @@ export default function CategoryDetails() {
   const [productLoading, setProductLoading] = useState(false);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchAllProducts = async () => {
+      if (!category) return;
+
+      setLoading(true);
       try {
-        const data = await StoreApi.getAllProducts({ category, page: 1 });
-        setProducts(data.results || []);
+        let allResults: any[] = [];
+        let page = 1;
+        let hasNext = true;
+
+        while (hasNext) {
+          const data = await StoreApi.getAllProducts({ category, page });
+          allResults = [...allResults, ...(data.results || [])];
+
+          // Check if there's another page
+          if (data.next) {
+            page += 1;
+          } else {
+            hasNext = false;
+          }
+        }
+
+        setProducts(allResults);
       } catch (err) {
-        console.error("Failed to fetch products", err);
+        console.error("Failed to fetch all products", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (category) fetchProducts();
+    fetchAllProducts();
   }, [category]);
 
   // Handle add to cart modal
@@ -117,11 +135,14 @@ export default function CategoryDetails() {
               />
             </View>
           )}
-           ListEmptyComponent={
-              <View className="py-10 mx-auto text-[16px] ">
-                <NoData title="No product available" subtitle="No product available now, come back later"/>
-              </View>
-            }
+          ListEmptyComponent={
+            <View className="py-10 mx-auto text-[16px] ">
+              <NoData
+                title="No product available"
+                subtitle="No product available now, come back later"
+              />
+            </View>
+          }
         />
       )}
 
