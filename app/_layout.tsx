@@ -168,7 +168,6 @@ function GlobalNotificationHandler() {
             data: data,
             is_read: false,
             created_at: new Date().toISOString(),
-            // icon: data.icon || "",
           };
 
           handleNewNotification(notificationData);
