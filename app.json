@@ -20,12 +20,13 @@
         "projectId": "8e52f21a-83fe-434f-ab77-05345693e72a"
       }
     },
-    "notifications": {
+    "notification": {
       "icon": "./assets/Images/MainLogo.png",
       "color": "#0C513F",
       "androidMode": "default",
       "androidCollapsedTitle": "#{unread_notifications} new notifications"
     },
+
     "ios": {
       "supportsTablet": true,
       "infoPlist": {

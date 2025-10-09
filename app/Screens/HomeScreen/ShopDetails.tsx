@@ -79,7 +79,7 @@ export default function ShopDetails() {
             />
 
             {/* TabSwitcher Container */}
-            <View className="bg-white px-[10px] mt-[18px] mx-[15px] rounded-[4px]" style={{paddingTop:24}}>
+            <View className="bg-white px-[10px] py-[24px] mt-[18px] mx-[15px] rounded-[4px]" style={{paddingTop:24}}>
               <TabSwitcher
                 activeTab={activeTab}
                 onTabChange={setActiveTab}

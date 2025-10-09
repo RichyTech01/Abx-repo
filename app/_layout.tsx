@@ -35,7 +35,7 @@ import MQTTClient from "@/utils/mqttClient";
 import PushNotificationService from "@/utils/pushNotificationService";
 import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
-import AuthApi from "@/api/AuthApi"; // Using AuthApi instead
+import AuthApi from "@/api/AuthApi"; 
 import showToast from "@/utils/showToast";
 import type { Notification } from "@/types/NotificationType";
 
@@ -168,6 +168,7 @@ function GlobalNotificationHandler() {
             data: data,
             is_read: false,
             created_at: new Date().toISOString(),
+            // icon: data.icon || "",
           };
 
           handleNewNotification(notificationData);
