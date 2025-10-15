@@ -125,7 +125,6 @@ export default function OrderDetailsScrenn() {
     Icon: StatusIcon,
   } = getStatus(order?.status || "");
 
-  console.log("order details", order?.orderitems[0]);
 
   return (
     <ScreenWrapper>
