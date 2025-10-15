@@ -19,7 +19,7 @@ export const useCartOperations = () => {
 
   const addToCart = async (productId: number) => {
     if (updating) return false;
-    
+
     setUpdating(true);
     try {
       await OrderApi.addToCart({ product_id: productId });
@@ -35,9 +35,12 @@ export const useCartOperations = () => {
     }
   };
 
-  const updateCartQuantity = async (cartItemId: number, action: "increase" | "decrease") => {
+  const updateCartQuantity = async (
+    cartItemId: number,
+    action: "increase" | "decrease"
+  ) => {
     if (updating) return false;
-    
+
     setUpdating(true);
     try {
       await OrderApi.updateCart(cartItemId, { action });
@@ -54,7 +57,7 @@ export const useCartOperations = () => {
 
   const removeFromCart = async (cartItemId: number) => {
     if (updating) return false;
-    
+
     setUpdating(true);
     try {
       await OrderApi.removeFromCart(cartItemId);

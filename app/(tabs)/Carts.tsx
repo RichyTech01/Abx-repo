@@ -95,54 +95,61 @@ export default function Carts() {
     }, [])
   );
 
-  const updateQuantity = async (
-    cartItemId: number,
-    action: "increase" | "decrease"
-  ) => {
-    if (updatingItems.has(cartItemId)) return;
-    const item = cartItems.find((i) => i.id === cartItemId);
-    if (!item) return;
+ const updateQuantity = async (
+  cartItemId: number,
+  action: "increase" | "decrease"
+) => {
+  if (updatingItems.has(cartItemId)) return;
+  
+  const item = cartItems.find((i) => i.id === cartItemId);
+  if (!item) return;
 
-    // ✅ Check stock before increasing
-    if (action === "increase" && item.quantity >= item.item.stock) {
-      showToast("info", "Out of stock You cannot add more of this item.");
-      return;
+  // ✅ Check stock before increasing
+  if (action === "increase" && item.quantity >= item.item.stock) {
+    showToast("info", "Out of stock. You cannot add more of this item.");
+    return;
+  }
+
+  if (action === "decrease" && item.quantity <= 1) {
+    showToast("info", "Remove Item Instead.");
+    return;
+  }
+
+  const newQty = action === "increase" ? item.quantity + 1 : item.quantity - 1;
+  const optimisticItems = cartItems.map((cartItem) => {
+    if (cartItem.id === cartItemId) {
+      return {
+        ...cartItem,
+        quantity: newQty,
+        total_item_price: newQty * parseFloat(cartItem.item.price),
+      };
     }
+    return cartItem;
+  });
+  
+  // Update UI instantly
+  setCartItems(optimisticItems);
 
-    if (action === "decrease" && item.quantity <= 1) {
-      showToast("info", "Remove Item Instead.");
-      return;
-    }
+  // Mark as updating (prevents multiple clicks)
+  setUpdatingItems((prev) => new Set(prev).add(cartItemId));
 
-    setUpdatingItems((prev) => new Set(prev).add(cartItemId));
-
-    try {
-      await OrderApi.updateCart(cartItemId, { action });
-
-      // Update store
-      const newQty =
-        action === "increase" ? item.quantity + 1 : item.quantity - 1;
-      const updatedItems = cartItems.map((cartItem) => {
-        if (cartItem.id === cartItemId) {
-          return {
-            ...cartItem,
-            quantity: newQty,
-            total_item_price: newQty * parseFloat(cartItem.item.price),
-          };
-        }
-        return cartItem;
-      });
-      setCartItems(updatedItems);
-    } catch (err) {
-      console.error(`Failed to ${action} quantity:`, err);
-    } finally {
-      setUpdatingItems((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(cartItemId);
-        return newSet;
-      });
-    }
-  };
+  try {
+    // ✅ API call happens in background
+    await OrderApi.updateCart(cartItemId, { action });
+  } catch (err) {
+    console.error(`Failed to ${action} quantity:`, err);
+    
+    // ✅ ROLLBACK on error - revert to original state
+    setCartItems(cartItems);
+    showToast("error", "Failed to update cart. Please try again.");
+  } finally {
+    setUpdatingItems((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(cartItemId);
+      return newSet;
+    });
+  }
+};
 
   const handleRemove = async (cartItemId: number) => {
     if (updatingItems.has(cartItemId)) return;
