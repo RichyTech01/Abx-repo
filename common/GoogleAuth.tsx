@@ -46,7 +46,6 @@ const GoogleAuth: React.FC<Props> = ({
   const handleGoogleSignIn = async (token: string) => {
     setIsLoading(true);
     try {
-      // Call your existing backend endpoint
       const res = await AuthApi.googleSignIn({ token });
 
       // Store tokens
@@ -81,7 +80,7 @@ const GoogleAuth: React.FC<Props> = ({
       disabled={!request || isLoading}
     >
       <GoogleIcon />
-      <Text className="text-[#344054] text-[16px] leading-[22px] font-urbanist ml-[8px]">
+      <Text className="text-[#344054] text-[16px] leading-[22px] font-urbanist ml-[8px]  ">
         {buttonText}
       </Text>
     </Pressable>

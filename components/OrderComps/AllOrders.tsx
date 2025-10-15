@@ -23,9 +23,19 @@ export default function AllOrders() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = async (isRefreshing = false) => {
     try {
-      setLoading(true);
+      if (!isRefreshing) {
+        setLoading(true);
+      }
+
+      const token = await Storage.get("accessToken");
+      const guest = await Storage.get("isGuest");
+      if (!token || guest) {
+        setLoading(false);
+        setSections([]);
+        return;
+      }
 
       let page = 1;
       let allOrders: any[] = [];
@@ -47,43 +57,23 @@ export default function AllOrders() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
+
+  const HandleRefresh = async () => {
+    setRefreshing(true);
+    await fetchOrders(true);
+    setRefreshing(false);
+  };
 
   useEffect(() => {
-    const checkOrders = async () => {
-      try {
-        setLoading(true);
-        const token = await Storage.get("accessToken");
-        const guest = await Storage.get("isGuest");
-
-        if (!token || guest) {
-          setSections([]);
-          setLoading(false);
-          return;
-        }
-
-        await fetchOrders();
-      } catch (err) {
-        console.error("Error checking orders", err);
-        setSections([]);
-        setLoading(false);
-      }
-    };
-
-    checkOrders();
-  }, [fetchOrders]);
+    fetchOrders();
+  }, []);
 
   const toggleExpand = (title: string) => {
     setExpandedSections((prev) =>
       prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
     );
   };
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchOrders();
-    setRefreshing(false);
-  }, [fetchOrders]);
 
   const getStatus = (order: any) => {
     const status = order.status;
@@ -136,109 +126,99 @@ export default function AllOrders() {
     }
   };
 
+  if (loading) {
+    return (
+      <View className="py-10">
+        <LoadingSpinner />
+      </View>
+    );
+  }
+
   return (
     <View className="mt-[8%]">
-      {loading ? (
-        <View className="py-10 ">
-          <LoadingSpinner />
-        </View>
-      ) : (
-        <SectionList
-          sections={sections}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          onScroll={({ nativeEvent }) => {
-            if (nativeEvent.contentOffset.y < -120 && !refreshing) {
-              onRefresh();
-            }
-          }}
-          scrollEventThrottle={16}
-          ListHeaderComponent={
-            refreshing ? (
-              <View className="py-4">
-                <LoadingSpinner />
-              </View>
-            ) : null
-          }
-          renderItem={({ item, section }) => {
-            const expanded = expandedSections.includes(section.title);
-            const index = section.data.indexOf(item);
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item, section }) => {
+          const expanded = expandedSections.includes(section.title);
+          const index = section.data.indexOf(item);
 
-            // Show first 5 items by default, or all if expanded
-            const itemsToShow = expanded
-              ? section.data.length
-              : Math.min(5, section.data.length);
+          const itemsToShow = expanded
+            ? section.data.length
+            : Math.min(5, section.data.length);
 
-            // Don't render if this item is beyond our display limit
-            if (index >= itemsToShow) return null;
+          if (index >= itemsToShow) return null;
 
-            // Get dynamic status
-            const {
-              text: statusText,
-              color: statusColor,
-              isDelivered,
-            } = getStatus(item);
+          // Get dynamic status
+          const {
+            text: statusText,
+            color: statusColor,
+            isDelivered,
+          } = getStatus(item);
 
-            return (
-              <View className="mt-[8px]">
-                <OrderCard
-                  orderNumber={item.order_code}
-                  datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
-                  totalAmount={`£${item.store_total_price}`}
-                  status={statusText}
-                  statusColor={statusColor}
-                  isDelivered={isDelivered}
-                  onPressDetail={() =>
-                    router.push({
-                      pathname: "/Screens/OrderScreen/OrderDetailsScrenn",
-                      params: { id: item.id },
-                    })
-                  }
-                />
-              </View>
-            );
-          }}
-          renderSectionHeader={({ section }) => {
-            if (section.data.length === 0) return null;
-
-            const expanded = expandedSections.includes(section.title);
-            const hasMoreThanFive = section.data.length > 5;
-
-            return (
-              <View
-                className="flex-row items-center justify-between"
-                style={{
-                  marginTop: section.title !== sections[0]?.title ? 32 : 0,
-                }}
-              >
-                <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
-                  {section.title}
-                </OreAppText>
-                {hasMoreThanFive && (
-                  <Pressable onPress={() => toggleExpand(section.title)}>
-                    <Text className="text-[14px] font-urbanist-medium leading-[20px]">
-                      {expanded ? "Show less" : `View all orders`}
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-            );
-          }}
-          contentContainerStyle={{ paddingBottom: 320 }}
-          ListEmptyComponent={
-            <View className="justify-center items-center mt-[20%]">
-              <NoData
-                title="No order history"
-                buttonTitle="Start shopping"
-                onButtonPress={() =>
-                  router.push("/Screens/AccountScreen/AllStore")
+          return (
+            <View className="mt-[8px]">
+              <OrderCard
+                orderNumber={item.order_code}
+                datePlaced={dayjs(item.created_at).format("MMM D, YYYY")}
+                totalAmount={`£${item.store_total_price}`}
+                status={statusText}
+                statusColor={statusColor}
+                isDelivered={isDelivered}
+                onPressDetail={() =>
+                  router.push({
+                    pathname: "/Screens/OrderScreen/OrderDetailsScrenn",
+                    params: { id: item.id },
+                  })
                 }
-                subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
               />
             </View>
-          }
-        />
-      )}
+          );
+        }}
+        renderSectionHeader={({ section }) => {
+          if (section.data.length === 0) return null;
+
+          const expanded = expandedSections.includes(section.title);
+          const hasMoreThanFive = section.data.length > 5;
+
+          return (
+            <View
+              className="flex-row items-center justify-between"
+              style={{
+                marginTop: section.title !== sections[0]?.title ? 32 : 0,
+              }}
+            >
+              <OreAppText className="text-[#111827] leading-[20px] text-[16px]">
+                {section.title}
+              </OreAppText>
+              {hasMoreThanFive && (
+                <Pressable onPress={() => toggleExpand(section.title)}>
+                  <Text className="text-[14px] font-urbanist-medium leading-[20px]">
+                    {expanded ? "Show less" : `View all orders`}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          );
+        }}
+        contentContainerStyle={{ paddingBottom: 320 }}
+        ListEmptyComponent={
+          <View className="justify-center items-center mt-[20%]">
+            <NoData
+              title="No order history"
+              buttonTitle="Start shopping"
+              onButtonPress={() =>
+                router.push("/Screens/AccountScreen/AllStore")
+              }
+              subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
+            />
+          </View>
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={HandleRefresh} />
+        }
+      />
     </View>
   );
 }

@@ -14,40 +14,52 @@ export default function CompletedOrders() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
+  const fetchOrders = async (isRefreshing = false) => {
+    try {
+      if (!isRefreshing) {
+      setLoading(true); 
+    }
 
-        const token = await Storage.get("accessToken");
-        const guest = await Storage.get("isGuest");
-        if (!token || guest) {
-          setOrders([]);
-          setLoading(false);
-          return;
-        }
-        let page = 1;
-        let completedOrders: any[] = [];
-        let hasNext = true;
-        while (hasNext) {
-          const res = await OrderApi.getCustomerOrders({ is_completed: true });
-          const completedorders = res.results || [];
-
-          completedOrders = [...completedOrders, ...completedorders];
-
-          hasNext = !!res.next;
-          page++;
-        }
-        setOrders(completedOrders);
-      } catch (err) {
-        console.error("Error fetching completed orders", err);
-      } finally {
+      const token = await Storage.get("accessToken");
+      const guest = await Storage.get("isGuest");
+      if (!token || guest) {
+        setOrders([]);
         setLoading(false);
+        return;
       }
-    };
+      let page = 1;
+      let completedOrders: any[] = [];
+      let hasNext = true;
+      while (hasNext) {
+        const res = await OrderApi.getCustomerOrders({
+          is_completed: true,
+          page,
+        });
+        const completedorders = res.results || [];
 
+        completedOrders = [...completedOrders, ...completedorders];
+
+        hasNext = !!res.next;
+        page++;
+      }
+      setOrders(completedOrders);
+    } catch (err) {
+      console.error("Error fetching completed orders", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const HandleRefresh = async () => {
+    setRefreshing(true);
+    await fetchOrders(true);
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
     fetchOrders();
   }, []);
 
@@ -77,19 +89,6 @@ export default function CompletedOrders() {
       </View>
     );
   }
-
-  // if (sections.length === 0) {
-  //   return (
-  //     <View className="justify-center items-center mt-[20%]">
-  //       <NoData
-  //         title="No order history"
-  //         buttonTitle="Start shopping"
-  //         onButtonPress={() => router.push("/Screens/AccountScreen/AllStore")}
-  //         subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
-  //       />
-  //     </View>
-  //   );
-  // }
 
   return (
     <View className="mt-[8%]">
@@ -174,6 +173,8 @@ export default function CompletedOrders() {
             />
           </View>
         }
+        refreshing={refreshing}
+        onRefresh={HandleRefresh}
       />
     </View>
   );
