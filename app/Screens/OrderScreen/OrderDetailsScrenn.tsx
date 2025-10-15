@@ -125,18 +125,12 @@ export default function OrderDetailsScrenn() {
     Icon: StatusIcon,
   } = getStatus(order?.status || "");
 
+  console.log("order details", order?.orderitems[0]);
+
   return (
     <ScreenWrapper>
       <Header title="Orders Detail" />
       <>
-        {/* <View className="flex-row items-center gap-2 mx-[20px]  ] mt-3">
-      
-          <OreAppText className="text-[16px] leading-[20px] text-[#111827]">
-            {dayjs(order.created_at).isSame(dayjs(), "day")
-              ? "Today"
-              : dayjs(order?.created_at).format("MMM D, YYYY")}
-          </OreAppText>
-        </View> */}
 
         {loading ? (
           <View className="flex-1 justify-center items-center py-10 ">
@@ -210,7 +204,7 @@ export default function OrderDetailsScrenn() {
                         {item.item_name}
                       </Text>
                       <Text className="text-[#2D2220] text-[14px] font-urbanist-semibold mt-[4px]">
-                        €{item.listed_price}
+                        €{item.price}
                       </Text>
                       <View className="bg-[#FDF0DC] rounded-[8px] p-[4px] mt-[8px] self-start">
                         <UrbanistText className="text-[12px] text-[#424242]">
