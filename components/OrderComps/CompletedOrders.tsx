@@ -162,7 +162,7 @@ export default function CompletedOrders() {
         }}
         contentContainerStyle={{ paddingBottom: 320 }}
         ListEmptyComponent={
-          <View className="justify-center items-center mt-[20%]">
+          <View className="justify-center items-center mt-[5%]">
             <NoData
               title="No order history"
               buttonTitle="Start shopping"

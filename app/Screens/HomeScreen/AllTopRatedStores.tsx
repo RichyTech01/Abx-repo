@@ -1,4 +1,4 @@
-import { View, Platform, FlatList } from "react-native";
+import { View, Platform, FlatList, RefreshControl } from "react-native";
 import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
@@ -24,11 +24,18 @@ export default function AllTopRatedStores() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchStores = async (pageNum: number, append = false) => {
+  const fetchStores = async (
+    pageNum: number,
+    append = false,
+    isRefreshing = false
+  ) => {
     if (loading || loadingMore) return;
 
-    append ? setLoadingMore(true) : setLoading(true);
+    if (!isRefreshing) {
+      append ? setLoadingMore(true) : setLoading(true);
+    }
 
     try {
       if (latitude == null || longitude == null) {
@@ -58,7 +65,9 @@ export default function AllTopRatedStores() {
     } catch (err) {
       console.error("Error fetching stores:", err);
     } finally {
-      append ? setLoadingMore(false) : setLoading(false);
+      if (!isRefreshing) {
+        append ? setLoadingMore(false) : setLoading(false);
+      }
     }
   };
 
@@ -86,6 +95,13 @@ export default function AllTopRatedStores() {
         );
       },
     });
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setPage(1);
+    await fetchStores(1, false, true);
+    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -142,6 +158,9 @@ export default function AllTopRatedStores() {
                 subtitle="No top rated stores available at the moment."
               />
             </View>
+          }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         />
       )}

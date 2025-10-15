@@ -1,4 +1,4 @@
-import { View, ActivityIndicator, Platform, FlatList } from "react-native";
+import { View, Platform, FlatList, RefreshControl } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -23,12 +23,19 @@ export default function AllStore() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch all stores
-  const fetchStores = async (pageNum: number, append = false) => {
+  const fetchStores = async (
+    pageNum: number,
+    append = false,
+    isRefreshing = false
+  ) => {
     if (loading || loadingMore) return;
 
-    append ? setLoadingMore(true) : setLoading(true);
+    if (!isRefreshing) {
+      append ? setLoadingMore(true) : setLoading(true);
+    }
 
     try {
       if (latitude == null || longitude == null) {
@@ -88,6 +95,13 @@ export default function AllStore() {
     });
   };
 
+  const HandleRefresh = async () => {
+    setRefreshing(true);
+    setPage(1); 
+    await fetchStores(1, false, true);
+    setRefreshing(false);
+  };
+
   useEffect(() => {
     fetchStores(1, false);
   }, []);
@@ -142,6 +156,10 @@ export default function AllStore() {
                 subtitle="No shop available at the moment."
               />
             </View>
+          }
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={HandleRefresh} />
           }
         />
       )}

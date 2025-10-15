@@ -68,7 +68,7 @@ export default function Login() {
       await AsyncStorage.setItem("isLoggedIn", "true");
       fetchUser();
       // console.log("Login successful:", res);
-      showToast("success", "success","Login successful! Welcome back.");
+      // showToast("success", "success","Login successful! Welcome back.");
       router.dismissAll();
       router.replace("/(tabs)");
 
@@ -189,7 +189,7 @@ export default function Login() {
             </Pressable>
 
             <View className="mt-[8%]">
-              <Button title={"Login"} loading={loading} onPress={handleLogin} />
+              <Button title={"Login"} loading={loading} disabled={loading} onPress={handleLogin} />
             </View>
           </View>
         </ScrollView>

@@ -13,13 +13,14 @@ import MQTTClient from "@/utils/mqttClient";
 import showToast from "@/utils/showToast";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View, RefreshControl } from "react-native";
 import Storage from "@/utils/Storage";
 
 export default function NotificationScreen() {
   const [hasToken, setHasToken] = useState<boolean | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const { user,  } = useUserStore();
+  const { user } = useUserStore();
   const {
     notifications,
     loading,
@@ -42,13 +43,20 @@ export default function NotificationScreen() {
     checkToken();
   }, []);
 
+  const HandleRefresh = async () => {
+    if (!user && !hasToken) {
+      return;
+    }
+    setRefreshing(true);
+    fetchNotifications().then(() => setRefreshing(false));
+  };
 
   // Fetch notifications whenever user becomes available
   useEffect(() => {
     if (!user && !hasToken) {
-     return
+      return;
     }
-     fetchNotifications();
+    fetchNotifications();
   }, [fetchNotifications]);
 
   useEffect(() => {
@@ -151,7 +159,6 @@ export default function NotificationScreen() {
 
   return (
     <ScreenWrapper>
-      
       <Header title="Notifications" />
 
       <View className="mt-[22px]">
@@ -171,7 +178,7 @@ export default function NotificationScreen() {
         )}
 
         <View className="mx-[20px] mt-[16px] h-scree">
-          {loading ? (
+          {loading && notifications.length === 0 ? (
             <LoadingSpinner />
           ) : (
             <FlatList
@@ -204,6 +211,12 @@ export default function NotificationScreen() {
                     onButtonPress={() => router.back()}
                   />
                 </View>
+              }
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={HandleRefresh}
+                />
               }
             />
           )}

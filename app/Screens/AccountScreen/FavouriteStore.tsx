@@ -1,4 +1,4 @@
-import { View, ActivityIndicator, FlatList, Platform } from "react-native";
+import { View, FlatList, Platform, RefreshControl } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -26,6 +26,7 @@ export default function FavouriteStore() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -42,10 +43,16 @@ export default function FavouriteStore() {
     checkLogin();
   }, []);
 
-  const fetchStores = async (pageNum: number, append = false) => {
+  const fetchStores = async (
+    pageNum: number,
+    append = false,
+    isRefreshing = false
+  ) => {
     if (loading || loadingMore) return;
 
-    append ? setLoadingMore(true) : setLoading(true);
+    if (!isRefreshing) {
+      append ? setLoadingMore(true) : setLoading(true);
+    }
 
     try {
       if (latitude == null || longitude == null) {
@@ -67,9 +74,9 @@ export default function FavouriteStore() {
         store_close: store.close_time,
         isFavorite: store.is_favorited ?? false,
         rating: store.store_rating,
-         distance: store.distance_km || "N/A",
+        distance: store.distance_km || "N/A",
       }));
-      console.log("fav",newShops)
+      console.log("fav", newShops);
 
       setShops((prev) => (append ? [...prev, ...newShops] : newShops));
 
@@ -81,7 +88,9 @@ export default function FavouriteStore() {
     } catch (err) {
       console.error("Error fetching stores:", err);
     } finally {
-      append ? setLoadingMore(false) : setLoading(false);
+      if (!isRefreshing) {
+        append ? setLoadingMore(false) : setLoading(false);
+      }
     }
   };
 
@@ -110,6 +119,13 @@ export default function FavouriteStore() {
     });
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setPage(1);
+    await fetchStores(1, false, true);
+    setRefreshing(false);
+  };
+
   useEffect(() => {
     fetchStores(1, false);
   }, []);
@@ -129,11 +145,9 @@ export default function FavouriteStore() {
       </View>
 
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#000"
-          style={{ paddingVertical: 20 }}
-        />
+        <View className="py-10">
+          <LoadingSpinner />
+        </View>
       ) : (
         <FlatList
           data={shops}
@@ -170,6 +184,10 @@ export default function FavouriteStore() {
                 router.push("/Screens/AccountScreen/AllStore");
               }}
             />
+          }
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         />
       )}

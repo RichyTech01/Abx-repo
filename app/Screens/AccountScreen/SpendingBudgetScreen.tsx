@@ -10,35 +10,46 @@ import SpendingBudgetTab from "@/common/SpendingBudgetTab";
 import SpendingBudgetTransactions from "@/components/AccountComps/SpendingBudgetTransactions";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  View,
+  RefreshControl,
+} from "react-native";
 import { useBudgetStore } from "@/store/useBudgetStore";
 
 export default function SpendingBudgetScreen() {
   const [activeTab, setActiveTab] = useState("Spending budget");
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const router = useRouter();
   const { budget, setBudget } = useBudgetStore();
 
-  useEffect(() => {
-    const fetchBudget = async () => {
-      try {
+  const fetchBudget = async (isRefreshing = false) => {
+    try {
+      if (!isRefreshing) {
         setLoading(true);
-        const data = await SpendingBudgetApi.getCurrentSpendingBudget();
-        // const normalized = {
-        //   ...data,
-        //   amount: Number(data.amount ?? 0),
-        //   amount_spent: Number(data.amount_spent ?? 0),
-        //   balance: Number(data.balance ?? 0),
-        // };
-        setBudget(String(data.amount ?? 0), data.id ?? "", data);
-      } catch (error) {
-        console.error("Failed to load spending budget:", error);
-      } finally {
+      }
+      const data = await SpendingBudgetApi.getCurrentSpendingBudget();
+      setBudget(String(data.amount ?? 0), data.id ?? "", data);
+    } catch (error) {
+      console.error("Failed to load spending budget:", error);
+    } finally {
+      if (!isRefreshing) {
         setLoading(false);
       }
-    };
+    }
+  };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchBudget(true);
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
     if (!budget) {
       fetchBudget();
     }
@@ -60,12 +71,14 @@ export default function SpendingBudgetScreen() {
             navigateTab="Spending insight"
           />
         </View>
-      ): null} 
+      ) : null}
 
-      {/* 👇 Scrollable content after the tab */}
       <ScrollView
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         <View className="mt-[8%]">
           <View className="bg-[#346E5F] rounded-[16px] py-[26px] px-[20px] w-[80%] mx-auto relative">
@@ -81,7 +94,7 @@ export default function SpendingBudgetScreen() {
               Spending budget
             </Text>
 
-            {loading ? (
+            {loading && !refreshing ? (
               <ActivityIndicator color="#fff" style={{ marginTop: 20 }} />
             ) : (
               <View className="mt-[4px] flex-row items-center justify-between py-[8px]">

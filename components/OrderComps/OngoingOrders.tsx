@@ -1,5 +1,5 @@
-import { FlatList, View, Text } from "react-native";
-import React, { useEffect, useState, useCallback } from "react";
+import { FlatList, View, RefreshControl } from "react-native";
+import React, { useEffect, useState,  } from "react";
 import OrderCard from "@/common/OrderCard";
 import OrderApi from "@/api/OrderApi";
 import dayjs from "dayjs";
@@ -23,43 +23,54 @@ export default function OngoingOrders() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchOngoingOrders = useCallback(async () => {
+  const fetchOngoingOrders = async (isRefreshing = false) => {
     try {
-      setLoading(true);
-      const res = await OrderApi.getCustomerOrders({ is_completed: false });
-      setOrders(res.results || []);
+      if (!isRefreshing) {
+        setLoading(true);
+      }
+
+      const token = await Storage.get("accessToken");
+      const guest = await Storage.get("isGuest");
+
+      if (!token || guest) {
+        setOrders([]);
+        return;
+      }
+
+      let page = 1;
+      let allOrders: any[] = [];
+      let hasNext = true;
+
+      while (hasNext) {
+        const res = await OrderApi.getCustomerOrders({
+          is_completed: false,
+          page,
+        });
+
+        allOrders = [...allOrders, ...(res.results || [])];
+        hasNext = !!res.next;
+        page++;
+      }
+
+      setOrders(allOrders);
     } catch (err) {
       console.error("Failed to fetch ongoing orders:", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
+  const HandleRefresh = async () => {
+    setRefreshing(true);
+    await fetchOngoingOrders(true);
+     setRefreshing(false);
+  };
 
   useEffect(() => {
-    const checkOrders = async () => {
-      try {
-        setLoading(true);
-        const token = await Storage.get("accessToken");
-        const guest = await Storage.get("isGuest");
-
-        if (!token || guest) {
-          setOrders([]);
-          setLoading(false);
-          return;
-        }
-
-        await fetchOngoingOrders();
-      } catch (err) {
-        console.error("Error checking orders", err);
-        setOrders([]);
-        setLoading(false);
-      }
-    };
-
-    checkOrders();
-  }, [fetchOngoingOrders]);
+    fetchOngoingOrders();
+  }, []);
 
   if (loading) {
     return (
@@ -96,7 +107,7 @@ export default function OngoingOrders() {
         showsVerticalScrollIndicator={false}
         overScrollMode="never"
         ListEmptyComponent={
-          <View className="justify-center items-center mt-[20%]">
+          <View className="justify-center items-center mt-[5%]">
             <NoData
               title="No order history"
               buttonTitle="Start shopping"
@@ -106,6 +117,9 @@ export default function OngoingOrders() {
               subtitle="Looks like you haven't placed an order yet—no worries, that just means the best is yet to come! Start browsing and find something you'll love. We've got plenty of great options waiting for you!"
             />
           </View>
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={HandleRefresh} />
         }
       />
     </View>

@@ -144,6 +144,7 @@ export default function AdjustLimit() {
           title={isProcessing ? "Processing..." : "Confirm limit"}
           onPress={handleSetBudget}
           disabled={isProcessing || Number(amount.replace(/,/g, "")) <= 0}
+          loading={isProcessing}
         />
       </View>
 
@@ -162,7 +163,7 @@ export default function AdjustLimit() {
         visible={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
         onPress={() => {
-          router.dismiss(2);
+          router.dismiss(1);
           setShowSuccessModal(false);
         }}
       />

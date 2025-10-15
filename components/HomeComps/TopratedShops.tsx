@@ -9,7 +9,6 @@ import ShopCard, { Shop } from "@/common/ShopCard";
 import OreAppText from "@/common/OreApptext";
 import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
-import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import { useLocationStore } from "@/store/locationStore";
 
 
@@ -19,8 +18,7 @@ type Props = {
 
 
 export default function TopratedShops({ refreshTrigger }: Props) {
-  const { showModal, setShowModal, handleProtectedNavigation } =
-    useProtectedNavigation();
+
   const { latitude, longitude } = useLocationStore();
 
   const router = useRouter();
@@ -70,7 +68,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
       <SectionHeader
         title="Top Rated Shops"
         onPress={() =>
-          handleProtectedNavigation("/Screens/HomeScreen/AllTopRatedStores")
+          router.push("/Screens/HomeScreen/AllTopRatedStores")
         }
       />
 
@@ -124,7 +122,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
+          await Storage.multiRemove(["isGuest", "cartId"]);
           router.replace("/onboarding");
         }}
         confirmButtonColor="#0C513F"
@@ -132,18 +130,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
         visible={loginVisible}
         onClose={() => setLoginVisible(false)}
       />
-      <LogoutModal
-        visible={showModal}
-        onClose={() => setShowModal((prev) => !prev)}
-        title="Login Required"
-        message="Sorry! you have to login to access this screen"
-        confirmText="Login"
-        cancelText="Cancel"
-        onConfirm={async () => {
-          await Storage.multiRemove(["isGuest", "cartId"]);
-          router.replace("/onboarding");
-        }}
-      />
+    
     </View>
   );
 }

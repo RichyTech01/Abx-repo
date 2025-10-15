@@ -4,6 +4,7 @@ import {
   FlatList,
   ActivityIndicator,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
@@ -24,29 +25,38 @@ export default function RescueAndSave() {
   const [modalVisible, setModalVisible] = useState(false);
   const [productDetails, setProductDetails] = useState<any>(null);
   const [productLoading, setProductLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const { data, isLoading } = useQuery<{ results: ShopProductType[] }>({
-    queryKey: ["rescueAndSaveProducts"],
-    queryFn: async () => {
-      let allResults: ShopProductType[] = [];
-      let page = 1;
-      let next: string | null = null;
+  const { data, isLoading, refetch } = useQuery<{ results: ShopProductType[] }>(
+    {
+      queryKey: ["rescueAndSaveProducts"],
+      queryFn: async () => {
+        let allResults: ShopProductType[] = [];
+        let page = 1;
+        let next: string | null = null;
 
-      do {
-        const res = await StoreApi.getPublishedProducts({
-          page,
-          published: true,
-          discounted_product: true,
-        });
+        do {
+          const res = await StoreApi.getPublishedProducts({
+            page,
+            published: true,
+            discounted_product: true,
+          });
 
-        allResults = [...allResults, ...res.results];
-        next = res.next || null;
-        page++;
-      } while (next);
+          allResults = [...allResults, ...res.results];
+          next = res.next || null;
+          page++;
+        } while (next);
 
-      return { results: allResults };
-    },
-  });
+        return { results: allResults };
+      },
+    }
+  );
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
 
   const handleAddToCart = async (id: number) => {
     setModalVisible(true);
@@ -140,6 +150,12 @@ export default function RescueAndSave() {
                   />
                 </View>
               )}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                />
+              }
             />
           )}
         </View>

@@ -3,6 +3,7 @@ import {
   FlatList,
   Platform,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import Header from "@/common/Header";
 import { useState, useEffect } from "react";
@@ -12,6 +13,7 @@ import { Dimensions } from "react-native";
 import OreAppText from "@/common/OreApptext";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import StoreApi from "@/api/StoreApi";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
 
 const CATEGORY_COLORS: Record<
   number,
@@ -30,32 +32,38 @@ export default function AllCategories() {
 
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const SCREEN_PADDING = 20;
   const GAP = 16;
   const ITEM_WIDTH =
     (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await StoreApi.getCategories();
-        const withColors = (data.results || []).map((cat: any) => ({
-          ...cat,
-          ...CATEGORY_COLORS[cat.id],
-        }));
-        setCategories(withColors);
-        // console.log("category data", withColors);
-      } catch (error) {
-        console.error("Failed to fetch categories", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCategories = async () => {
+    try {
+      const data = await StoreApi.getCategories();
+      const withColors = (data.results || []).map((cat: any) => ({
+        ...cat,
+        ...CATEGORY_COLORS[cat.id],
+      }));
+      setCategories(withColors);
+      // console.log("category data", withColors);
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCategories();
   }, []);
 
+  const HandleRefreshing = async () => {
+    setRefreshing(true);
+    await fetchCategories();
+    setRefreshing(false);
+  };
   return (
     <ScreenWrapper>
       <View className={``}>
@@ -63,7 +71,7 @@ export default function AllCategories() {
       </View>
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#000" />
+          <LoadingSpinner/>
         </View>
       ) : categories.length === 0 ? (
         <View className="flex-1 items-center justify-center  ">
@@ -112,6 +120,12 @@ export default function AllCategories() {
             );
           }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={HandleRefreshing}
+            />
+          }
         />
       )}
     </ScreenWrapper>

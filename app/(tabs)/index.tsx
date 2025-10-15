@@ -117,7 +117,7 @@ function BannerSlider() {
       horizontal
       pagingEnabled
       showsHorizontalScrollIndicator={false}
-      scrollEnabled={false} // Disable manual scrolling for auto-scroll only
+      scrollEnabled={false} 
       keyExtractor={(_, index) => `banner-${index}`}
       renderItem={({ item }) => (
         <View
@@ -171,7 +171,6 @@ export default function Home() {
     useCallback(() => {
       const init = async () => {
         const access = await AsyncStorage.getItem("accessToken");
-        // await fetchCartCount();
         if (!access) return;
 
         checkNotificationStatus();
@@ -248,8 +247,6 @@ export default function Home() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#0C513F"]}
-            tintColor="#0C513F"
           />
         }
         contentContainerStyle={{ paddingBottom: 40 }}

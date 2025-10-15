@@ -1,101 +1,190 @@
 import {
   View,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  ActivityIndicator,
+  FlatList,
+  Platform,
+  RefreshControl,
 } from "react-native";
-import React from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
-import ShopCard from "@/common/ShopCard";
-import { useClosestStores } from "@/hooks/useClosestStores";
+import ShopCard, { Shop } from "@/common/ShopCard";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import NoData from "@/common/NoData";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
+import Storage from "@/utils/Storage";
+import LogoutModal from "@/Modals/LogoutModal";
+import { useRouter } from "expo-router";
+import { useLocationStore } from "@/store/locationStore";
 
 export default function AllClosestShops() {
-  const queryClient = useQueryClient();
+  const { latitude, longitude } = useLocationStore();
 
-  const {
-    data: shops,
-    isLoading,
-    isError,
-    locationStatus,
-    locationError,
-  } = useClosestStores();
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [loginVisible, setLoginVisible] = useState(false);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchStores = async (
+    pageNum: number,
+    append = false,
+    isRefreshing = false
+  ) => {
+    if (loading || loadingMore) return;
+
+    if (!isRefreshing) {
+      append ? setLoadingMore(true) : setLoading(true);
+    }
+
+    try {
+      if (latitude == null || longitude == null) {
+        throw new Error("Location not available");
+      }
+      const res = await StoreApi.getNearestStores(
+        latitude,
+        longitude,
+        pageNum
+      );
+      const newShops: Shop[] = res.results.map((store: any) => ({
+        id: store.id.toString(),
+        name: store.business_name,
+        image:
+          store.store_img ||
+          "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
+        store_open: store.open_time,
+        store_close: store.close_time,
+        isFavorite: store.is_favorited ?? false,
+        rating: store.store_rating,
+        distance: store.distance_km || "N/A",
+      }));
+
+      setShops((prev) => (append ? [...prev, ...newShops] : newShops));
+
+      setHasMore(res.next !== null);
+    } catch (err) {
+      console.error("Error fetching closest stores:", err);
+    } finally {
+      if (!isRefreshing) {
+        append ? setLoadingMore(false) : setLoading(false);
+      }
+    }
+  };
 
   const favoriteMutation = useMutation({
-    mutationFn: (storeId: string | number) =>
-      StoreApi.toggleFavorite(Number(storeId)),
+    mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["closestStores"] }),
   });
 
+  const handleFavoritePress = async (storeId: string) => {
+    const token = await Storage.get("accessToken");
+    if (!token) {
+      setLoginVisible(true);
+      return;
+    }
+
+    favoriteMutation.mutate(storeId, {
+      onSuccess: () => {
+        setShops((prevShops) =>
+          prevShops.map((shop) =>
+            shop.id === storeId
+              ? { ...shop, isFavorite: !shop.isFavorite }
+              : shop
+          )
+        );
+      },
+    });
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setPage(1);
+    await fetchStores(1, false, true);
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    fetchStores(1, false);
+  }, []);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loadingMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchStores(nextPage, true);
+    }
+  }, [page, hasMore, loadingMore]);
+
   return (
-    <ScreenWrapper >
-      <HeaderWithSearchInput label="Closest shops" />
-
-      <View className="flex-1 mt-4">
-        {/* Loading state */}
-        {(locationStatus === "pending" || isLoading) && (
-          <ActivityIndicator
-            size="large"
-            color="#000"
-            style={{ marginTop: 16 }}
-          />
-        )}
-
-        {/* Error states */}
-        {locationStatus === "error" && (
-          <Text className="mx-auto py-8 text-red-500">
-            {locationError || "Location permission denied."}
-          </Text>
-        )}
-        {isError && (
-          <Text className="mx-auto py-8 text-red-500">
-            Failed to fetch nearest stores.
-          </Text>
-        )}
-
-        {/* No data state */}
-        {!isLoading && shops?.length === 0 && (
-          <Text className="mx-auto py-8 text-[#2D2220]">
-            No nearby stores found.
-          </Text>
-        )}
-
-        {/* Shops list */}
-        {shops?.length > 0 && (
-          <ScrollView
-            contentContainerStyle={{
-              paddingBottom: 20,
-              marginHorizontal: 20,
-              paddingTop: 15,
-              gap: 24,
-            }}
-            showsVerticalScrollIndicator={false}
-          >
-            {shops.map((shop: any) => (
-              <ShopCard
-                key={shop.id.toString()}
-                shop={{
-                  id: shop.id.toString(),
-                  name: shop.business_name,
-                  image:
-                    shop.store_img ||
-                    "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
-                  distance: shop.distance_km ? `${shop.distance_km}Km` : "N/A",
-                  rating: shop.rating || 0,
-                  isFavorite: shop.is_favorited || false,
-                  store_open: shop.open_time,
-                  store_close: shop.close_time,
-                }}
-                onFavoritePress={() => favoriteMutation.mutate(shop.id)}
-              />
-            ))}
-          </ScrollView>
-        )}
+    <ScreenWrapper>
+      <View className="pb-[15px]">
+        <HeaderWithSearchInput label="Closest shops" />
       </View>
+
+      {loading ? (
+        <View className="py-10">
+          <LoadingSpinner />
+        </View>
+      ) : (
+        <FlatList
+          data={shops}
+          contentContainerStyle={{
+            paddingBottom: Platform.OS === "ios" ? 20 : 40,
+            marginHorizontal: 20,
+            paddingTop: 15,
+            gap: 24,
+          }}
+          keyExtractor={(shop, index) => `store-${shop.id}-${index}`}
+          renderItem={({ item: shop }) => (
+            <ShopCard
+              shop={shop}
+              onFavoritePress={() => handleFavoritePress(shop.id)}
+            />
+          )}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0}
+          ListFooterComponent={
+            loadingMore && hasMore ? (
+              <View className="py-4 items-center">
+                <LoadingSpinner />
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            <View className="py-10">
+              <NoData
+                title="No nearby stores"
+                subtitle="No closest stores available at the moment."
+              />
+            </View>
+          }
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        />
+      )}
+
+      <LogoutModal
+        title="Login Required"
+        message="Sorry! you need to go back to log in to favorite a shop."
+        confirmText="Go to Login"
+        cancelText="Cancel"
+        onConfirm={async () => {
+          await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
+          router.replace("/onboarding");
+        }}
+        confirmButtonColor="#0C513F"
+        cancelButtonColor="#F04438"
+        visible={loginVisible}
+        onClose={() => setLoginVisible(false)}
+      />
     </ScreenWrapper>
   );
 }
