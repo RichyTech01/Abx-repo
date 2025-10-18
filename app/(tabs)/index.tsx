@@ -40,11 +40,7 @@ const banners = [
   require("@/assets/Images/SecondHomeImage.png"),
 ];
 
-const loopedBanners = [
-  banners[banners.length - 1],
-  ...banners,
-  banners[0],
-];
+const loopedBanners = [banners[banners.length - 1], ...banners, banners[0]];
 
 function BannerSlider() {
   const flatListRef = useRef<FlatList>(null);
@@ -63,7 +59,7 @@ function BannerSlider() {
     scrollTimer.current = setInterval(() => {
       setCurrentIndex((prevIndex) => {
         const nextIndex = prevIndex + 1;
-        
+
         flatListRef.current?.scrollToOffset({
           offset: nextIndex * width,
           animated: true,
@@ -71,7 +67,7 @@ function BannerSlider() {
 
         return nextIndex;
       });
-    }, 4000); 
+    }, 4000);
 
     return () => {
       if (scrollTimer.current) {
@@ -117,7 +113,7 @@ function BannerSlider() {
       horizontal
       pagingEnabled
       showsHorizontalScrollIndicator={false}
-      scrollEnabled={false} 
+      scrollEnabled={false}
       keyExtractor={(_, index) => `banner-${index}`}
       renderItem={({ item }) => (
         <View
@@ -147,8 +143,6 @@ function BannerSlider() {
     />
   );
 }
-
-
 
 export default function Home() {
   const router = useRouter();
@@ -203,8 +197,7 @@ export default function Home() {
     setRefreshing(true);
 
     setRefreshTrigger((prev) => !prev);
-
-    setTimeout(() => setRefreshing(false), 1000);
+    setRefreshing(false);
   }, []);
 
   return (
@@ -244,10 +237,7 @@ export default function Home() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         contentContainerStyle={{ paddingBottom: 40 }}
       >
