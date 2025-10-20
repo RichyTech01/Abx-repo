@@ -6,7 +6,7 @@ import * as WebBrowser from "expo-web-browser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
-// import * as AuthSession from "expo-auth-session";
+import * as AuthSession from "expo-auth-session";
 import { useUserStore } from "@/store/useUserStore";
 
 import GoogleIcon from "@/assets/svgs/GoogleIcon";
@@ -27,11 +27,18 @@ const GoogleAuth: React.FC<Props> = ({
   const { fetchUser } = useUserStore();
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const redirectUri = AuthSession.makeRedirectUri({
+    scheme: "abxmobileapplication", // This matches your app.json scheme
+    path: "redirect",
+  });
+
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     androidClientId: ANDROID_CLIENT_ID,
     iosClientId: IOS_CLIENT_ID,
+    redirectUri: redirectUri,
   });
-  // console.log(AuthSession.makeRedirectUri());
+  console.log(AuthSession.makeRedirectUri());
 
   useEffect(() => {
     if (response?.type === "success") {

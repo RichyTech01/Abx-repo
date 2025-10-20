@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { InternalAxiosRequestConfig } from "axios";
 import showToast from "@/utils/showToast";
 import MQTTClient from "@/utils/mqttClient";
+import { router } from "expo-router";
 
 class ApiService {
   private client;
@@ -48,11 +49,11 @@ class ApiService {
 
             // Disconnect MQTT immediately
             MQTTClient.disconnect();
+            router.replace("/onboarding");
 
             // Show toast only if user was actually logged in
             showToast("error", "Session expired. Please log in again.");
 
-            // router.replace("/(auth)/onboarding");
           } else {
             console.log(
               "🔇 401 received but user already logged out - ignoring"
