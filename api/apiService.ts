@@ -10,7 +10,7 @@ class ApiService {
   constructor() {
     this.client = axios.create({
       baseURL: "https://backend.afrobasketxpress.uk/api",
-      timeout: 10000,
+      timeout: 15000,
       headers: {
         "Content-Type": "application/json",
       },
@@ -53,7 +53,6 @@ class ApiService {
 
             // Show toast only if user was actually logged in
             showToast("error", "Session expired. Please log in again.");
-
           } else {
             console.log(
               "🔇 401 received but user already logged out - ignoring"

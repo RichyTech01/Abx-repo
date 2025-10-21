@@ -72,9 +72,6 @@ export default function Login() {
       router.dismissAll();
       router.replace("/(tabs)");
 
-      // Clear form and errors on success
-      setEmail("");
-      setPassword("");
       setErrors({});
     } catch (err: any) {
       console.log("Login error:", err);
@@ -82,9 +79,6 @@ export default function Login() {
 
       const backendErrors = err.response?.data || {};
       const fieldErrors: typeof errors = {};
-
-      // Debug: Log what errors we're getting
-      console.log("Backend errors object:", backendErrors);
 
       // Handle field-specific errors from backend
       if (backendErrors.email) {
@@ -130,7 +124,6 @@ export default function Login() {
       // Always set errors to show them in the form
       setErrors(fieldErrors);
       console.log("Setting field errors:", fieldErrors);
-    } finally {
       setLoading(false);
     }
   };
@@ -154,7 +147,6 @@ export default function Login() {
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
-                // Clear email error when user starts typing
                 if (errors.email) {
                   setErrors({ ...errors, email: undefined });
                 }
@@ -170,7 +162,6 @@ export default function Login() {
                 value={password}
                 onChangeText={(text) => {
                   setPassword(text);
-                  // Clear password error when user starts typing
                   if (errors.password) {
                     setErrors({ ...errors, password: undefined });
                   }
@@ -189,7 +180,12 @@ export default function Login() {
             </Pressable>
 
             <View className="mt-[8%]">
-              <Button title={"Login"} loading={loading} disabled={loading} onPress={handleLogin} />
+              <Button
+                title={"Login"}
+                loading={loading}
+                disabled={loading}
+                onPress={handleLogin}
+              />
             </View>
           </View>
         </ScrollView>

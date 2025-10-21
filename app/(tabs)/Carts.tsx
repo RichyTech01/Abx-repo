@@ -182,11 +182,7 @@ export default function Carts() {
 
   return (
     <ScreenWrapper>
-      <View
-        style={{
-          paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-        }}
-      >
+      <View>
         <Header title="Carts" />
       </View>
 

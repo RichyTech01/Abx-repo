@@ -146,7 +146,7 @@ function BannerSlider() {
 
 export default function Home() {
   const router = useRouter();
-  const { user, loading, fetchUser } = useUserStore();
+  const { user, loading } = useUserStore();
   const { unreadCount, checkNotificationStatus } = useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
   const [refreshing, setRefreshing] = useState(false);
@@ -156,62 +156,57 @@ export default function Home() {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
 
-  useEffect(() => {
-    if (!user) fetchUser();
-  }, [user, fetchUser]);
-
   // Check notification status on focus
- useFocusEffect(
-  useCallback(() => {
-    const init = async () => {
-      try {
-        const access = await AsyncStorage.getItem("accessToken");
-        if (!access) return;
+  useFocusEffect(
+    useCallback(() => {
+      const init = async () => {
+        try {
+          const access = await AsyncStorage.getItem("accessToken");
+          if (!access) return;
 
-        checkNotificationStatus();
-        await fetchCartCount(); 
-      } catch (err) {
-        // console.error("Error initializing home data:", err);
-        setCartItems([]);
-      }
-    };
+          checkNotificationStatus();
+          await fetchCartCount();
+        } catch (err) {
+          setCartItems([]);
+        }
+      };
 
-    const fetchCartCount = async () => {
-      try {
-        const res = await OrderApi.getCart();
+      const fetchCartCount = async () => {
+        try {
+          const res = await OrderApi.getCart();
 
-        if (res?.cart) {
-          const items = res.cart.items || [];
-          const cartId = res.cart.id;
+          if (res?.cart) {
+            const items = res.cart.items || [];
+            const cartId = res.cart.id;
 
-          // update local store and AsyncStorage
-          setCartItems(items);
+            // update local store and AsyncStorage
+            setCartItems(items);
 
-          if (cartId) {
-            await AsyncStorage.setItem("cartId", cartId);
+            if (cartId) {
+              await AsyncStorage.setItem("cartId", cartId);
+            }
+          } else {
+            // No cart yet, clear items safely
+            setCartItems([]);
+            await AsyncStorage.removeItem("cartId");
           }
-        } else {
-          // No cart yet, clear items safely
-          setCartItems([]);
-          await AsyncStorage.removeItem("cartId");
-        }
-      } catch (err: any) {
-        // Handle 500 or “cart not found” gracefully
-        const status = err?.response?.status;
+        } catch (err: any) {
+          // Handle 500 or “cart not found” gracefully
+          const status = err?.response?.status;
 
-        if (status === 404 || status === 500) {
-          console.log("No active cart yet, skipping...");
-          setCartItems([]);
-          await AsyncStorage.removeItem("cartId");
-        } else {
-          console.error("Error fetching cart:", err);
+          if (status === 404 || status === 500) {
+            console.log("No active cart yet, skipping...");
+            setCartItems([]);
+            await AsyncStorage.removeItem("cartId");
+          } else {
+            console.error("Error fetching cart:", err);
+          }
         }
-      }
-    };
+      };
 
-    init();
-  }, [checkNotificationStatus, setCartItems])
-);
+      init();
+    }, [checkNotificationStatus, setCartItems])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -226,7 +221,7 @@ export default function Home() {
         {loading ? (
           <ActivityIndicator size="small" color="#000" />
         ) : (
-          <Text className="text-[20px] text-[#2D2220] leading-[28px] font-orelega">
+          <Text className="text-[20px] text-[#2D2220] leading-[28px] font-orelega ">
             Welcome, {user?.first_name || "Guest"}!
           </Text>
         )}
