@@ -38,14 +38,14 @@ const GoogleAuth: React.FC<Props> = ({
     iosClientId: IOS_CLIENT_ID,
     redirectUri: redirectUri,
   });
-  console.log(AuthSession.makeRedirectUri());
+  // console.log(AuthSession.makeRedirectUri());
 
   useEffect(() => {
     if (response?.type === "success") {
       const { id_token } = response.params;
       handleGoogleSignIn(id_token);
     } else if (response?.type === "error") {
-      console.log("Google auth error:", response.error);
+      // console.log("Google auth error:", response.error);
       showToast("error", "Google authentication failed.");
     }
   }, [response]);

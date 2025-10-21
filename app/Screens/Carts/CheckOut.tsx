@@ -40,7 +40,7 @@ export default function CheckOut() {
     try {
       const data = await OrderApi.getMyAddress();
       setAddress(data);
-      console.log("Address fetched:", data);
+      // console.log("Address fetched:", data);
     } catch (err: any) {
       if (err.response?.status === 404) {
         console.warn("No address found for user. Please add one.");
@@ -56,7 +56,7 @@ export default function CheckOut() {
       try {
         const data = await OrderApi.checkout();
         setCartDetails(data);
-        console.log("cartdeta", cartDetails)
+        // console.log("cartdeta", cartDetails)
       } catch (error) {
         console.error("Checkout error:", error);
       }
@@ -88,7 +88,7 @@ export default function CheckOut() {
         total_price: cartDetails?.grand_total,
       });
 
-      console.log("Payment response:", res);
+      // console.log("Payment response:", res);
       const clientSecret = res.client_secret;
 
       if (!clientSecret) {
@@ -146,7 +146,7 @@ export default function CheckOut() {
         }
       } else {
         // Payment succeeded
-        console.log("Payment succeeded!");
+        // console.log("Payment succeeded!");
         await AsyncStorage.removeItem("cartId");
         showToast("success", "Payment completed successfully!");
         setShowSuccessModal(true);

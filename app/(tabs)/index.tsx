@@ -161,37 +161,57 @@ export default function Home() {
   }, [user, fetchUser]);
 
   // Check notification status on focus
-  useFocusEffect(
-    useCallback(() => {
-      const init = async () => {
+ useFocusEffect(
+  useCallback(() => {
+    const init = async () => {
+      try {
         const access = await AsyncStorage.getItem("accessToken");
         if (!access) return;
 
         checkNotificationStatus();
-        await fetchCartCount();
-      };
+        await fetchCartCount(); 
+      } catch (err) {
+        // console.error("Error initializing home data:", err);
+        setCartItems([]);
+      }
+    };
 
-      const fetchCartCount = async () => {
-        try {
-          const res = await OrderApi.getCart();
-          const items = res.cart?.items || [];
-          const cartId = res.cart?.id;
+    const fetchCartCount = async () => {
+      try {
+        const res = await OrderApi.getCart();
+
+        if (res?.cart) {
+          const items = res.cart.items || [];
+          const cartId = res.cart.id;
+
+          // update local store and AsyncStorage
+          setCartItems(items);
 
           if (cartId) {
             await AsyncStorage.setItem("cartId", cartId);
-          } else {
-            await AsyncStorage.removeItem("cartId");
           }
+        } else {
+          // No cart yet, clear items safely
+          setCartItems([]);
+          await AsyncStorage.removeItem("cartId");
+        }
+      } catch (err: any) {
+        // Handle 500 or “cart not found” gracefully
+        const status = err?.response?.status;
 
-          setCartItems(items);
-        } catch (err) {
+        if (status === 404 || status === 500) {
+          console.log("No active cart yet, skipping...");
+          setCartItems([]);
+          await AsyncStorage.removeItem("cartId");
+        } else {
           console.error("Error fetching cart:", err);
         }
-      };
+      }
+    };
 
-      init();
-    }, [checkNotificationStatus, setCartItems])
-  );
+    init();
+  }, [checkNotificationStatus, setCartItems])
+);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

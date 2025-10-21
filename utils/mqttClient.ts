@@ -52,12 +52,12 @@ class MQTTClient {
     };
 
     try {
-      console.log("🔌 Connecting to MQTT broker...", brokerUrl);
+      // console.log("🔌 Connecting to MQTT broker...", brokerUrl);
       this.client = mqtt.connect(String(brokerUrl), options);
       this.messageCallback = onMessageCallback;
 
       this.client.on("connect", () => {
-        console.log("✅ MQTT Connected successfully");
+        // console.log("✅ MQTT Connected successfully");
         this.isConnected = true;
         this.reconnectAttempts = 0; 
 
@@ -66,7 +66,7 @@ class MQTTClient {
           if (err) {
             console.error("❌ MQTT Subscription error:", err);
           } else {
-            console.log(`📡 Successfully subscribed to topic: ${topic}`);
+            // console.log(`📡 Successfully subscribed to topic: ${topic}`);
           }
         });
       });
@@ -74,10 +74,10 @@ class MQTTClient {
       this.client.on("message", (topic: string, message: Buffer) => {
         try {
           const notificationData = message.toString();
-          console.log("📨 Raw message received:", notificationData);
+          // console.log("📨 Raw message received:", notificationData);
           
           const notification: Notification = JSON.parse(notificationData);
-          console.log("📬 Parsed notification:", notification);
+          // console.log("📬 Parsed notification:", notification);
           
           // Call the callback with the new notification
           this.messageCallback?.(notification);
