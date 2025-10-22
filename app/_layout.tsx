@@ -91,7 +91,6 @@ function GlobalNotificationHandler() {
 
         if (token) {
           setPushToken(token);
-          // console.log("✅ New push token obtained:", token);
 
           // Store token locally
           await AsyncStorage.setItem("PushNotificationToken", token);
@@ -113,7 +112,6 @@ function GlobalNotificationHandler() {
         // Retry any pending token if exists
         const pendingToken = await AsyncStorage.getItem("pendingPushToken");
         if (pendingToken && pendingToken !== token) {
-          // console.log("🔄 Retrying pending push token registration...");
           try {
             await AuthApi.sendDeviceToken(pendingToken);
             console.log("✅ Pending push token registered successfully");
@@ -147,11 +145,6 @@ function GlobalNotificationHandler() {
     const notificationListener =
       PushNotificationService.addNotificationReceivedListener(
         (notification) => {
-          // console.log(
-          //   "📬 Push notification received (foreground):",
-          //   notification
-          // );
-
           // Extract notification data
           const data = notification.request.content.data as any;
 
@@ -215,11 +208,9 @@ function GlobalNotificationHandler() {
           nextAppState === "active" &&
           user?.id
         ) {
-          // console.log("🔄 App came to foreground, checking MQTT connection");
-
           // Reconnect MQTT if disconnected
           if (!MQTTClient.isClientConnected()) {
-            console.log("🔌 Reconnecting MQTT...");
+            // console.log("🔌 Reconnecting MQTT...");
             MQTTClient.connect(String(user.id), handleNewNotification);
           }
 
@@ -281,33 +272,29 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      {!fontsLoaded || isLoggedIn === null ? (
-        <View style={{ flex: 1, backgroundColor: "#FFF6F2" }} />
-      ) : (
-        <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-          <QueryClientProvider client={queryClient}>
-            <StatusBar style="dark" backgroundColor="#fff" />
+      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+        <QueryClientProvider client={queryClient}>
+          <StatusBar style="dark" backgroundColor="#fff" />
 
-            {isLoggedIn && <GlobalNotificationHandler />}
+          {isLoggedIn && <GlobalNotificationHandler />}
 
-            <Stack screenOptions={{ headerShown: false }}>
-              {isLoggedIn ? (
-                <Stack.Screen
-                  name="(tabs)/_layout"
-                  options={{ gestureEnabled: false, headerShown: false }}
-                />
-              ) : (
-                <Stack.Screen
-                  name="(auth)/onboarding"
-                  options={{ gestureEnabled: true, headerShown: false }}
-                />
-              )}
-            </Stack>
+          <Stack screenOptions={{ headerShown: false }}>
+            {isLoggedIn ? (
+              <Stack.Screen
+                name="(tabs)/_layout"
+                options={{ gestureEnabled: false, headerShown: false }}
+              />
+            ) : (
+              <Stack.Screen
+                name="/onboarding"
+                options={{ gestureEnabled: true, headerShown: false }}
+              />
+            )}
+          </Stack>
 
-            <Toast config={toastConfig} />
-          </QueryClientProvider>
-        </StripeProvider>
-      )}
+          <Toast config={toastConfig} />
+        </QueryClientProvider>
+      </StripeProvider>
     </SafeAreaProvider>
   );
 }

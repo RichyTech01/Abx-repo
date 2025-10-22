@@ -4,6 +4,7 @@ import SectionHeader from "@/common/SectionHeader";
 import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
 import StoreApi from "@/api/StoreApi";
+import showToast from "@/utils/showToast";
 
 type Props = {
   refreshTrigger: boolean;

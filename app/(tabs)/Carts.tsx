@@ -198,7 +198,7 @@ export default function Carts() {
       ) : (
         <View
           className={`${
-            Platform.OS === "ios" ? "mb-24 mt-[16px]" : "mb-32"
+            Platform.OS === "ios" ? "mb-24 mt-[16px]" : "mb-24"
           }  mx-[20px] flex-1`}
         >
           {!loading && (

@@ -13,7 +13,6 @@ import Button from "@/common/Button";
 import { useRouter } from "expo-router";
 import AuthApi from "@/api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import showToast from "@/utils/showToast";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useUserStore } from "@/store/useUserStore";
 
@@ -44,7 +43,6 @@ export default function Login() {
     // Clear previous errors
     const newErrors: typeof errors = {};
 
-    // Frontend validation
     if (!email.trim()) {
       newErrors.email = "Email is required";
     }
@@ -64,11 +62,12 @@ export default function Login() {
       const res: SignInResponse = await AuthApi.signIn({ email, password });
 
       // Save tokens
-      await AsyncStorage.setItem("accessToken", res.access);
-      await AsyncStorage.setItem("isLoggedIn", "true");
+      await AsyncStorage.multiSet([
+        ["accessToken", res.access],
+        ["isLoggedIn", "true"],
+      ]);
+
       fetchUser();
-      // console.log("Login successful:", res);
-      // showToast("success", "success","Login successful! Welcome back.");
       router.dismissAll();
       router.replace("/(tabs)");
 

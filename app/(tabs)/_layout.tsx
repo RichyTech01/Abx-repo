@@ -1,6 +1,6 @@
-import { Tabs } from "expo-router";
+import { Tabs,  useRouter } from "expo-router";
 import { useEffect } from "react";
-import { Platform, View } from "react-native";
+import { Platform, View  } from "react-native";
 import OrderTabIcon from "@/assets/svgs/OrderTabIcon";
 import SupportTabIcon from "@/assets/svgs/SupportTabIcon";
 import HometabIcon from "@/assets/svgs/HometabIcon";
@@ -10,7 +10,6 @@ import AccounTabBarIcon from "@/assets/svgs/AccounTabBarIcon";
 import ActiveHomeTabBar from "@/assets/svgs/ActiveHomeTabBar";
 import ActiveOrderTab from "@/assets/svgs/ActiveOrderTab";
 import ActiveSupporticon from "@/assets/svgs/ActiveSupporticon";
-import { useRouter } from "expo-router";
 import Storage from "@/utils/Storage";
 
 
@@ -27,12 +26,14 @@ const TabIconWithBorder = ({ children, focused }: TabIconWithBorderProps) => {
       const token = await Storage.get("accessToken");
       const isGuest = await Storage.get("isGuest");
       if (!token && !isGuest) {
-        router.replace("/(auth)/onboarding"); 
+        router.replace("/onboarding"); 
       }
     };
     checkAuth();
   }, []);
 
+  
+ 
   return (
     <View style={{ alignItems: "center" }}>
       {focused && (

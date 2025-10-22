@@ -7,9 +7,9 @@ class Storage {
       if (!value) return null;
 
       try {
-        return JSON.parse(value) as T; // for objects/numbers/arrays
+        return JSON.parse(value) as T;
       } catch {
-        return value as T; // fallback to raw string (e.g. token)
+        return value as T;
       }
     } catch (error) {
       console.error(`Storage.get error for key "${key}":`, error);
