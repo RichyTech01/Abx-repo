@@ -2,18 +2,17 @@ import {
   View,
   FlatList,
   Platform,
-  ActivityIndicator,
   RefreshControl,
+  Animated,
+  Dimensions,
 } from "react-native";
 import Header from "@/common/Header";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
-import { Dimensions } from "react-native";
 import OreAppText from "@/common/OreApptext";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import StoreApi from "@/api/StoreApi";
-import { LoadingSpinner } from "@/common/LoadingSpinner";
 
 const CATEGORY_COLORS: Record<
   number,
@@ -33,11 +32,29 @@ export default function AllCategories() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   const SCREEN_PADDING = 20;
   const GAP = 16;
   const ITEM_WIDTH =
     (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -47,7 +64,6 @@ export default function AllCategories() {
         ...CATEGORY_COLORS[cat.id],
       }));
       setCategories(withColors);
-      // console.log("category data", withColors);
     } catch (error) {
       console.error("Failed to fetch categories", error);
     } finally {
@@ -64,19 +80,95 @@ export default function AllCategories() {
     await fetchCategories();
     setRefreshing(false);
   };
+
+  const SkeletonCard = () => {
+    const opacity = shimmerAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.3, 0.7],
+    });
+
+    return (
+      <Animated.View
+        style={{
+          opacity,
+          width: ITEM_WIDTH,
+          height: 140,
+          backgroundColor: "#E1E9EE",
+          borderRadius: 12,
+          padding: 12,
+        }}
+      >
+        <View
+          style={{
+            width: 60,
+            height: 60,
+            backgroundColor: "#C4D1DA",
+            borderRadius: 8,
+            marginBottom: 12,
+          }}
+        />
+        <View
+          style={{
+            width: "70%",
+            height: 14,
+            backgroundColor: "#C4D1DA",
+            borderRadius: 4,
+            marginBottom: 6,
+          }}
+        />
+        <View
+          style={{
+            width: "90%",
+            height: 12,
+            backgroundColor: "#C4D1DA",
+            borderRadius: 4,
+            marginBottom: 4,
+          }}
+        />
+        <View
+          style={{
+            width: "60%",
+            height: 12,
+            backgroundColor: "#C4D1DA",
+            borderRadius: 4,
+          }}
+        />
+      </Animated.View>
+    );
+  };
+
+  const renderSkeletons = () => (
+    <FlatList
+      data={[1, 2, 3, 4, 5, 6]}
+      keyExtractor={(item) => item.toString()}
+      numColumns={2}
+      contentContainerStyle={{
+        paddingHorizontal: SCREEN_PADDING,
+        paddingTop: 42,
+        paddingBottom: 20,
+      }}
+      columnWrapperStyle={{
+        justifyContent: "space-between",
+        marginBottom: Platform.OS === "android" ? 40 : 25,
+      }}
+      renderItem={() => <SkeletonCard />}
+      showsVerticalScrollIndicator={false}
+    />
+  );
+
+  const ListEmptyComponent = () => (
+    <View className="flex-1 items-center justify-center">
+      <OreAppText>No categories found.</OreAppText>
+    </View>
+  );
+
   return (
     <ScreenWrapper>
       <View className={``}>
         <Header title="All categories" />
       </View>
       {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <LoadingSpinner/>
-        </View>
-      ) : categories.length === 0 ? (
-        <View className="flex-1 items-center justify-center  ">
-          <OreAppText>No categories found.</OreAppText>
-        </View>
+        renderSkeletons()
       ) : (
         <FlatList
           data={categories}
@@ -126,6 +218,7 @@ export default function AllCategories() {
               onRefresh={HandleRefreshing}
             />
           }
+          ListEmptyComponent={ListEmptyComponent}
         />
       )}
     </ScreenWrapper>

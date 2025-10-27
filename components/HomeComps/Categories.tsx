@@ -1,10 +1,9 @@
-import { View, ScrollView, ActivityIndicator, Text } from "react-native";
-import React, { useEffect, useState } from "react";
+import { View, FlatList, Text, Animated } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
 import SectionHeader from "@/common/SectionHeader";
 import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
 import StoreApi from "@/api/StoreApi";
-import showToast from "@/utils/showToast";
 
 type Props = {
   refreshTrigger: boolean;
@@ -26,6 +25,24 @@ export default function Categories({ refreshTrigger }: Props) {
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -41,11 +58,96 @@ export default function Categories({ refreshTrigger }: Props) {
       setLoading(false);
     }
   };
-  fetchCategories();
 
   useEffect(() => {
     fetchCategories();
   }, [refreshTrigger]);
+
+  const renderItem = ({ item }: { item: any }) => (
+    <CategoryCard
+      title={item.name}
+      subtitle={item.description}
+      bgColor={item.bgColor}
+      borderColor={item.borderColor}
+      image={{ uri: item.img }}
+      onPress={() =>
+        router.push({
+          pathname: "/Screens/HomeScreen/CategoryDetails",
+          params: { category: item.name },
+        })
+      }
+    />
+  );
+
+  const ListEmptyComponent = () => (
+    <View className="items-center justify-center py-10">
+      <Text className="text-red-600 font-normal text-[14px]">
+        No categories found
+      </Text>
+    </View>
+  );
+
+  const SkeletonCard = () => {
+    const opacity = shimmerAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.3, 0.7],
+    });
+
+    return (
+      <Animated.View
+        style={{
+          opacity,
+          width: 160,
+          height: 120,
+          backgroundColor: "#E1E9EE",
+          borderRadius: 12,
+          padding: 12,
+        }}
+      >
+        <View
+          style={{
+            width: "60%",
+            height: 16,
+            backgroundColor: "#C4D1DA",
+            borderRadius: 4,
+            marginBottom: 8,
+          }}
+        />
+        <View
+          style={{
+            width: "80%",
+            height: 12,
+            backgroundColor: "#C4D1DA",
+            borderRadius: 4,
+            marginBottom: 6,
+          }}
+        />
+        <View
+          style={{
+            width: "40%",
+            height: 12,
+            backgroundColor: "#C4D1DA",
+            borderRadius: 4,
+          }}
+        />
+      </Animated.View>
+    );
+  };
+
+  const renderSkeletons = () => (
+    <FlatList
+      data={[1, 2, 3, 4]}
+      renderItem={() => <SkeletonCard />}
+      keyExtractor={(item) => item.toString()}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{
+        gap: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 20,
+      }}
+    />
+  );
 
   return (
     <View>
@@ -53,49 +155,22 @@ export default function Categories({ refreshTrigger }: Props) {
         title="Categories"
         onPress={() => router.push("/Screens/HomeScreen/AllcateGories")}
       />
-      {!loading && categories.length === 0 ? (
-        <View className="items-center justify-center py-10 ">
-          <Text className="text-red-600 font-normal text-[14px]  ">
-            No categories found
-          </Text>
-        </View>
+      {loading ? (
+        renderSkeletons()
       ) : (
-        <View>
-          {loading ? (
-            <ActivityIndicator
-              size="small"
-              color={"black"}
-              style={{ marginVertical: 10 }}
-            />
-          ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                gap: 10,
-                paddingVertical: 8,
-                paddingHorizontal: 20,
-              }}
-            >
-              {categories.map((item) => (
-                <CategoryCard
-                  key={item.id}
-                  title={item.name}
-                  subtitle={item.description}
-                  bgColor={item.bgColor}
-                  borderColor={item.borderColor}
-                  image={{ uri: item.img }}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/Screens/HomeScreen/CategoryDetails",
-                      params: { category: item.name },
-                    })
-                  }
-                />
-              ))}
-            </ScrollView>
-          )}
-        </View>
+        <FlatList
+          data={categories}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            gap: 10,
+            paddingVertical: 8,
+            paddingHorizontal: 20,
+          }}
+          ListEmptyComponent={ListEmptyComponent}
+        />
       )}
     </View>
   );

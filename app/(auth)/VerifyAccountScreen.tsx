@@ -83,11 +83,10 @@ export default function VerifyAccountScreen() {
         console.log("⚠️ No tokens found, user may not be fully logged in yet.");
       }
       await AsyncStorage.setItem("isLoggedIn", "true");
+      router.replace("/(tabs)");
       fetchUser();
 
       setShowModal(false);
-      router.dismissAll();
-      router.replace("/(tabs)");
     } catch (err) {
       console.log("Login handling error:", err);
     }

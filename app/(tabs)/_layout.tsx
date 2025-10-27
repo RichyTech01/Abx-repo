@@ -21,17 +21,16 @@ type TabIconWithBorderProps = {
 const TabIconWithBorder = ({ children, focused }: TabIconWithBorderProps) => {
   const router = useRouter();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = await Storage.get("accessToken");
-      const isGuest = await Storage.get("isGuest");
-      if (!token && !isGuest) {
-        router.replace("/onboarding"); 
-      }
-    };
-    checkAuth();
-  }, []);
-
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     const token = await Storage.get("accessToken");
+  //     const isGuest = await Storage.get("isGuest");
+  //     if (!token && !isGuest) {
+  //       router.replace("/onboarding"); 
+  //     }
+  //   };
+  //   checkAuth();
+  // }, []);
   
  
   return (

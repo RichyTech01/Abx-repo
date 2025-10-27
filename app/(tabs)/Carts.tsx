@@ -1,9 +1,4 @@
-import {
-  View,
-  FlatList,
-  Platform,
-  StatusBar,
-} from "react-native";
+import { View, FlatList, Platform, StatusBar } from "react-native";
 import React, { useState, useCallback } from "react";
 import Header from "@/common/Header";
 import UrbanistText from "@/common/UrbanistText";
@@ -21,8 +16,6 @@ import LogoutModal from "@/Modals/LogoutModal";
 import Storage from "@/utils/Storage";
 import ScreenWrapper from "@/common/ScreenWrapper";
 
-
-
 export default function Carts() {
   const router = useRouter();
 
@@ -30,7 +23,6 @@ export default function Carts() {
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
   const [showLoginModal, setShowLoginModal] = useState(false);
-  
 
   const fetchCart = async () => {
     try {
@@ -95,61 +87,62 @@ export default function Carts() {
     }, [])
   );
 
- const updateQuantity = async (
-  cartItemId: number,
-  action: "increase" | "decrease"
-) => {
-  if (updatingItems.has(cartItemId)) return;
-  
-  const item = cartItems.find((i) => i.id === cartItemId);
-  if (!item) return;
+  const updateQuantity = async (
+    cartItemId: number,
+    action: "increase" | "decrease"
+  ) => {
+    if (updatingItems.has(cartItemId)) return;
 
-  // ✅ Check stock before increasing
-  if (action === "increase" && item.quantity >= item.item.stock) {
-    showToast("info", "Out of stock. You cannot add more of this item.");
-    return;
-  }
+    const item = cartItems.find((i) => i.id === cartItemId);
+    if (!item) return;
 
-  if (action === "decrease" && item.quantity <= 1) {
-    showToast("info", "Remove Item Instead.");
-    return;
-  }
-
-  const newQty = action === "increase" ? item.quantity + 1 : item.quantity - 1;
-  const optimisticItems = cartItems.map((cartItem) => {
-    if (cartItem.id === cartItemId) {
-      return {
-        ...cartItem,
-        quantity: newQty,
-        total_item_price: newQty * parseFloat(cartItem.item.price),
-      };
+    // ✅ Check stock before increasing
+    if (action === "increase" && item.quantity >= item.item.stock) {
+      showToast("info", "Out of stock. You cannot add more of this item.");
+      return;
     }
-    return cartItem;
-  });
-  
-  // Update UI instantly
-  setCartItems(optimisticItems);
 
-  // Mark as updating (prevents multiple clicks)
-  setUpdatingItems((prev) => new Set(prev).add(cartItemId));
+    if (action === "decrease" && item.quantity <= 1) {
+      showToast("info", "Remove Item Instead.");
+      return;
+    }
 
-  try {
-    // ✅ API call happens in background
-    await OrderApi.updateCart(cartItemId, { action });
-  } catch (err) {
-    console.error(`Failed to ${action} quantity:`, err);
-    
-    // ✅ ROLLBACK on error - revert to original state
-    setCartItems(cartItems);
-    showToast("error", "Failed to update cart. Please try again.");
-  } finally {
-    setUpdatingItems((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(cartItemId);
-      return newSet;
+    const newQty =
+      action === "increase" ? item.quantity + 1 : item.quantity - 1;
+    const optimisticItems = cartItems.map((cartItem) => {
+      if (cartItem.id === cartItemId) {
+        return {
+          ...cartItem,
+          quantity: newQty,
+          total_item_price: newQty * parseFloat(cartItem.item.price),
+        };
+      }
+      return cartItem;
     });
-  }
-};
+
+    // Update UI instantly
+    setCartItems(optimisticItems);
+
+    // Mark as updating (prevents multiple clicks)
+    setUpdatingItems((prev) => new Set(prev).add(cartItemId));
+
+    try {
+      // ✅ API call happens in background
+      await OrderApi.updateCart(cartItemId, { action });
+    } catch (err) {
+      console.error(`Failed to ${action} quantity:`, err);
+
+      // ✅ ROLLBACK on error - revert to original state
+      setCartItems(cartItems);
+      showToast("error", "Failed to update cart. Please try again.");
+    } finally {
+      setUpdatingItems((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(cartItemId);
+        return newSet;
+      });
+    }
+  };
 
   const handleRemove = async (cartItemId: number) => {
     if (updatingItems.has(cartItemId)) return;
@@ -284,7 +277,7 @@ export default function Carts() {
         cancelText="Cancel"
         onConfirm={async () => {
           await Storage.multiRemove(["isGuest", "cartId"]);
-          router.replace("/onboarding");
+          router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"
         cancelButtonColor="#F04438"

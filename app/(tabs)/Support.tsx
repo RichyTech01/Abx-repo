@@ -174,7 +174,7 @@ export default function Support() {
         cancelText="Cancel"
         onConfirm={async () => {
           await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
-          router.replace("/onboarding");
+          router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"
         cancelButtonColor="#F04438"

@@ -1,5 +1,5 @@
-import { View, Platform, FlatList, RefreshControl } from "react-native";
-import { useState, useCallback, useEffect } from "react";
+import { View, Platform, FlatList, RefreshControl, Animated } from "react-native";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
@@ -17,6 +17,7 @@ export default function AllTopRatedStores() {
 
   const queryClient = useQueryClient();
   const router = useRouter();
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [loginVisible, setLoginVisible] = useState(false);
@@ -25,6 +26,23 @@ export default function AllTopRatedStores() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   const fetchStores = async (
     pageNum: number,
@@ -56,7 +74,9 @@ export default function AllTopRatedStores() {
         store_close: store.close_time,
         isFavorite: store.is_favorited ?? false,
         rating: store.store_rating,
-        distance: store.distance_km || "N/A",
+        distance: store.distance_km
+          ? `${parseFloat(store.distance_km).toFixed(1)}`
+          : "N/A",
       }));
 
       setShops((prev) => (append ? [...prev, ...newShops] : newShops));
@@ -116,6 +136,70 @@ export default function AllTopRatedStores() {
     }
   }, [page, hasMore, loadingMore]);
 
+  const SkeletonCard = () => {
+    const opacity = shimmerAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.3, 0.7],
+    });
+
+    return (
+      <Animated.View
+        style={{
+          opacity,
+          width: "100%",
+          height: 180,
+          backgroundColor: "#E1E9EE",
+          borderRadius: 12,
+          marginBottom: 24,
+        }}
+      >
+        <View
+          style={{
+            width: "100%",
+            height: 120,
+            backgroundColor: "#C4D1DA",
+            borderTopLeftRadius: 12,
+            borderTopRightRadius: 12,
+            marginBottom: 8,
+          }}
+        />
+        <View style={{ paddingHorizontal: 12 }}>
+          <View
+            style={{
+              width: "70%",
+              height: 16,
+              backgroundColor: "#C4D1DA",
+              borderRadius: 4,
+              marginBottom: 6,
+            }}
+          />
+          <View
+            style={{
+              width: "50%",
+              height: 12,
+              backgroundColor: "#C4D1DA",
+              borderRadius: 4,
+            }}
+          />
+        </View>
+      </Animated.View>
+    );
+  };
+
+  const renderSkeletons = () => (
+    <View
+      style={{
+        paddingBottom: Platform.OS === "ios" ? 20 : 40,
+        marginHorizontal: 20,
+        paddingTop: 15,
+      }}
+    >
+      {[1, 2, 3, 4].map((item) => (
+        <SkeletonCard key={item} />
+      ))}
+    </View>
+  );
+
   return (
     <ScreenWrapper>
       <View className={` pb-[15px]`}>
@@ -123,9 +207,7 @@ export default function AllTopRatedStores() {
       </View>
 
       {loading ? (
-        <View className="py-10">
-          <LoadingSpinner />
-        </View>
+        renderSkeletons()
       ) : (
         <FlatList
           data={shops}
@@ -172,7 +254,7 @@ export default function AllTopRatedStores() {
         cancelText="Cancel"
         onConfirm={async () => {
           await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
-          router.replace("/onboarding");
+          router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"
         cancelButtonColor="#F04438"

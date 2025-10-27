@@ -15,7 +15,7 @@ export const logoutUser = async (router: ReturnType<typeof useRouter>) => {
     useCartStore.getState().reset();
 
     // Navigate to onboarding
-    router.replace("/onboarding");
+    router.replace("/(auth)/Login");
   } catch (err) {
     console.error("Failed to log out:", err);
   }

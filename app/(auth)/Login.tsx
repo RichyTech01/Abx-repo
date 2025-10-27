@@ -52,7 +52,6 @@ export default function Login() {
 
     setErrors(newErrors);
 
-    // If there are validation errors, don't proceed
     if (Object.keys(newErrors).length > 0) {
       return;
     }
@@ -61,16 +60,14 @@ export default function Login() {
       setLoading(true);
       const res: SignInResponse = await AuthApi.signIn({ email, password });
 
-      // Save tokens
       await AsyncStorage.multiSet([
         ["accessToken", res.access],
         ["isLoggedIn", "true"],
       ]);
 
-      fetchUser();
-      router.dismissAll();
       router.replace("/(tabs)");
 
+      fetchUser();
       setErrors({});
     } catch (err: any) {
       console.log("Login error:", err);
@@ -79,7 +76,6 @@ export default function Login() {
       const backendErrors = err.response?.data || {};
       const fieldErrors: typeof errors = {};
 
-      // Handle field-specific errors from backend
       if (backendErrors.email) {
         fieldErrors.email = Array.isArray(backendErrors.email)
           ? backendErrors.email[0]

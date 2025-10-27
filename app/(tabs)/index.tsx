@@ -76,7 +76,6 @@ function BannerSlider() {
     };
   }, []);
 
-  // Handle loop reset when reaching clone
   const handleMomentumScrollEnd = (e: any) => {
     const offsetX = e.nativeEvent.contentOffset.x;
     const newIndex = Math.round(offsetX / width);
@@ -91,9 +90,7 @@ function BannerSlider() {
         });
         setCurrentIndex(1);
       }, 50);
-    }
-    // If somehow we scroll to the first clone (shouldn't happen with forward-only)
-    else if (newIndex === 0) {
+    } else if (newIndex === 0) {
       setTimeout(() => {
         flatListRef.current?.scrollToOffset({
           offset: banners.length * width,

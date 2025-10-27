@@ -84,7 +84,7 @@ export default function MyAccountComps() {
         cancelText="Cancel"
         onConfirm={async () => {
           await Storage.multiRemove(["isGuest", "cartId"]);
-          router.replace("/onboarding");
+          router.replace("/Login");
         }}
       />
     </View>

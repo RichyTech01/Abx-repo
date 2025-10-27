@@ -1,9 +1,9 @@
 import "./global.css";
 import { useEffect, useState, useCallback, useRef } from "react";
 import * as SplashScreen from "expo-splash-screen";
-import { View, AppState, AppStateStatus, Platform } from "react-native";
+import { AppState, AppStateStatus, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useRouter, Slot } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -11,7 +11,7 @@ import { toastConfig } from "@/toastConfig";
 import { StatusBar } from "expo-status-bar";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import * as Notifications from "expo-notifications";
-
+import Storage from "@/utils/Storage";
 import {
   useFonts,
   OrelegaOne_400Regular,
@@ -255,10 +255,11 @@ export default function RootLayout() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = await AsyncStorage.getItem("accessToken");
-      const guest = await AsyncStorage.getItem("isLoggedIn");
+      const token = await Storage.get("accessToken");
+      const guest = await Storage.get("isGuest");
+      const loggedIn = await Storage.get("isLoggedIn");
 
-      setIsLoggedIn(!!token || guest === "true");
+      setIsLoggedIn(true);
 
       if (fontsLoaded) {
         await SplashScreen.hideAsync();
@@ -275,23 +276,8 @@ export default function RootLayout() {
       <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="dark" backgroundColor="#fff" />
-
-          {isLoggedIn && <GlobalNotificationHandler />}
-
-          <Stack screenOptions={{ headerShown: false }}>
-            {isLoggedIn ? (
-              <Stack.Screen
-                name="(tabs)/_layout"
-                options={{ gestureEnabled: false, headerShown: false }}
-              />
-            ) : (
-              <Stack.Screen
-                name="/onboarding"
-                options={{ gestureEnabled: true, headerShown: false }}
-              />
-            )}
-          </Stack>
-
+          <GlobalNotificationHandler />
+          <Stack screenOptions={{ headerShown: false }} />
           <Toast config={toastConfig} />
         </QueryClientProvider>
       </StripeProvider>

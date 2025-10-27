@@ -1,8 +1,7 @@
-import { View, ScrollView, ActivityIndicator, Text } from "react-native";
-import React from "react";
+import { View, FlatList, Text, Animated } from "react-native";
+import React, { useEffect, useRef } from "react";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
@@ -18,6 +17,24 @@ export default function BestSelling({ refreshTrigger }: Props) {
   const [selectedProductId, setSelectedProductId] = React.useState<
     number | null
   >(null);
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   const { data, isLoading, error, refetch } = useQuery<{
     results: ShopProductType[];
@@ -47,28 +64,135 @@ export default function BestSelling({ refreshTrigger }: Props) {
     refetch();
   }, [refreshTrigger]);
 
+  const SkeletonCard = () => {
+    const opacity = shimmerAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.3, 0.7],
+    });
+
+    return (
+      <Animated.View
+        style={{
+          opacity,
+          width: 160,
+          height: 220,
+          backgroundColor: "#E1E9EE",
+          borderRadius: 12,
+        }}
+      >
+        <View
+          style={{
+            width: "100%",
+            height: 140,
+            backgroundColor: "#C4D1DA",
+            borderTopLeftRadius: 12,
+            borderTopRightRadius: 12,
+            marginBottom: 8,
+          }}
+        />
+        <View style={{ paddingHorizontal: 12 }}>
+          <View
+            style={{
+              width: "80%",
+              height: 14,
+              backgroundColor: "#C4D1DA",
+              borderRadius: 4,
+              marginBottom: 6,
+            }}
+          />
+          <View
+            style={{
+              width: "60%",
+              height: 12,
+              backgroundColor: "#C4D1DA",
+              borderRadius: 4,
+              marginBottom: 8,
+            }}
+          />
+          <View
+            style={{
+              width: "40%",
+              height: 16,
+              backgroundColor: "#C4D1DA",
+              borderRadius: 4,
+            }}
+          />
+        </View>
+      </Animated.View>
+    );
+  };
+
+  const renderSkeletons = () => (
+    <FlatList
+      data={[1, 2, 3, 4]}
+      renderItem={() => <SkeletonCard />}
+      keyExtractor={(item) => item.toString()}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{
+        paddingHorizontal: 20,
+        gap: 24,
+        paddingVertical: 8,
+      }}
+    />
+  );
+
+  const renderItem = ({ item }: { item: ShopProductType }) => {
+    const discountPercent = item.variations?.length
+      ? Math.max(...item.variations.map((v) => Number(v.discount_per ?? 0)))
+      : null;
+
+    return (
+      <ProductCard
+        productId={item.id.toString()}
+        productName={item.item_name}
+        priceRange={`€${item.min_price} - €${item.max_price}`}
+        isShopOpen={true}
+        rating={4.9}
+        onAddToCart={() => handleAddToCart(item.id)}
+        ProductImg={{ uri: item.prod_image_url }}
+        store_open={item.store?.open_time}
+        store_close={item.store?.close_time}
+        discountPercent={
+          discountPercent && discountPercent > 0
+            ? discountPercent.toString()
+            : null
+        }
+      />
+    );
+  };
+
+  const ListEmptyComponent = () => (
+    <Text
+      style={{ marginVertical: 16, color: "#666", textAlign: "center" }}
+      className="items-center justify-center mx-auto"
+    >
+      No best-selling products available at the moment.
+    </Text>
+  );
+
+  const ErrorComponent = () => (
+    <Text
+      style={{ marginTop: 16, color: "red" }}
+      className="items-center justify-center mx-auto"
+    >
+      Failed to load products
+    </Text>
+  );
+
   return (
     <View>
       <SectionHeader title="Best selling products" />
 
       {isLoading ? (
-        <ActivityIndicator size="small" style={{ paddingHorizontal: 16 }} />
+        renderSkeletons()
       ) : error ? (
-        <Text
-          style={{ marginTop: 16, color: "red" }}
-          className="items-center justify-center mx-auto"
-        >
-          Failed to load products
-        </Text>
-      ) : products.length === 0 ? (
-        <Text
-          style={{ marginVertical: 16, color: "#666", textAlign: "center" }}
-          className="items-center justify-center mx-auto"
-        >
-          No best-selling products available at the moment.
-        </Text>
+        <ErrorComponent />
       ) : (
-        <ScrollView
+        <FlatList
+          data={products}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{
@@ -76,35 +200,8 @@ export default function BestSelling({ refreshTrigger }: Props) {
             gap: 24,
             paddingVertical: 8,
           }}
-        >
-          {products.map((product) => {
-            const discountPercent = product.variations?.length
-              ? Math.max(
-                  ...product.variations.map((v) => Number(v.discount_per ?? 0))
-                )
-              : null;
-
-            return (
-              <ProductCard
-                key={product.id}
-                productId={product.id.toString()}
-                productName={product.item_name}
-                priceRange={`€${product.min_price} - €${product.max_price}`}
-                isShopOpen={true}
-                rating={4.9}
-                onAddToCart={() => handleAddToCart(product.id)}
-                ProductImg={{ uri: product.prod_image_url }}
-                store_open={product.store?.open_time}
-                store_close={product.store?.close_time}
-                discountPercent={
-                  discountPercent && discountPercent > 0
-                    ? discountPercent.toString()
-                    : null
-                }
-              />
-            );
-          })}
-        </ScrollView>
+          ListEmptyComponent={ListEmptyComponent}
+        />
       )}
 
       <AddtoCartModal

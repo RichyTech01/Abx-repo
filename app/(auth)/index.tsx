@@ -68,7 +68,15 @@ export default function OnboardingScreen() {
   );
 
   return (
-    <ScreenWrapper style={{backgroundColor:"white", display:"flex", justifyContent:"space-between",flexDirection: "column", flex:1}}>
+    <ScreenWrapper
+      style={{
+        backgroundColor: "white",
+        display: "flex",
+        justifyContent: "space-between",
+        flexDirection: "column",
+        flex: 1,
+      }}
+    >
       <FlatList
         maxToRenderPerBatch={1}
         data={slides}
@@ -121,7 +129,7 @@ export default function OnboardingScreen() {
             onPress={() => router.push("/Login")}
           />
         </View>
-        <View className={` ${Platform.OS === "ios"? "mb-[5%]":"mb-[4%]"} `}>
+        <View className={` ${Platform.OS === "ios" ? "mb-[5%]" : "mb-[4%]"} `}>
           <View className="w-full">
             <Button
               title="Create Account"

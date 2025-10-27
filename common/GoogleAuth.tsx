@@ -29,7 +29,7 @@ const GoogleAuth: React.FC<Props> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const redirectUri = AuthSession.makeRedirectUri({
-    scheme: "abxmobileapplication", // This matches your app.json scheme
+    scheme: "abxmobileapplication", 
     path: "redirect",
   });
 
@@ -39,6 +39,8 @@ const GoogleAuth: React.FC<Props> = ({
     redirectUri: redirectUri,
   });
   // console.log(AuthSession.makeRedirectUri());
+  console.log("Redirect URI:", redirectUri);
+
 
   useEffect(() => {
     if (response?.type === "success") {

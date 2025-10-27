@@ -43,7 +43,7 @@ export default function Finance() {
         message="Sorry! you have to login to access this screen"
         confirmText="Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/onboarding")}
+        onConfirm={() => router.replace("/Login")}
       />
     </View>
   );
