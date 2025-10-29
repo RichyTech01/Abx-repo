@@ -83,7 +83,7 @@ class StoreApi {
     page?: number
   ): Promise<any> {
     try {
-      const res = await this.client.get("/store/nearest", {
+      const res = await this.client.get("/store/all", {
         params: { lat, lon, page },
       });
       return res.data;

@@ -230,6 +230,7 @@ function GlobalNotificationHandler() {
   return null;
 }
 
+// _layout.tsx
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     OrelegaOne: OrelegaOne_400Regular,
@@ -242,8 +243,6 @@ export default function RootLayout() {
     ManropeSemiBold: Manrope_600SemiBold,
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-
   async function requestNotificationPermission() {
     if (Platform.OS === "android") {
       const { status } = await Notifications.requestPermissionsAsync();
@@ -254,30 +253,14 @@ export default function RootLayout() {
   }
 
   useEffect(() => {
-    const checkAuth = async () => {
-      setIsLoggedIn(true);
-
-      if (fontsLoaded) {
-        await SplashScreen.hideAsync();
-      }
+    const initialize = async () => {
       await requestNotificationPermission();
     };
-    checkAuth();
+    initialize();
   }, [fontsLoaded]);
 
-  if (!fontsLoaded || isLoggedIn === null) {
-    return (
-      <View className="flex-1 bg-[#0C513F]">
-        <Image
-          source={require("../assets/Images/splash.png")}
-          style={{
-            width: "100%",
-            height: "100%",
-            resizeMode: "cover",
-          }}
-        />
-      </View>
-    );
+  if (!fontsLoaded) {
+    return null; 
   }
 
   return (

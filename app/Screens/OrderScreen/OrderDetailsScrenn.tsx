@@ -1,19 +1,16 @@
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useLocalSearchParams } from "expo-router";
-import { View, Text, ScrollView, Image } from "react-native";
+import { View, Text, ScrollView, Image, Animated } from "react-native";
 import UrbanistText from "@/common/UrbanistText";
 import DeliveredIcon from "@/assets/svgs/OrderDeliveredIcon.svg";
 import Button from "@/common/Button";
-// import OrderProccessingIcon from "../../assets/svgs/OrderProcessingIcon.svg";
 import ProcessingIcon from "@/assets/svgs/OrderProcessingIcon.svg";
 import CompletedHistoryTimeline from "@/components/OrderComps/CompletedHistoryTimeline";
-
 import TrackingTimeline from "@/common/TrackingTimeline";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import showToast from "@/utils/showToast";
 import OrderApi from "@/api/OrderApi";
-import { LoadingSpinner } from "@/common/LoadingSpinner";
 import Header from "@/common/Header";
 import PaymentSuccessModal from "@/Modals/PaymentSuccessModal";
 import { useRouter } from "expo-router";
@@ -21,11 +18,29 @@ import { useRouter } from "expo-router";
 export default function OrderDetailsScrenn() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   const [order, setOrder] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [ConfirmLoading, setConfirmLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -125,16 +140,138 @@ export default function OrderDetailsScrenn() {
     Icon: StatusIcon,
   } = getStatus(order?.status || "");
 
+  const SkeletonBox = ({ width, height }: { width: string | number; height: number }) => {
+    const opacity = shimmerAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.3, 0.7],
+    });
+
+    // Normalize width to a number (pixels) or percent string acceptable by RN styles
+    const normalizedWidth: number | `${number}%` | undefined = (() => {
+      if (typeof width === "number") return width;
+      if (typeof width === "string") {
+        if (width.endsWith("%")) {
+          return width as `${number}%`;
+        }
+        if (width.endsWith("px")) {
+          return parseInt(width, 10);
+        }
+        const num = Number(width);
+        return Number.isNaN(num) ? undefined : num;
+      }
+      return undefined;
+    })();
+
+    return (
+      <Animated.View
+        style={{
+          opacity,
+          // cast to any to satisfy Animated style typing after normalization
+          width: normalizedWidth as any,
+          height,
+          backgroundColor: "#E1E9EE",
+          borderRadius: 6,
+        }}
+      />
+    );
+  };
+
+  const OrderSkeleton = () => (
+    <ScrollView
+      contentContainerStyle={{ paddingBottom: 50, paddingHorizontal: 20 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Order Info Card Skeleton */}
+      <View className="bg-white mt-[20px]">
+        <View className="border border-[#F1EAE7] rounded-[8px] px-[10px] py-[10px]">
+          {/* First Row */}
+          <View className="flex-row items-center justify-between gap-4 mb-[16px]">
+            <View className="flex-1">
+              <SkeletonBox width="60%" height={14} />
+              <View className="mt-[8px]">
+                <SkeletonBox width="80%" height={12} />
+              </View>
+            </View>
+            <View className="flex-1">
+              <SkeletonBox width="60%" height={14} />
+              <View className="mt-[8px]">
+                <SkeletonBox width="40%" height={12} />
+              </View>
+            </View>
+          </View>
+
+          {/* Second Row */}
+          <View className="flex-row items-center justify-between gap-4">
+            <View className="flex-1">
+              <SkeletonBox width="60%" height={14} />
+              <View className="mt-[8px]">
+                <SkeletonBox width="70%" height={12} />
+              </View>
+            </View>
+            <View className="flex-1">
+              <SkeletonBox width="70%" height={14} />
+              <View className="mt-[8px]">
+                <SkeletonBox width="50%" height={12} />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Items Skeleton */}
+        <View className="mt-[8px] px-[10px]">
+          {[1, 2].map((item) => (
+            <View key={item} className="flex-row items-center py-[16px]">
+              <SkeletonBox width="146px" height={107} />
+              <View className="ml-[15px] flex-1">
+                <SkeletonBox width="70%" height={16} />
+                <View className="mt-[8px]">
+                  <SkeletonBox width="40%" height={14} />
+                </View>
+                <View className="mt-[12px]">
+                  <SkeletonBox width="80px" height={28} />
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Status Skeleton */}
+        <View className="flex-row items-center ml-[8px] my-[8px]">
+          <SkeletonBox width="20px" height={20} />
+          <View className="ml-[8px]">
+            <SkeletonBox width="150px" height={12} />
+          </View>
+        </View>
+
+        {/* Timeline Skeleton */}
+        <View className="border-t border-[#F1EAE7] bg-white pt-[16px]">
+          <View className="px-[8px]">
+            <SkeletonBox width="120px" height={12} />
+          </View>
+        </View>
+        <View className="mt-[20px] px-[8px]">
+          {[1, 2, 3, 4].map((item) => (
+            <View key={item} className="flex-row items-start mb-[16px]">
+              <SkeletonBox width="16px" height={16} />
+              <View className="ml-[12px] flex-1">
+                <SkeletonBox width="60%" height={14} />
+                <View className="mt-[4px]">
+                  <SkeletonBox width="40%" height={10} />
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+    </ScrollView>
+  );
 
   return (
     <ScreenWrapper>
       <Header title="Orders Detail" />
       <>
-
         {loading ? (
-          <View className="flex-1 justify-center items-center py-10 ">
-            <LoadingSpinner />
-          </View>
+          <OrderSkeleton />
         ) : (
           <ScrollView
             contentContainerStyle={{ paddingBottom: 50, paddingHorizontal: 20 }}
@@ -216,8 +353,6 @@ export default function OrderDetailsScrenn() {
               </View>
 
               {/* Status row */}
-              {/* <Text>Total Quantity of items: 30.5kg</Text> */}
-
               <View className="flex-row items-center ml-[8px] my-[8px] ">
                 <StatusIcon />
                 <UrbanistText
