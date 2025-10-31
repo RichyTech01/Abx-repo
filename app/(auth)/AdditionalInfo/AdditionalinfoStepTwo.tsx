@@ -57,7 +57,6 @@ export default function AdditionalinfoStepTwo({
       fetchUser();
       await AsyncStorage.setItem("isLoggedIn", "true");
 
-      router.dismissAll();
       router.replace("/(tabs)");
     } catch (err: any) {
       console.log(

@@ -50,7 +50,6 @@ const GoogleAuth: React.FC<Props> = ({
       } else {
         await AsyncStorage.setItem("isLoggedIn", "true");
         fetchUser();
-        router.dismissAll();
         router.replace("/(tabs)");
         showToast("success", "Logged in successfully!");
       }

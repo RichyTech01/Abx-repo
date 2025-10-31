@@ -77,9 +77,8 @@ export default function VerifyAccountScreen() {
     try {
       // Check if tokens exist already
       const accessToken = await AsyncStorage.getItem("accessToken");
-      const refreshToken = await AsyncStorage.getItem("refreshToken");
 
-      if (!accessToken || !refreshToken) {
+      if (!accessToken) {
         console.log("⚠️ No tokens found, user may not be fully logged in yet.");
       }
       await AsyncStorage.setItem("isLoggedIn", "true");
