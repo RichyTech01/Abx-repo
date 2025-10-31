@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import OrderApi from "@/api/OrderApi";
 
 type CartItem = {
   id: number;
@@ -15,6 +16,8 @@ type CartState = {
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
   reset: () => void;
+  // NEW: Fetch cart from API
+  refreshCart: () => Promise<void>;
   // Computed getter for cart count
   getCartCount: () => number;
   // Computed getter for total cart value
@@ -49,6 +52,17 @@ export const useCartStore = create<CartState>((set, get) => ({
   clearCart: () => set({ cartItems: [] }),
 
   reset: () => set(initialState),
+
+  // NEW: Refresh cart from API
+  refreshCart: async () => {
+    try {
+      const res = await OrderApi.getCart();
+      set({ cartItems: res.cart?.items || [] });
+    } catch (err) {
+      console.error("Failed to refresh cart:", err);
+    }
+  },
+
   // Get total number of items in cart
   getCartCount: () => get().cartItems.length,
 

@@ -34,7 +34,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["remote-notification"]
       },
-      "bundleIdentifier": "com.henry23.abxmobileapp", 
+      "bundleIdentifier": "com.henry23.abxmobileapp",
       "scheme": "abxmobileapplication"
     },
     "android": {

@@ -48,7 +48,7 @@ export default function SpendingLimit() {
         cancelText="Cancel"
         onConfirm={async () => {
           await Storage.multiRemove(["isGuest", "cartId"]);
-          router.replace("/Login");
+          router.replace("/(auth)/Login");
         }}
       />
     </View>

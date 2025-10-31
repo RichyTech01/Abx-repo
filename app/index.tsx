@@ -1,12 +1,10 @@
-// index.tsx
-import { useRouter } from "expo-router";
+import { useRouter, Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { View, Image } from "react-native";
 import Storage from "@/utils/Storage";
 
 export default function Index() {
-  const [ready, setReady] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -16,31 +14,22 @@ export default function Index() {
         const guest = await Storage.get("isGuest");
         const isloggedIn = await Storage.get("isLoggedIn");
 
-        const authenticated =
-          !!token || !!guest || isloggedIn === "true";
+        const authenticated = !!token || !!guest || isloggedIn === "true";
 
-        // Small delay to ensure smooth transition
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Use replace instead of Redirect
         if (authenticated) {
           router.replace("/(tabs)");
         } else {
-          router.replace("/(auth)");
+          router.replace("/(auth)/OnboardingScreen");
         }
 
-        // Hide splash after navigation
-        setTimeout(async () => {
-          await SplashScreen.hideAsync();
-        }, 150);
+        await SplashScreen.hideAsync();
       } catch (error) {
         console.error("Auth check failed:", error);
-        router.replace("/(auth)");
+        router.replace("/(auth)/OnboardingScreen");
         setTimeout(async () => {
           await SplashScreen.hideAsync();
         }, 150);
       } finally {
-        setReady(true);
       }
     };
 

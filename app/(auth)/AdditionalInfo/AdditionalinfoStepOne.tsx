@@ -64,7 +64,7 @@ export default function AdditionalinfoStepOne({ nextStep }: AdditionalInfoStepOn
           textColor="#0C513F"
           backgroundColor="#ECF1F0"
           borderColor="#AEC5BF"
-          onPress={handleNext} // ✅ now actually validates + updates
+          onPress={handleNext} 
           loading={loading}
           disabled={loading}
         />

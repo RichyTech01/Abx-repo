@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Image, Platform } from "react-native";
+import { View, Text, Pressable, Image, } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
 import GoogleAuth from "./GoogleAuth";
@@ -21,9 +21,9 @@ export default function Authheader({
 
   const handlePress = () => {
     if (name === "Create account") {
-      router.push("/createAccountSteps/CreateAccount" as never ); 
+      router.push("/createAccountSteps/CreateAccount" as never);
     } else {
-      router.push("/Login" as never ); 
+      router.push("/Login" as never);
     }
   };
 
@@ -49,7 +49,7 @@ export default function Authheader({
         </View>
       </View>
 
-     <GoogleAuth />
+      <GoogleAuth />
     </View>
   );
 }

@@ -7,7 +7,7 @@ import { useCartStore } from "@/store/useCartStore";
 export const logoutUser = async (router: ReturnType<typeof useRouter>) => {
   try {
     // Clear AsyncStorage
-    await AsyncStorage.multiRemove(["accessToken", "isGuest", "cartId" ]);
+    await AsyncStorage.multiRemove(["accessToken", "isGuest", "cartId"]);
 
     // Reset all Zustand stores
     useUserStore.getState().clearUser();
@@ -15,7 +15,7 @@ export const logoutUser = async (router: ReturnType<typeof useRouter>) => {
     useCartStore.getState().reset();
 
     // Navigate to onboarding
-    router.replace("/(auth)/Login");
+    router.replace("/OnboardingScreen");
   } catch (err) {
     console.error("Failed to log out:", err);
   }

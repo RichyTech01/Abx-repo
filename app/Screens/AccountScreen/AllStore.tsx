@@ -17,6 +17,7 @@ import LogoutModal from "@/Modals/LogoutModal";
 import { useRouter } from "expo-router";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useLocationStore } from "@/store/locationStore";
+import { SkeletonCard } from "@/common/SkeletonCard";
 
 export default function AllStore() {
   const router = useRouter();
@@ -142,56 +143,6 @@ export default function AllStore() {
     }
   }, [page, hasMore, loadingMore]);
 
-  const SkeletonCard = () => {
-    const opacity = shimmerAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.3, 0.7],
-    });
-
-    return (
-      <Animated.View
-        style={{
-          opacity,
-          width: "100%",
-          height: 180,
-          backgroundColor: "#E1E9EE",
-          borderRadius: 12,
-          marginBottom: 24,
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            height: 120,
-            backgroundColor: "#C4D1DA",
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
-            marginBottom: 8,
-          }}
-        />
-        <View style={{ paddingHorizontal: 12 }}>
-          <View
-            style={{
-              width: "70%",
-              height: 16,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-              marginBottom: 6,
-            }}
-          />
-          <View
-            style={{
-              width: "50%",
-              height: 12,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-            }}
-          />
-        </View>
-      </Animated.View>
-    );
-  };
-
   const renderSkeletons = () => (
     <View
       style={{
@@ -201,7 +152,10 @@ export default function AllStore() {
       }}
     >
       {[1, 2, 3, 4].map((item) => (
-        <SkeletonCard key={item} />
+        <SkeletonCard
+          key={item}
+          shimmerAnim={shimmerAnim}
+        />
       ))}
     </View>
   );
@@ -212,7 +166,7 @@ export default function AllStore() {
         <HeaderWithSearchInput label="All available stores on ABX" />
       </View>
 
-      {loading ? (
+      {loading || (shops.length === 0 && latitude == null) ? (
         renderSkeletons()
       ) : (
         <FlatList

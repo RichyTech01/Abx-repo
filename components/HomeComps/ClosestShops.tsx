@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import LogoutModal from "@/Modals/LogoutModal";
 import Storage from "@/utils/Storage";
+import { SkeletonCard } from "@/common/SkeletonCard";
 
 type Props = {
   refreshTrigger: boolean;
@@ -58,59 +59,10 @@ export default function ClosestShops({ refreshTrigger }: Props) {
     }
   }, [refreshTrigger]);
 
-  const SkeletonCard = () => {
-    const opacity = shimmerAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.3, 0.7],
-    });
-
-    return (
-      <Animated.View
-        style={{
-          opacity,
-          width: 254,
-          height: 180,
-          backgroundColor: "#E1E9EE",
-          borderRadius: 12,
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            height: 120,
-            backgroundColor: "#C4D1DA",
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
-            marginBottom: 8,
-          }}
-        />
-        <View style={{ paddingHorizontal: 12 }}>
-          <View
-            style={{
-              width: "70%",
-              height: 16,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-              marginBottom: 6,
-            }}
-          />
-          <View
-            style={{
-              width: "50%",
-              height: 12,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-            }}
-          />
-        </View>
-      </Animated.View>
-    );
-  };
-
   const renderSkeletons = () => (
     <FlatList
       data={[1, 2, 3]}
-      renderItem={() => <SkeletonCard />}
+      renderItem={() => <SkeletonCard shimmerAnim={shimmerAnim} style={{width:254}} />}
       keyExtractor={(item) => item.toString()}
       horizontal
       showsHorizontalScrollIndicator={false}
@@ -130,8 +82,8 @@ export default function ClosestShops({ refreshTrigger }: Props) {
         image:
           item.store_img ||
           "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
-        distance: item.distance_km 
-          ? `${parseFloat(item.distance_km).toFixed(1)}` 
+        distance: item.distance_km
+          ? `${parseFloat(item.distance_km).toFixed(1)}`
           : "N/A",
         rating: item.rating || 0,
         isFavorite: item.is_favorited ?? false,
@@ -202,7 +154,7 @@ export default function ClosestShops({ refreshTrigger }: Props) {
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove([ "isGuest", "cartId"]);
+          await Storage.multiRemove(["isGuest", "cartId"]);
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

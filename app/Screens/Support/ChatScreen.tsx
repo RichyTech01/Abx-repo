@@ -483,6 +483,7 @@ export default function ChatScreen() {
       }, 100);
     }
   }, [isAgentTyping]);
+
   if (isLoadingHistory) {
     return (
       <ScreenWrapper>
@@ -498,7 +499,7 @@ export default function ChatScreen() {
     <ScreenWrapper>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 5 : 0} 
+        keyboardVerticalOffset={Platform.OS === "ios" ? 5 : 0}
         style={{ flex: 1 }}
       >
         {/* Header */}
@@ -530,6 +531,21 @@ export default function ChatScreen() {
                 Today
               </UrbanistText>
             </View>
+
+            {messages.length === 0 && !isAgentTyping && (
+              <View className="items-center justify-center py-8 px-4">
+                <View className="mb-4">
+                  <SupportImg width={80} height={80} />
+                </View>
+                <OreAppText className="text-[#2D2220] text-[18px]  font-semibold mb-2 text-center">
+                  Welcome to ABX Support
+                </OreAppText>
+                <UrbanistText className="text-[#929292] text-[14px] text-center leading-[20px]">
+                  How can we help you today? Send us a message and we'll get
+                  back to you shortly.
+                </UrbanistText>
+              </View>
+            )}
 
             {messages.map(renderMessage)}
 

@@ -1,7 +1,7 @@
 import "./global.css";
 import { useEffect, useState, useCallback, useRef } from "react";
 import * as SplashScreen from "expo-splash-screen";
-import { AppState, AppStateStatus, Platform, View, Image } from "react-native";
+import { AppState, AppStateStatus, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter, Slot } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -260,7 +260,7 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   if (!fontsLoaded) {
-    return null; 
+    return null;
   }
 
   return (

@@ -49,7 +49,7 @@ class ApiService {
 
             // Disconnect MQTT immediately
             MQTTClient.disconnect();
-            router.replace("/onboarding");
+            router.replace("/OnboardingScreen");
 
             // Show toast only if user was actually logged in
             showToast("error", "Session expired. Please log in again.");

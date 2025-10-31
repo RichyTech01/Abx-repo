@@ -10,6 +10,7 @@ import OreAppText from "@/common/OreApptext";
 import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
 import { useLocationStore } from "@/store/locationStore";
+import { SkeletonCard } from "@/common/SkeletonCard";
 
 type Props = {
   refreshTrigger: boolean;
@@ -63,14 +64,14 @@ export default function TopratedShops({ refreshTrigger }: Props) {
         store_open: store.open_time,
         store_close: store.close_time,
         isFavorite: store.is_favorited ?? false,
-        distance: store.distance_km 
-          ? `${parseFloat(store.distance_km).toFixed(1)}` 
+        distance: store.distance_km
+          ? `${parseFloat(store.distance_km).toFixed(1)}`
           : "N/A",
       }));
     },
     enabled: latitude != null && longitude != null,
     refetchOnMount: true,
-    staleTime: 0, // Always consider data stale to ensure fresh distance calculations
+    staleTime: 0,
   });
 
   useEffect(() => {
@@ -85,59 +86,10 @@ export default function TopratedShops({ refreshTrigger }: Props) {
       queryClient.invalidateQueries({ queryKey: ["topRatedStores"] }),
   });
 
-  const SkeletonCard = () => {
-    const opacity = shimmerAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.3, 0.7],
-    });
-
-    return (
-      <Animated.View
-        style={{
-          opacity,
-          width: 254,
-          height: 180,
-          backgroundColor: "#E1E9EE",
-          borderRadius: 12,
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            height: 120,
-            backgroundColor: "#C4D1DA",
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
-            marginBottom: 8,
-          }}
-        />
-        <View style={{ paddingHorizontal: 12 }}>
-          <View
-            style={{
-              width: "70%",
-              height: 16,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-              marginBottom: 6,
-            }}
-          />
-          <View
-            style={{
-              width: "50%",
-              height: 12,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-            }}
-          />
-        </View>
-      </Animated.View>
-    );
-  };
-
   const renderSkeletons = () => (
     <FlatList
       data={[1, 2, 3]}
-      renderItem={() => <SkeletonCard />}
+      renderItem={() => <SkeletonCard shimmerAnim={shimmerAnim} style={{width:254}}/>}
       keyExtractor={(item) => item.toString()}
       horizontal
       showsHorizontalScrollIndicator={false}
@@ -168,10 +120,10 @@ export default function TopratedShops({ refreshTrigger }: Props) {
     <OreAppText
       style={{
         textAlign: "center",
-        marginTop: 16,
         color: "red",
         fontSize: 14,
       }}
+      className="justify-center items-center p-3 mx-auto text-center "
     >
       No top rated stores available at the moment.
     </OreAppText>
@@ -184,7 +136,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
         onPress={() => router.push("/Screens/HomeScreen/AllTopRatedStores")}
       />
 
-      {isLoading ? (
+      {isLoading || (shops.length === 0 && latitude == null) ? (
         renderSkeletons()
       ) : (
         <FlatList
@@ -204,7 +156,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
 
       <LogoutModal
         title="Login Required"
-        message="Sorry! you need to go back to log in to favorite a shop."
+        message="Sorry! you need to log in to favorite a shop."
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {

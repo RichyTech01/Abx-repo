@@ -6,8 +6,8 @@ export default function NotFoundScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Oops!' }} />
-      <View style={styles.container}>
-        <Text >This screen does not exist.</Text>
+      <View style={styles.container} >
+        <Text>This screen does not exist in Abx mobile screens.</Text>
         <Link href="/" style={styles.link}>
           <Text >Go to home screen!</Text>
         </Link>
