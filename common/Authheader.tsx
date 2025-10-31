@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Image, } from "react-native";
+import { View, Text, Pressable, Image } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
 import GoogleAuth from "./GoogleAuth";
@@ -17,7 +17,7 @@ export default function Authheader({
   googleSignName = "Sign in",
 }: Props) {
   const router = useRouter();
-  const MianImg = require("../assets/Images/Main logo.png");
+  const MianImg = require("../assets/Images/abx-icon.png");
 
   const handlePress = () => {
     if (name === "Create account") {
@@ -30,7 +30,11 @@ export default function Authheader({
   return (
     <View>
       <View className={`mx-auto items-center justify-center mt-[5%]`}>
-        <Image source={MianImg} />
+        <Image
+          source={MianImg}
+          style={{ width: 60, height: 60, resizeMode: "contain" }}
+          className="rounded-[12px]"
+        />
 
         <Text className="text-[24px] leading-[32px] font-orelega text-[#2D2220] mt-[10px]">
           {HeaderText}

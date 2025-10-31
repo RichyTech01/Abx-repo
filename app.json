@@ -4,7 +4,7 @@
     "slug": "abx-mobile-app",
     "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/Images/MainLogo.png",
+    "icon": "./assets/Images/abx-icon.png",
     "scheme": "abxmobileapplication",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -21,7 +21,7 @@
       }
     },
     "notification": {
-      "icon": "./assets/Images/MainLogo.png",
+      "icon": "./assets/Images/abx-icon.png",
       "color": "#0C513F",
       "androidMode": "default",
       "androidCollapsedTitle": "#{unread_notifications} new notifications"
@@ -47,7 +47,7 @@
       ],
 
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Images/MainLogo.png",
+        "foregroundImage": "./assets/Images/abx-icon.png",
         "backgroundColor": "#0C513F"
       },
       "edgeToEdgeEnabled": true,
@@ -80,7 +80,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/Images/MainLogo.png",
+          "icon": "./assets/Images/abx-icon.png",
           "color": "#0C513F",
           "sounds": []
         }
