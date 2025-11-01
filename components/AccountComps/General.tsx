@@ -72,7 +72,7 @@ export default function General() {
         cancelText="Cancel"
         onConfirm={async () => {
           await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
-          router.replace("/onboarding");
+          router.replace("/Login");
         }}
       />
     </View>

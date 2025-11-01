@@ -76,18 +76,14 @@ export default function Account() {
           <Finance />
           <Help />
 
-          <View className="border border-[#F1EAE7] rounded-[8px] py-[8px] px-[8px] bg-white  mt-[16px] ">
+          <View className="border border-[#F1EAE7] rounded-[8px] py-[8px] px-[8px] bg-white mt-[16px] ">
             <TouchableOpacity
               className="py-[4px] pl-[4px] flex-row items-center justify-between "
               onPress={async () => {
                 if (hasToken) {
                   setShowModal(true);
                 } else {
-                  await AsyncStorage.multiRemove([
-                    "isGuest",
-                    "cartId",
-                  ]);
-
+                  await AsyncStorage.multiRemove(["isGuest", "cartId"]);
                   router.replace("/Login");
                 }
               }}
