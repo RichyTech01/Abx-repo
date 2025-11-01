@@ -12,8 +12,9 @@ import Seacrchicon from "@/assets/svgs/SearchIcon.svg";
 import StoreApi from "@/api/StoreApi";
 import UrbanistText from "./UrbanistText";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { Keyboard } from "react-native";
 
+import { Keyboard } from "react-native";
+import { useLocationStore } from "@/store/locationStore";
 
 interface SearchInputProps {
   placeholder?: string;
@@ -22,6 +23,8 @@ interface SearchInputProps {
 export default function SearchInput({
   placeholder = "Search for food items of your choice",
 }: SearchInputProps) {
+  const { latitude, longitude } = useLocationStore();
+
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,10 +50,17 @@ export default function SearchInput({
   const searchMarketplace = async (searchQuery: string) => {
     try {
       setLoading(true);
-      setResults([]);
+      // setResults([]);
       setShowResults(true);
+      if (latitude == null || longitude == null) {
+        throw new Error("Location not available");
+      }
 
-      const res = await StoreApi.searchMarketplace(searchQuery);
+      const res = await StoreApi.searchMarketplace(
+        searchQuery,
+        latitude,
+        longitude
+      );
 
       // assuming response has both products and shops
       const products = (res.products || []).map((p: any) => ({
@@ -87,11 +97,13 @@ export default function SearchInput({
         pathname: "/Screens/HomeScreen/ShopDetails",
         params: {
           id: item.id.toString(),
-          image: item?.store_img || "", 
+          image: item?.store_img || "",
         },
       });
     }
   };
+
+  console.log(results[0]);
 
   return (
     <View className="relative z-50">
@@ -109,6 +121,7 @@ export default function SearchInput({
           selectionColor="green"
           onChangeText={setQuery}
           onFocus={() => setShowResults(results.length > 0)}
+          autoCorrect={false}
         />
       </View>
 
@@ -159,7 +172,11 @@ export default function SearchInput({
                       }
                     >
                       <Image
-                        source={{ uri: item?.store_img || "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg"}}
+                        source={{
+                          uri:
+                            item?.store_img ||
+                            "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg",
+                        }}
                         className="w-[22px] h-[22px] rounded-[8px] mr-2"
                       />
                     </TouchableOpacity>
@@ -181,6 +198,27 @@ export default function SearchInput({
                         : item.business_name}
                     </UrbanistText>
                   </TouchableOpacity>
+
+                  <View>
+                    <UrbanistText>
+                      {item.type === "shop"
+                        ? `${item?.distance_km?.toFixed(1)} km`
+                        : (() => {
+                            const loc = item.store?.store_address?.location;
+                            if (!loc) return "—";
+                            if (Array.isArray(loc.coordinates)) {
+                              const [lon, lat] = loc.coordinates;
+                              return `(${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+                            }
+                            if (loc.lat && loc.lon) {
+                              return `(${loc.lat.toFixed(4)}, ${loc.lon.toFixed(
+                                4
+                              )})`;
+                            }
+                            return "No location";
+                          })()}
+                    </UrbanistText>
+                  </View>
                 </View>
               ))}
             </ScrollView>

@@ -3,15 +3,13 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { AppState, AppStateStatus, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack, useRouter, Slot } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/toastConfig";
 import { StatusBar } from "expo-status-bar";
 import { StripeProvider } from "@stripe/stripe-react-native";
-import * as Notifications from "expo-notifications";
-import Storage from "@/utils/Storage";
 import {
   useFonts,
   OrelegaOne_400Regular,
@@ -132,7 +130,6 @@ function GlobalNotificationHandler() {
   useEffect(() => {
     if (!user?.id) return;
 
-    // console.log("🚀 Connecting to MQTT for user:", user.id);
     MQTTClient.connect(String(user.id), handleNewNotification);
 
     return () => {
@@ -167,7 +164,7 @@ function GlobalNotificationHandler() {
     const responseListener =
       PushNotificationService.addNotificationResponseReceivedListener(
         (response) => {
-          console.log("👆 User tapped on notification:", response);
+          console.log(" User tapped on notification:", response);
 
           const data = response.notification.request.content.data as any;
 
@@ -230,7 +227,6 @@ function GlobalNotificationHandler() {
   return null;
 }
 
-// _layout.tsx
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     OrelegaOne: OrelegaOne_400Regular,
@@ -242,22 +238,6 @@ export default function RootLayout() {
     InterRegular: Inter_400Regular,
     ManropeSemiBold: Manrope_600SemiBold,
   });
-
-  async function requestNotificationPermission() {
-    if (Platform.OS === "android") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== "granted") {
-        alert("Notification permissions not granted!");
-      }
-    }
-  }
-
-  useEffect(() => {
-    const initialize = async () => {
-      await requestNotificationPermission();
-    };
-    initialize();
-  }, [fontsLoaded]);
 
   if (!fontsLoaded) {
     return null;

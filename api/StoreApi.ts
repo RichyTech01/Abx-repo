@@ -143,9 +143,13 @@ class StoreApi {
   }
 
   //  Marketplace search (stores + products)
-  public async searchMarketplace(query: string): Promise<any> {
+  public async searchMarketplace(
+    query: string,
+    lat: number,
+    lon: number
+  ): Promise<any> {
     const res = await this.client.get("/store/marketplace", {
-      params: { search: query },
+      params: { search: query, lat, lon },
     });
     return res.data;
   }

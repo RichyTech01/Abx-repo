@@ -33,7 +33,7 @@ export default function Authheader({
         <Image
           source={MianImg}
           style={{ width: 60, height: 60, resizeMode: "contain" }}
-          className="rounded-[12px]"
+          className="rounded-[12px] "
         />
 
         <Text className="text-[24px] leading-[32px] font-orelega text-[#2D2220] mt-[10px]">
