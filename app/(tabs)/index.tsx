@@ -242,7 +242,7 @@ export default function Home() {
 
       {/* Search input */}
       <View className="mx-[20px] mt-[24px]">
-        <SearchInput placeholder="Search for food items of your choice" />
+        <SearchInput />
       </View>
 
       {/* Scrollable content */}

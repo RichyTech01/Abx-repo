@@ -1,4 +1,4 @@
-import { View, FlatList, Platform, StatusBar } from "react-native";
+import { View, FlatList, Platform } from "react-native";
 import React, { useState, useCallback } from "react";
 import Header from "@/common/Header";
 import UrbanistText from "@/common/UrbanistText";

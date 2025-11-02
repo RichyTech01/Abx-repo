@@ -163,7 +163,7 @@ export default function AllStore() {
   return (
     <ScreenWrapper>
       <View>
-        <HeaderWithSearchInput label="All available stores on ABX" />
+        <HeaderWithSearchInput label="All available stores on ABX"  />
       </View>
 
       {loading || (shops.length === 0 && latitude == null) ? (

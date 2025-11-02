@@ -10,7 +10,7 @@ export default function Header({ title }: { title: string }) {
 
   return (
     <View className="flex-row items-center justify-between px-[15px] py-[8px]">
-      <TouchableOpacity className="w-[24px] h-[24px] items-center justify-center " onPress={() => navigation.goBack()}>
+      <TouchableOpacity className="w-[24px] h-[24px] items-start justify-center " onPress={() => navigation.goBack()}>
          <Backarrow/> 
       </TouchableOpacity>
 
