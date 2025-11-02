@@ -11,7 +11,6 @@ export default function SearchInput({
 }: SearchInputProps) {
   const router = useRouter();
 
-
   return (
     <View className="relative z-50">
       <TouchableOpacity
