@@ -1,4 +1,4 @@
-import { View, TextInput, TouchableOpacity } from "react-native";
+import { View, TextInput, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import Seacrchicon from "@/assets/svgs/SearchIcon.svg";
 
@@ -13,7 +13,7 @@ export default function SearchInput({
 
   return (
     <View className="relative z-50">
-      <TouchableOpacity
+      <Pressable
         className="flex-row items-center bg-[#f2f2f2] rounded-[10px] px-5 py-3 mb-1 border border-[#D7D7D7]"
         onPress={() => router.push("/Screens/SearchScreen")}
       >
@@ -29,7 +29,7 @@ export default function SearchInput({
           editable={false}
           pointerEvents="none"
         />
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }
