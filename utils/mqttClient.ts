@@ -160,5 +160,4 @@ class MQTTClient {
   }
 }
 
-// Export singleton instance
 export default new MQTTClient();

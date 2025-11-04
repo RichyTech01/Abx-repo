@@ -2,22 +2,20 @@ import { Pressable, Text } from "react-native";
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser";
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
 import { useUserStore } from "@/store/useUserStore";
 import GoogleIcon from "@/assets/svgs/GoogleIcon";
-
-WebBrowser.maybeCompleteAuthSession();
 
 interface Props {
   buttonText?: string;
 }
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_WEB_CLIENT_ID;
-const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_IOS_CLIENT_ID;
-const ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID;
 
 const GoogleAuth: React.FC<Props> = ({
   buttonText = "Continue with Google",
@@ -25,21 +23,30 @@ const GoogleAuth: React.FC<Props> = ({
   const router = useRouter();
   const { fetchUser } = useUserStore();
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    iosClientId: IOS_CLIENT_ID,
-    androidClientId: ANDROID_CLIENT_ID,
-    webClientId: WEB_CLIENT_ID,
-  });
-
   useEffect(() => {
-    if (response?.type === "success") {
-      const { id_token } = response.params;
-      handleGoogleResponse(id_token);
-    }
-  }, [response]);
+    GoogleSignin.configure({
+      webClientId: WEB_CLIENT_ID, 
+      offlineAccess: false,
+    });
+  }, []);
 
-  const handleGoogleResponse = async (idToken: string) => {
+  const handleGoogleSignIn = async () => {
     try {
+      // Check if device supports Google Play Services
+      await GoogleSignin.hasPlayServices();
+
+      // Sign in and get user info
+      await GoogleSignin.signIn();
+
+      // Retrieve tokens (idToken/accessToken) separately to satisfy typings
+      const tokens = await GoogleSignin.getTokens();
+      const idToken = tokens.idToken;
+
+      if (!idToken) {
+        throw new Error("No ID token received");
+      }
+
+      // Send to your backend
       const res = await AuthApi.googleSignIn({ token: idToken });
 
       await AsyncStorage.setItem("accessToken", res.access);
@@ -55,20 +62,30 @@ const GoogleAuth: React.FC<Props> = ({
       }
     } catch (error: any) {
       console.log("Google sign-in error:", error);
-      const errorMessage =
-        error?.response?.data?.detail ||
-        error?.response?.data?.message ||
-        "Google sign-in failed.";
-      showToast("error", errorMessage);
+
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // User cancelled the sign-in
+        showToast("info", "Sign-in cancelled");
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // Sign-in already in progress
+        showToast("info", "Sign-in in progress...");
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // Play services not available or outdated
+        showToast("error", "Google Play Services not available");
+      } else {
+        const errorMessage =
+          error?.response?.data?.detail ||
+          error?.response?.data?.message ||
+          "Google sign-in failed.";
+        showToast("error", errorMessage);
+      }
     }
   };
 
   return (
     <Pressable
       className="border border-[#F1EAE7] rounded-[8px] h-[42px] mx-auto flex-row items-center justify-between px-[10px] mt-[32px]"
-      onPress={() => promptAsync()}
-      disabled={!request}
-      style={{ opacity: !request ? 0.5 : 1 }}
+      onPress={handleGoogleSignIn}
     >
       <GoogleIcon />
       <Text className="text-[#344054] text-[16px] leading-[22px] font-urbanist ml-[8px]">

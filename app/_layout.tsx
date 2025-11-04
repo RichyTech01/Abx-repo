@@ -250,7 +250,7 @@ export default function RootLayout() {
           <StatusBar style="dark" backgroundColor="#fff" />
           <GlobalNotificationHandler />
           <Stack screenOptions={{ headerShown: false }} />
-          <Toast config={toastConfig} />
+          <Toast config={toastConfig} swipeable={true} />
         </QueryClientProvider>
       </StripeProvider>
     </SafeAreaProvider>
