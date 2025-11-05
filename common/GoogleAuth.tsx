@@ -16,6 +16,7 @@ interface Props {
 }
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_WEB_CLIENT_ID;
+const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_IOS_CLIENT_ID;
 
 const GoogleAuth: React.FC<Props> = ({
   buttonText = "Continue with Google",
@@ -25,8 +26,9 @@ const GoogleAuth: React.FC<Props> = ({
 
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: WEB_CLIENT_ID, 
+      webClientId: WEB_CLIENT_ID,
       offlineAccess: false,
+      iosClientId: IOS_CLIENT_ID,
     });
   }, []);
 
