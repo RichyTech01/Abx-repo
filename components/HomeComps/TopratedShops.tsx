@@ -49,8 +49,6 @@ export default function TopratedShops({ refreshTrigger }: Props) {
   } = useQuery<Shop[]>({
     queryKey: ["topRatedStores", latitude, longitude],
     queryFn: async () => {
-      // This check is redundant now since enabled will prevent the query
-      // But keeping it as a safety check
       if (latitude == null || longitude == null) {
         throw new Error("Location not available");
       }
@@ -89,7 +87,9 @@ export default function TopratedShops({ refreshTrigger }: Props) {
   const renderSkeletons = () => (
     <FlatList
       data={[1, 2, 3]}
-      renderItem={() => <SkeletonCard shimmerAnim={shimmerAnim} style={{width:254}}/>}
+      renderItem={() => (
+        <SkeletonCard shimmerAnim={shimmerAnim} style={{ width: 254 }} />
+      )}
       keyExtractor={(item) => item.toString()}
       horizontal
       showsHorizontalScrollIndicator={false}

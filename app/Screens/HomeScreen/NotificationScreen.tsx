@@ -162,7 +162,7 @@ export default function NotificationScreen() {
       <Header title="Notifications" />
 
       <View className="mt-[22px]">
-        {notifications.length > 0 && unread.length > 0 && (
+        {/* {notifications.length > 0 && unread.length > 0 && (
           <Pressable
             onPress={handleMarkAllAsRead}
             className="items-center mx-[20px] flex-row justify-end "
@@ -175,7 +175,7 @@ export default function NotificationScreen() {
               Mark all as read
             </Text>
           </Pressable>
-        )}
+        )} */}
 
         <View className="mx-[20px] mt-[16px] h-scree">
           {loading && notifications.length === 0 ? (
@@ -183,7 +183,7 @@ export default function NotificationScreen() {
           ) : (
             <FlatList
               data={notifications}
-              contentContainerStyle={{ paddingBottom: 210 }}
+              contentContainerStyle={{ paddingBottom: 110 }}
               keyExtractor={(item, index) =>
                 item.id !== undefined
                   ? item.id.toString()
