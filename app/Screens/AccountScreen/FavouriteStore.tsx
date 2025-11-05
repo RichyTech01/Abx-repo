@@ -5,7 +5,7 @@ import {
   RefreshControl,
   Animated,
 } from "react-native";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useRouter } from "expo-router";
@@ -14,9 +14,9 @@ import ShopCard, { Shop } from "@/common/ShopCard";
 import StoreApi from "@/api/StoreApi";
 import NoData from "@/common/NoData";
 import { useNavigation } from "@react-navigation/native";
-import Storage from "@/utils/Storage";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useLocationStore } from "@/store/locationStore";
+import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 
 export default function FavouriteStore() {
   const { latitude, longitude } = useLocationStore();
@@ -24,48 +24,14 @@ export default function FavouriteStore() {
   const router = useRouter();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useShimmerAnimation();
 
-  const [isGuest, setIsGuest] = useState<boolean>(true);
   const [shops, setShops] = useState<Shop[]>([]);
-  const [loginVisible, setLoginVisible] = useState(false);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
-
-  useEffect(() => {
-    const checkLogin = async () => {
-      const token = await Storage.get("accessToken");
-      const guest = await Storage.get("isGuest");
-
-      if (token && !guest) {
-        setIsGuest(false);
-      } else {
-        setIsGuest(true);
-      }
-    };
-
-    checkLogin();
-  }, []);
 
   const fetchStores = async (
     pageNum: number,
@@ -126,12 +92,6 @@ export default function FavouriteStore() {
   });
 
   const handleFavoritePress = async (storeId: string) => {
-    const token = await Storage.get("accessToken");
-    if (!token) {
-      setLoginVisible(true);
-      return;
-    }
-
     // Optimistic remove
     const prevShops = shops;
     setShops((prev) => prev.filter((shop) => shop.id !== storeId));

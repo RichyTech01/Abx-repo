@@ -18,11 +18,12 @@ import { useRouter } from "expo-router";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useLocationStore } from "@/store/locationStore";
 import { SkeletonCard } from "@/common/SkeletonCard";
+import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 
 export default function AllStore() {
   const router = useRouter();
   const { latitude, longitude } = useLocationStore();
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useShimmerAnimation();
 
   const queryClient = useQueryClient();
   const [shops, setShops] = useState<Shop[]>([]);
@@ -32,23 +33,6 @@ export default function AllStore() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
 
   const fetchStores = async (
     pageNum: number,
@@ -152,10 +136,7 @@ export default function AllStore() {
       }}
     >
       {[1, 2, 3, 4].map((item) => (
-        <SkeletonCard
-          key={item}
-          shimmerAnim={shimmerAnim}
-        />
+        <SkeletonCard key={item} shimmerAnim={shimmerAnim} />
       ))}
     </View>
   );
@@ -163,7 +144,7 @@ export default function AllStore() {
   return (
     <ScreenWrapper>
       <View>
-        <HeaderWithSearchInput label="All available stores on ABX"  />
+        <HeaderWithSearchInput label="All available stores on ABX" />
       </View>
 
       {loading || (shops.length === 0 && latitude == null) ? (

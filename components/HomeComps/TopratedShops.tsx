@@ -1,6 +1,6 @@
-import { View, FlatList, Animated } from "react-native";
-import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { View, FlatList } from "react-native";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import React from "react";
 import SectionHeader from "@/common/SectionHeader";
@@ -11,6 +11,8 @@ import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
 import { useLocationStore } from "@/store/locationStore";
 import { SkeletonCard } from "@/common/SkeletonCard";
+import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
+import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 
 type Props = {
   refreshTrigger: boolean;
@@ -21,29 +23,16 @@ export default function TopratedShops({ refreshTrigger }: Props) {
 
   const router = useRouter();
   const [loginVisible, setLoginVisible] = useState(false);
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
-
+  const [shops, setShops] = useState<Shop[]>([]);
+  const shimmerAnim = useShimmerAnimation();
+  const { handleFavoritePress } = useFavoriteShop({
+    shops,
+    setShops,
+    queryKey: ["topRatedStores"],
+    onLoginRequired: () => setLoginVisible(true),
+  });
   const {
-    data: shops = [],
+    data: queryShops = [],
     isLoading,
     refetch,
   } = useQuery<Shop[]>({
@@ -72,17 +61,18 @@ export default function TopratedShops({ refreshTrigger }: Props) {
     staleTime: 0,
   });
 
+  // Sync local state with query data
+  useEffect(() => {
+    if (queryShops.length > 0) {
+      setShops(queryShops);
+    }
+  }, [queryShops]);
+
   useEffect(() => {
     if (latitude && longitude) {
       refetch();
     }
   }, [refreshTrigger]);
-
-  const favoriteMutation = useMutation({
-    mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["topRatedStores"] }),
-  });
 
   const renderSkeletons = () => (
     <FlatList
@@ -105,14 +95,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
     <ShopCard
       shop={item}
       width={254}
-      onFavoritePress={async () => {
-        const token = await Storage.get("accessToken");
-        if (!token) {
-          setLoginVisible(true);
-          return;
-        }
-        favoriteMutation.mutate(item.id);
-      }}
+      onFavoritePress={() => handleFavoritePress(item.id)}
     />
   );
 

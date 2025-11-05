@@ -10,6 +10,8 @@ import StoreApi from "@/api/StoreApi";
 import LogoutModal from "@/Modals/LogoutModal";
 import Storage from "@/utils/Storage";
 import { SkeletonCard } from "@/common/SkeletonCard";
+import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
+import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 
 type Props = {
   refreshTrigger: boolean;
@@ -19,24 +21,7 @@ export default function ClosestShops({ refreshTrigger }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loginVisible, setLoginVisible] = useState(false);
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
+  const shimmerAnim = useShimmerAnimation();
 
   const {
     data: shops,
@@ -62,7 +47,9 @@ export default function ClosestShops({ refreshTrigger }: Props) {
   const renderSkeletons = () => (
     <FlatList
       data={[1, 2, 3]}
-      renderItem={() => <SkeletonCard shimmerAnim={shimmerAnim} style={{width:254}} />}
+      renderItem={() => (
+        <SkeletonCard shimmerAnim={shimmerAnim} style={{ width: 254 }} />
+      )}
       keyExtractor={(item) => item.toString()}
       horizontal
       showsHorizontalScrollIndicator={false}

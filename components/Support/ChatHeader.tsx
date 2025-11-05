@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Image } from "react-native";
 import React from "react";
 import ChatDetailIcon from "@/assets/svgs/ChatDetailsIcon.svg";
 import SupportImg from "@/assets/svgs/SupportImg.svg";
@@ -12,11 +12,17 @@ export default function ChatHeader() {
     <View className="bg-white border-b border-[#F1EAE7] mt-[5%] py-[15px] px-[16px]  flex-row items-center justify-between ">
       <View className="flex-row items-center gap-[16px] ">
         <View className="bg-blue-300 h-[30px] w-[30px] rounded-full ">
-          <SupportImg />
+          {/* <SupportImg /> */}
+          <Image
+            source={require("../../assets/Images/abx-icon.png")}
+            style={{ width: 30, height: 30, resizeMode: "contain" }}
+            alt="Support-img"
+            className="rounded-full "
+          />
         </View>
         <View className="flex-col gap-[4px] ">
           <Text className="text-[14px] leading-[20px] font-urbanist-medium text-[#2D2220] ">
-            Henry Osas
+            Support Team
           </Text>
           <Text className="text-[14px] leading-[20px] font-urbanist-semibold text-[#2D2220] ">
             Support center rep - ABX097456

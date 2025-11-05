@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -112,7 +111,6 @@ export default function ChatScreen() {
 
       // Load chat history
       const history = await SupportApi.getActiveChatMessages(storedSessionId);
-      console.log("Chat history loaded:", history);
 
       // Handle paginated response
       const messagesArray = history?.results || history?.messages || [];
@@ -253,8 +251,8 @@ export default function ChatScreen() {
 
       throw new Error("No URL returned from upload");
     } catch (error: any) {
-      console.error("Error uploading image:", error);
-      console.error("Error details:", error.response?.data);
+      // console.error("Error uploading image:", error);
+      // console.error("Error details:", error.response?.data);
       showToast("error", "Failed to upload image");
       return null;
     } finally {
@@ -441,7 +439,12 @@ export default function ChatScreen() {
       <View key={key} className="mb-4">
         <View className="flex-row items-end">
           <View className="w-[30px] h-[30px] rounded-full mr-2 mb-1 items-center justify-center">
-            <SupportImg />
+            <Image
+              source={require("../../../assets/Images/abx-icon.png")}
+              style={{ width: 30, height: 30, resizeMode: "contain" }}
+              alt="Support-img"
+              className="rounded-full "
+            />
           </View>
 
           {/* Bubble with border & overflow-hidden */}
@@ -533,9 +536,14 @@ export default function ChatScreen() {
             </View>
 
             {messages.length === 0 && !isAgentTyping && (
-              <View className="items-center justify-center py-8 px-4">
+              <View className="items-center justify-center py-8 px-5">
                 <View className="mb-4">
-                  <SupportImg width={80} height={80} />
+                  <Image
+                    source={require("../../../assets/Images/abx-icon.png")}
+                    style={{ width: 80, height: 80, resizeMode: "contain" }}
+                    alt="Support-img"
+                    className="rounded-[16px] "
+                  />
                 </View>
                 <OreAppText className="text-[#2D2220] text-[18px]  font-semibold mb-2 text-center">
                   Welcome to ABX Support

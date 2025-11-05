@@ -3,7 +3,6 @@ import {
   FlatList,
   Platform,
   RefreshControl,
-  Animated,
 } from "react-native";
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
@@ -17,13 +16,16 @@ import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
 import { useRouter } from "expo-router";
 import { useLocationStore } from "@/store/locationStore";
+import { useFavoriteShop } from "@/hooks/useFavoriteShop";
+import { SkeletonCard } from "@/common/SkeletonCard";
+import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 
 export default function AllClosestShops() {
   const { latitude, longitude } = useLocationStore();
 
   const queryClient = useQueryClient();
   const router = useRouter();
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useShimmerAnimation();
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [loginVisible, setLoginVisible] = useState(false);
@@ -32,23 +34,12 @@ export default function AllClosestShops() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
+  const { handleFavoritePress } = useFavoriteShop({
+    shops,
+    setShops,
+    queryKey: ["AllClosestStores"],
+    onLoginRequired: () => setLoginVisible(true),
+  });
 
   const fetchStores = async (
     pageNum: number,
@@ -93,32 +84,6 @@ export default function AllClosestShops() {
     }
   };
 
-  const favoriteMutation = useMutation({
-    mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["closestStores"] }),
-  });
-
-  const handleFavoritePress = async (storeId: string) => {
-    const token = await Storage.get("accessToken");
-    if (!token) {
-      setLoginVisible(true);
-      return;
-    }
-
-    favoriteMutation.mutate(storeId, {
-      onSuccess: () => {
-        setShops((prevShops) =>
-          prevShops.map((shop) =>
-            shop.id === storeId
-              ? { ...shop, isFavorite: !shop.isFavorite }
-              : shop
-          )
-        );
-      },
-    });
-  };
-
   const handleRefresh = async () => {
     setRefreshing(true);
     setPage(1);
@@ -138,56 +103,6 @@ export default function AllClosestShops() {
     }
   }, [page, hasMore, loadingMore]);
 
-  const SkeletonCard = () => {
-    const opacity = shimmerAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.3, 0.7],
-    });
-
-    return (
-      <Animated.View
-        style={{
-          opacity,
-          width: "100%",
-          height: 180,
-          backgroundColor: "#E1E9EE",
-          borderRadius: 12,
-          marginBottom: 24,
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            height: 120,
-            backgroundColor: "#C4D1DA",
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
-            marginBottom: 8,
-          }}
-        />
-        <View style={{ paddingHorizontal: 12 }}>
-          <View
-            style={{
-              width: "70%",
-              height: 16,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-              marginBottom: 6,
-            }}
-          />
-          <View
-            style={{
-              width: "50%",
-              height: 12,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-            }}
-          />
-        </View>
-      </Animated.View>
-    );
-  };
-
   const renderSkeletons = () => (
     <View
       style={{
@@ -197,7 +112,7 @@ export default function AllClosestShops() {
       }}
     >
       {[1, 2, 3, 4].map((item) => (
-        <SkeletonCard key={item} />
+        <SkeletonCard key={item} shimmerAnim={shimmerAnim} />
       ))}
     </View>
   );

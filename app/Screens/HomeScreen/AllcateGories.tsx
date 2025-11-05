@@ -39,23 +39,6 @@ export default function AllCategories() {
   const ITEM_WIDTH =
     (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
-
   const fetchCategories = async () => {
     try {
       const data = await StoreApi.getCategories();
