@@ -62,7 +62,6 @@ export default function OrderDetailsScrenn() {
     fetchOrder();
   }, [id]);
 
-  // REAL-TIME MQTT LISTENER FOR THIS ORDER
   useEffect(() => {
     if (!user?.id || !id || !MQTTClient.isClientConnected()) return;
 
@@ -95,7 +94,6 @@ export default function OrderDetailsScrenn() {
           });
       }
 
-      // Always call the original callback for global notification handling
       if (originalCallback) {
         originalCallback(notification);
       }
@@ -266,8 +264,8 @@ export default function OrderDetailsScrenn() {
                       />
                     </View>
 
-                    <View className="ml-[15px]">
-                      <Text className="text-[#4D4D4D] text-[16px] font-urbanist-medium">
+                    <View className="ml-[15px] flex-1">
+                      <Text className="text-[#4D4D4D] text-[16px] font-urbanist-medium  flex-wrap ">
                         {item.item_name}
                       </Text>
                       <Text className="text-[#2D2220] text-[14px] font-urbanist-semibold mt-[4px]">

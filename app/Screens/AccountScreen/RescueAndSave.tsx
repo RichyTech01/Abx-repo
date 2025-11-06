@@ -1,11 +1,4 @@
-import {
-  View,
-  Dimensions,
-  FlatList,
-  ActivityIndicator,
-  ScrollView,
-  RefreshControl,
-} from "react-native";
+import { View, Dimensions, FlatList, RefreshControl } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -19,6 +12,7 @@ import CategoryProduct from "@/common/CategoryProduct";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
 import NoData from "@/common/NoData";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
 
 export default function RescueAndSave() {
   const router = useRouter();
@@ -94,15 +88,8 @@ export default function RescueAndSave() {
         <View>
           {isLoading ? (
             <View className="flex-1 items-center justify-center py-10">
-              <ActivityIndicator size="large" color="#000" />
+              <LoadingSpinner />
             </View>
-          ) : products.length === 0 ? (
-            <ScrollView contentContainerClassName="py-[10%] h-full">
-              <NoData
-                title="No Discounted Product"
-                subtitle="Looks like you don't have any discounted Product yet. No worries, we've got plenty discounted products waiting for you!"
-              />
-            </ScrollView>
           ) : (
             <FlatList
               data={products}
@@ -150,6 +137,12 @@ export default function RescueAndSave() {
                   />
                 </View>
               )}
+              ListEmptyComponent={
+                <NoData
+                  title="No Discounted Product"
+                  subtitle="Looks like you don't have any discounted Product yet. No worries, we've got plenty discounted products waiting for you!"
+                />
+              }
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}

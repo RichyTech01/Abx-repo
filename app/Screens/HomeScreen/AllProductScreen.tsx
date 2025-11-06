@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import Header from "@/common/Header";
 import SearchInput from "@/common/SearchInput";
@@ -18,59 +18,70 @@ import CategoryProduct from "@/common/CategoryProduct";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
 import NoData from "@/common/NoData";
+import { ProductSkeletonGrid } from "@/common/ProductSkeletonGrid";
+import { LoadingSpinner } from "@/common/LoadingSpinner";
+
+const SCREEN_PADDING = 20;
+const GAP = 16;
+const ITEM_WIDTH =
+  (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
 
 export default function AllProductScreen() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
-  const [productDetails, setProductDetails] = useState<any>(null);
-  const [productLoading, setProductLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const { data, isLoading, refetch } = useQuery<{ results: ShopProductType[] }>(
-    {
-      queryKey: ["allProducts"],
-      queryFn: async () => {
-        let allResults: ShopProductType[] = [];
-        let page = 1;
-        let next: string | null = null;
-
-        do {
-          const res = await StoreApi.getAllProducts({ page });
-          allResults = [...allResults, ...res.results];
-          next = res.next || null;
-          page++;
-        } while (next);
-
-        return { results: allResults };
-      },
-    }
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
   );
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: ["allProducts"],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await StoreApi.getAllProducts({ page: pageParam });
+      return res;
+    },
+    getNextPageParam: (lastPage, pages) => {
+      return lastPage.next ? pages.length + 1 : undefined;
+    },
+    initialPageParam: 1,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch product details only when needed
+  const { data: productDetails, isLoading: productLoading } =
+    useQuery<ShopProductType>({
+      queryKey: ["productDetails", selectedProductId],
+      queryFn: () => StoreApi.getProduct(selectedProductId as number),
+      enabled: !!selectedProductId && modalVisible,
+    });
+
+  const handleAddToCart = (id: number) => {
+    setSelectedProductId(id);
+    setModalVisible(true);
   };
 
-  const handleAddToCart = async (id: number) => {
-    setModalVisible(true);
-    setProductLoading(true);
-    try {
-      const product = await StoreApi.getProduct(id);
-      setProductDetails(product);
-    } catch (err) {
-      console.error("Failed to fetch product details", err);
-    } finally {
-      setProductLoading(false);
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
   };
 
-  const SCREEN_PADDING = 20;
-  const GAP = 16;
-  const ITEM_WIDTH =
-    (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
+  const products = data?.pages.flatMap((page) => page.results) ?? [];
 
-  const products = data?.results ?? [];
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View className="py-4">
+        <LoadingSpinner />
+      </View>
+    );
+  };
 
   return (
     <ScreenWrapper>
@@ -82,20 +93,16 @@ export default function AllProductScreen() {
 
         <View>
           {isLoading ? (
-            <View className="flex-1 items-center justify-center py-10">
-              <ActivityIndicator size="large" color="#000" />
-            </View>
-          ) : products.length === 0 ? (
-            <ScrollView contentContainerClassName="py-[10%] h-full">
-              <NoData
-                title="No Products Available"
-                subtitle="Looks like there are no products available at the moment. Please check back later!"
-              />
-            </ScrollView>
+            <ProductSkeletonGrid
+              count={6}
+              itemWidth={ITEM_WIDTH}
+              screenPadding={SCREEN_PADDING}
+              gap={GAP}
+            />
           ) : (
             <FlatList
               data={products}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item, index) => `${item.id}-${index}`}
               numColumns={2}
               className="h-screen"
               contentContainerStyle={{
@@ -107,6 +114,12 @@ export default function AllProductScreen() {
                 justifyContent: "space-between",
                 marginBottom: GAP,
               }}
+              ListEmptyComponent={
+                <NoData
+                  title="No Products Available"
+                  subtitle="Please check back later!"
+                />
+              }
               renderItem={({ item }) => (
                 <View style={{ width: ITEM_WIDTH }}>
                   <CategoryProduct
@@ -139,10 +152,13 @@ export default function AllProductScreen() {
                   />
                 </View>
               )}
+              onEndReached={handleLoadMore}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={renderFooter}
               refreshControl={
                 <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
+                  refreshing={false}
+                  onRefresh={() => refetch()}
                 />
               }
             />

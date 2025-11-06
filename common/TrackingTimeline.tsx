@@ -83,11 +83,11 @@ export default function TrackingTimeline({ status }: TrackingTimelineProps) {
             )}
           </View>
 
-          <View className="gap-[4px]">
+          <View className="gap-[4px] flex-1">
             <Text className="text-[12px] leading-[16px] font-urbanist-bold text-[#2D2220]">
               {step.title}
             </Text>
-            <Text className="text-[12px] leading-[16px] font-urbanist-medium text-[#7D7D7D]">
+            <Text className="text-[12px] leading-[16px] font-urbanist-medium text-[#7D7D7D] flex-wrap">
               {step.description}
             </Text>
           </View>
