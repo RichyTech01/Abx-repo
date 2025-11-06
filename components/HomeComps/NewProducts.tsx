@@ -7,12 +7,14 @@ import StoreApi from "@/api/StoreApi";
 import { ShopProductType, ProductVariation } from "@/types/store";
 import { isStoreOpen } from "@/utils/storeStatus";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
+import { useRouter } from "expo-router";
 
 type Props = {
   refreshTrigger: boolean;
 };
 
 export default function NewProducts({ refreshTrigger }: Props) {
+  const router = useRouter();
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedProductId, setSelectedProductId] = React.useState<
     number | null
@@ -40,7 +42,7 @@ export default function NewProducts({ refreshTrigger }: Props) {
     results: ShopProductType[];
   }>({
     queryKey: ["newProducts"],
-    queryFn: () => StoreApi.getPublishedProducts(),
+    queryFn: () => StoreApi.getAllProducts(),
   });
 
   const { data: productDetails, isLoading: productLoading } =
@@ -179,7 +181,10 @@ export default function NewProducts({ refreshTrigger }: Props) {
 
   return (
     <View>
-      <SectionHeader title="New products" onPress={() => {}} />
+      <SectionHeader
+        title="New products"
+        onPress={() => router.push("/Screens/HomeScreen/AllProductScreen")}
+      />
 
       {isLoading ? (
         renderSkeletons()

@@ -10,18 +10,22 @@ import Resetpassheader from "@/common/Resetpassheader";
 import CustomTextInput from "@/common/CustomTextInput";
 import Button from "@/common/Button";
 import ResetPasswordModal from "@/Modals/AuthModals/ResetPasswordModal";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import showToast from "@/utils/showToast";
 import AuthApi from "@/api/AuthApi";
 
 export default function CreateNewPassword() {
-  const { email: emailParam, token: tokenParam } = useLocalSearchParams();
+  const router = useRouter();
+  const { email: emailParam, code: tokenParam } = useLocalSearchParams();
   const email = Array.isArray(emailParam) ? emailParam[0] : emailParam;
   const token = Array.isArray(tokenParam) ? tokenParam[0] : tokenParam;
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setloading] = useState(false);
+
+  console.log(email, token);
 
   const handleResetPassword = async () => {
     if (!email || !token) {
@@ -34,18 +38,42 @@ export default function CreateNewPassword() {
       return;
     }
 
+    if (newPassword.length < 5) {
+      showToast("error", "Password must be at least 5 characters.");
+      return;
+    }
+
+    setloading(true);
+
     try {
       await AuthApi.setNewPassword({
         email,
-        token,
-        new_password: newPassword,
+        code: token,
+        password: newPassword,
+        confirm_password: confirmPassword,
       });
 
       setModalVisible(true);
+
+      setTimeout(() => {
+        setModalVisible(false);
+        router.dismiss(3);
+      }, 1000);
     } catch (err: any) {
       console.log("Reset password error:", err);
-      showToast("error", err.detail || "Could not reset password");
+      console.log("Error response:", err.response?.data);
+
+      const errorMessage =
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        err.response?.data?.password?.[0] ||
+        err.response?.data?.confirm_password?.[0] ||
+        err.response?.data?.code?.[0] ||
+        "Could not reset password";
+
+      showToast("error", errorMessage);
     }
+    setloading(false);
   };
 
   return (
@@ -55,7 +83,11 @@ export default function CreateNewPassword() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingVertical: 40 }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 20,
+            paddingVertical: 40,
+          }}
           keyboardShouldPersistTaps="handled"
         >
           <View className="w-full mx-auto">
@@ -83,7 +115,12 @@ export default function CreateNewPassword() {
               </View>
             </View>
 
-            <Button title="Reset password" onPress={handleResetPassword} />
+            <Button
+              title="Reset password"
+              onPress={handleResetPassword}
+              loading={loading}
+              disabled={loading || !newPassword || !confirmPassword}
+            />
           </View>
         </ScrollView>
 

@@ -26,21 +26,34 @@ export default function EnterResetCode() {
         showToast("error", "Email not found.");
         return;
       }
-
       try {
-        await AuthApi.confirmResetCode({ email, otp_code: code });
-
-        router.push(
-          `/CreateNewPassword?email=${encodeURIComponent(
-            email
-          )}&token=${encodeURIComponent(code)}` as never
-        );
+        await AuthApi.confirmResetCode({ otp: code });
       } catch (err: any) {
         console.log("OTP verification error:", err);
-        showToast("error", err.detail || "Invalid code");
+        console.log("Error response data:", err.response?.data); // See actual API error
+        console.log("Error status:", err.response?.status);
+
+        const errorMessage =
+          err.response?.data?.detail ||
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          "Invalid code";
+        showToast("error", errorMessage);
+        return;
+      }
+
+      // Only navigate if verification succeeded
+      try {
+        router.push(
+          `/CreatenewPassWord?email=${encodeURIComponent(
+            email
+          )}&code=${encodeURIComponent(code)}`
+        );
+      } catch (navErr) {
+        console.log("Navigation error:", navErr);
       }
     },
-    [email, router] 
+    [email, router]
   );
 
   return (

@@ -69,6 +69,40 @@ export interface StoreProductProps {
   products: ShopProductType[];
 }
 
+export interface StoreProduct {
+  id: number;
+  item_name: string;
+  item_description: string;
+  store: string;
+  category: string;
+  max_price: string;
+  min_price: string;
+  expiration_date: string;
+  prod_image_url: string;
+  rescue_n_save: boolean;
+  variations: string;
+  published: boolean;
+  average_rating: string;
+}
+export interface StoreProductsFilter {
+  category?: string;
+  discounted_product?: boolean;
+  latest?: boolean;
+  max_price?: number;
+  min_price?: number;
+  page?: number;
+  published?: boolean;
+  search?: string;
+}
+
+export interface StoreProductsResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: StoreProduct[];
+}
+
+
 // --- Customer Feedback ---
 export interface CustomerFeedback {
   store: number;

@@ -5,7 +5,6 @@ import {
   View,
   Platform,
   ActivityIndicator,
-  Text,
   Dimensions,
 } from "react-native";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";

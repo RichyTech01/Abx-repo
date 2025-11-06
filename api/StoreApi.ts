@@ -4,6 +4,8 @@ import {
   TopRatedStoresResponse,
   StoreDetails,
   StoreProductProps,
+  StoreProductsFilter,
+  StoreProductsResponse,
 } from "@/types/store";
 
 class StoreApi {
@@ -14,6 +16,21 @@ class StoreApi {
       `/store/${id}/products`
     );
     return res.data;
+  }
+
+  public async getStoreProductsList(
+    filters?: StoreProductsFilter
+  ): Promise<StoreProductsResponse> {
+    try {
+      const res = await this.client.get<StoreProductsResponse>(
+        "/api/store/products",
+        { params: filters }
+      );
+      return res.data;
+    } catch (error: any) {
+      console.error("Failed to fetch store products list:", error);
+      throw error;
+    }
   }
 
   public async getCategories(page?: number) {
@@ -106,7 +123,7 @@ class StoreApi {
     published?: boolean;
     search?: string;
   }): Promise<any> {
-    const res = await this.client.get<any>("/store/all-products", {
+    const res = await this.client.get<any>("/store/products", {
       params: filters,
     });
     return res.data;

@@ -13,7 +13,6 @@ import { useRouter } from "expo-router";
 import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
 
-
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -70,6 +69,8 @@ export default function ForgotPasswordScreen() {
             <Button
               title={loading ? "Sending..." : "Send reset code"}
               onPress={handleSendResetCode}
+              loading={loading}
+              disabled={loading}
             />
           </View>
         </ScrollView>

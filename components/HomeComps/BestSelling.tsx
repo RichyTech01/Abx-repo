@@ -7,12 +7,14 @@ import StoreApi from "@/api/StoreApi";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
 import { ProductVariation, ShopProductType } from "@/types/store";
+import { useRouter } from "expo-router";
 
 type Props = {
   refreshTrigger: boolean;
 };
 
 export default function BestSelling({ refreshTrigger }: Props) {
+  const router = useRouter();
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedProductId, setSelectedProductId] = React.useState<
     number | null
@@ -36,14 +38,13 @@ export default function BestSelling({ refreshTrigger }: Props) {
     ).start();
   }, []);
 
-  const { data, isLoading, error, refetch } = useQuery<{
-    results: ShopProductType[];
-  }>({
-    queryKey: ["bestSellingProducts"],
+  const { data, isLoading, error, refetch } = useQuery<ShopProductType[]>({
+    queryKey: ["bestSellingProducts", "home"],
     queryFn: async () => {
       const res = await StoreApi.getPopularProducts();
-      return { results: res };
+      return res;
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: productDetails, isLoading: productLoading } =
@@ -53,7 +54,7 @@ export default function BestSelling({ refreshTrigger }: Props) {
       enabled: !!selectedProductId,
     });
 
-  const products = data?.results ?? [];
+  const products = data ?? [];
 
   const handleAddToCart = (id: number) => {
     setSelectedProductId(id);
@@ -61,7 +62,9 @@ export default function BestSelling({ refreshTrigger }: Props) {
   };
 
   useEffect(() => {
-    refetch();
+    if (refreshTrigger) {
+      refetch();
+    }
   }, [refreshTrigger]);
 
   const SkeletonCard = () => {
@@ -182,7 +185,10 @@ export default function BestSelling({ refreshTrigger }: Props) {
 
   return (
     <View>
-      <SectionHeader title="Best selling products" />
+      <SectionHeader
+        title="Best selling products"
+        onPress={() => router.push("/Screens/HomeScreen/BestSellingProducts")}
+      />
 
       {isLoading ? (
         renderSkeletons()

@@ -72,18 +72,19 @@ class AuthApi {
   // Reset password after OTP
   public async setNewPassword(data: {
     email: string;
-    token: string;
-    new_password: string;
+    code: string;
+    password: string;
+    confirm_password: string;
   }) {
     const res = await this.client.patch("/auth/set-new-password", data);
     return res.data;
   }
 
   // Confirm reset code
-  public async confirmResetCode(data: { email: string; otp_code: string }) {
+  public async confirmResetCode(data: { otp: string }) {
     const res = await this.client.post(
       "/auth/password-reset-code-confirm",
-      data
+      { otp: String(data.otp) } 
     );
     return res.data;
   }

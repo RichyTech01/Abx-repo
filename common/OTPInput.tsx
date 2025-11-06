@@ -13,8 +13,31 @@ interface OTPInputProps {
 const OTPInput: React.FC<OTPInputProps> = ({ length = 6, onComplete }) => {
   const [values, setValues] = useState(Array(length).fill(""));
   const inputsRef = useRef<(TextInput | null)[]>([]);
+  const hasCalledComplete = useRef(false);
 
   const handleChange = (text: string, index: number) => {
+    // Handle autofill - if text is longer than 1 character, split it
+    if (text.length > 1) {
+      const digits = text.slice(0, length).split("");
+      const newValues = [...values];
+
+      digits.forEach((digit, i) => {
+        if (index + i < length) {
+          newValues[index + i] = digit;
+        }
+      });
+
+      setValues(newValues);
+
+      // Focus the last filled input or the next empty one
+      const lastFilledIndex = Math.min(index + digits.length - 1, length - 1);
+      inputsRef.current[lastFilledIndex]?.focus();
+
+      hasCalledComplete.current = false;
+      return;
+    }
+
+    // Normal single character input
     const newValues = [...values];
     newValues[index] = text;
     setValues(newValues);
@@ -26,13 +49,21 @@ const OTPInput: React.FC<OTPInputProps> = ({ length = 6, onComplete }) => {
     if (!text && index > 0) {
       inputsRef.current[index - 1]?.focus();
     }
+
+    // Reset flag when user deletes
+    if (!text) {
+      hasCalledComplete.current = false;
+    }
   };
 
   useEffect(() => {
-    if (values.every((val) => val !== "")) {
+    const isComplete = values.every((val) => val.length === 1);
+
+    if (isComplete && !hasCalledComplete.current) {
+      hasCalledComplete.current = true;
       onComplete?.(values.join(""));
     }
-  }, [values, onComplete]);
+  }, [values]);
 
   return (
     <View style={styles.container}>
@@ -45,7 +76,7 @@ const OTPInput: React.FC<OTPInputProps> = ({ length = 6, onComplete }) => {
           value={value}
           onChangeText={(text) => handleChange(text, index)}
           keyboardType="number-pad"
-          maxLength={1}
+          maxLength={length} // Allow full length for autofill
           style={[
             styles.input,
             {
@@ -58,6 +89,8 @@ const OTPInput: React.FC<OTPInputProps> = ({ length = 6, onComplete }) => {
           placeholderTextColor="#DC6C3C"
           textAlign="center"
           selectionColor="#DC6C3C"
+          autoComplete="one-time-code" // Enable OTP autofill
+          textContentType="oneTimeCode" // iOS autofill
         />
       ))}
     </View>

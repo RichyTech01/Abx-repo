@@ -156,7 +156,7 @@ export default function Carts() {
       const updatedItems = cartItems.filter((item) => item.id !== cartItemId);
       setCartItems(updatedItems);
 
-      showToast("success", "Cart removed Successfully");
+      showToast("success", "Item removed Successfully");
     } catch (err) {
       console.error("Failed to remove item:", err);
     } finally {
