@@ -28,7 +28,7 @@ export default function OrderCard({
     <View className="bg-white border border-[#E5E7EB] rounded-[8px]">
       {/* Top Info */}
       <View className="border-b border-[#E5E7EB] px-[14.5px] py-[10px] flex-row items-center justify-between">
-        <View>
+        <View className="w-1/3">
           <Text className="text-[14px] leading-[20px] font-urbanist-medium text-[#111827]">
             Order number
           </Text>
@@ -37,7 +37,7 @@ export default function OrderCard({
           </UrbanistText>
         </View>
 
-        <View>
+        <View className="w-1/3">
           <Text className="text-[14px] leading-[20px] font-urbanist-medium text-[#111827]">
             Date placed
           </Text>
@@ -46,8 +46,8 @@ export default function OrderCard({
           </UrbanistText>
         </View>
 
-        <View>
-          <Text className="text-[14px] leading-[20px] font-urbanist-medium text-[#111827]">
+        <View className="w-1/3">
+          <Text className="text-[14px] leading-[20px] font-urbanist-medium text-[#111827] ">
             Total amount
           </Text>
           <UrbanistText className="text-[12px] leading-[16px] text-[#6B7280] mt-[4px]">
