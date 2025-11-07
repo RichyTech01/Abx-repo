@@ -1,28 +1,27 @@
-import {
-  View,
-  ScrollView,
-  Linking,
-  TouchableOpacity,
-  Text,
-} from "react-native";
-import ScreenWrapper from "@/common/ScreenWrapper";
-import OreAppText from "@/common/OreApptext";
-import UrbanistText from "@/common/UrbanistText";
-import ChatwithRepIcon from "@/assets/svgs/ChatRepIcon.svg";
-import SendEmailIcon from "@/assets/svgs/SendEmailIcon.svg";
-import CallIcon from "@/assets/svgs/CallIcon.svg";
-import CopyIcon from "@/assets/svgs/CopyIcon.svg";
-import * as Clipboard from "expo-clipboard";
-import SupportCard from "@/common/SupportCard";
-import { useRouter } from "expo-router";
-import showToast from "@/utils/showToast";
 import SupportApi from "@/api/SupportApi";
-import { useState } from "react";
+import CallIcon from "@/assets/svgs/CallIcon.svg";
+import ChatwithRepIcon from "@/assets/svgs/ChatRepIcon.svg";
+import CopyIcon from "@/assets/svgs/CopyIcon.svg";
+import SendEmailIcon from "@/assets/svgs/SendEmailIcon.svg";
+import OreAppText from "@/common/OreApptext";
+import ScreenWrapper from "@/common/ScreenWrapper";
+import SupportCard from "@/common/SupportCard";
+import UrbanistText from "@/common/UrbanistText";
 import ChatLoadingModal from "@/Modals/ChatLoadingModal";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
-
+import showToast from "@/utils/showToast";
+import Storage from "@/utils/Storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Clipboard from "expo-clipboard";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  Linking,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function Support() {
   const router = useRouter();
@@ -173,7 +172,10 @@ export default function Support() {
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["accessToken", "isGuest", ""]);
+          await Storage.multiRemove(["isGuest"]);
+
+          await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Support");
+
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

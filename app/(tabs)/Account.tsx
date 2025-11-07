@@ -85,6 +85,7 @@ export default function Account() {
                 } else {
                   await AsyncStorage.multiRemove(["isGuest"]);
                   router.replace("/Login");
+                  
                 }
               }}
             >

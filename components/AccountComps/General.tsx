@@ -9,6 +9,7 @@ import RescueAndSave from "@/assets/svgs/RAndSIcon.svg";
 import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import LogoutModal from "@/Modals/LogoutModal";
 import Storage from "@/utils/Storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function General() {
   const router = useRouter();
@@ -71,7 +72,10 @@ export default function General() {
         confirmText="Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["accessToken", "isGuest"]);
+          await Storage.multiRemove(["isGuest"]);
+
+          await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Account");
+
           router.replace("/Login");
         }}
       />

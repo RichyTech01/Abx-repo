@@ -276,7 +276,12 @@ export default function Carts() {
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["isGuest",]);
+          await Storage.multiRemove(["isGuest"]);
+
+          // Save where the user was before login
+          await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Carts");
+
+          // Now go to login
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

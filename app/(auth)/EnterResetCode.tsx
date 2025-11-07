@@ -7,6 +7,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from "react-native";
 import Resetpassheader from "@/common/Resetpassheader";
 import OTPInput from "@/common/OTPInput";
@@ -114,7 +115,8 @@ export default function EnterResetCode() {
             <Text className="text-[14px] leading-[20px] font-urbanist text-[#4A3223] flex-shrink">
               Still having issues getting your code?
             </Text>
-            <Pressable onPress={() => router.push("/Support")}>
+
+            <Pressable onPress={() => Linking.openURL("tel:+442012345678")}>
               <Text className="text-[14px] leading-[20px] font-urbanist text-[#0C513F] ml-[4px]">
                 Contact our support team
               </Text>

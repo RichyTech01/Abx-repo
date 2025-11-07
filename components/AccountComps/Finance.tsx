@@ -6,6 +6,8 @@ import ArrowRIght from "@/assets/svgs/ArrowRight.svg";
 import SpendingInsightIcon from "@/assets/svgs/SpendingInsightIcon.svg";
 import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import LogoutModal from "@/Modals/LogoutModal";
+import Storage from "@/utils/Storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Finance() {
   const { showModal, setShowModal, handleProtectedNavigation } =
@@ -43,7 +45,13 @@ export default function Finance() {
         message="Sorry! you have to login to access this screen"
         confirmText="Login"
         cancelText="Cancel"
-        onConfirm={() => router.replace("/Login")}
+        onConfirm={async () => {
+          await Storage.multiRemove(["isGuest"]);
+
+          await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Account");
+
+          router.replace("/Login");
+        }}
       />
     </View>
   );

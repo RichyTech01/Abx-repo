@@ -9,6 +9,7 @@ import AddressIcon from "@/assets/svgs/Address.Icon.svg";
 import LogoutModal from "@/Modals/LogoutModal";
 import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import Storage from "@/utils/Storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function MyAccountComps() {
   const { showModal, setShowModal, handleProtectedNavigation } =
@@ -83,7 +84,10 @@ export default function MyAccountComps() {
         confirmText="Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["isGuest", ]);
+          await Storage.multiRemove(["isGuest"]);
+
+          await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Account");
+
           router.replace("/Login");
         }}
       />

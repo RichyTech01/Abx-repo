@@ -65,10 +65,17 @@ export default function Login() {
         ["isLoggedIn", "true"],
       ]);
 
-      router.replace("/(tabs)");
-
       fetchUser();
       setErrors({});
+
+      const redirect = await AsyncStorage.getItem("redirectAfterLogin");
+
+      if (redirect) {
+        await AsyncStorage.removeItem("redirectAfterLogin");
+        router.replace(redirect as any);
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch (err: any) {
       console.log("Login error:", err);
       console.log("Full error response:", err.response?.data);
