@@ -3,10 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import React from "react";
 import SectionHeader from "@/common/SectionHeader";
 import { useRouter } from "expo-router";
-import ShopCard from "@/common/ShopCard";
+import ShopCard, { Shop } from "@/common/ShopCard";
 import { useClosestStores } from "@/hooks/useClosestStores";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import StoreApi from "@/api/StoreApi";
 import LogoutModal from "@/Modals/LogoutModal";
 import Storage from "@/utils/Storage";
 import { SkeletonCard } from "@/common/SkeletonCard";
@@ -19,12 +17,12 @@ type Props = {
 
 export default function ClosestShops({ refreshTrigger }: Props) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [loginVisible, setLoginVisible] = useState(false);
+  const [shops, setShops] = useState<Shop[]>([]);
   const shimmerAnim = useShimmerAnimation();
 
   const {
-    data: shops,
+    data: queryShops,
     isLoading,
     isError,
     refetch,
@@ -32,11 +30,36 @@ export default function ClosestShops({ refreshTrigger }: Props) {
     locationError,
   } = useClosestStores();
 
-  const favoriteMutation = useMutation({
-    mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["closestStores"] }),
+  const { handleFavoritePress } = useFavoriteShop({
+    shops,
+    setShops,
+    queryKey: ["closestStores"],
+    onLoginRequired: () => setLoginVisible(true),
   });
+
+  // Sync local state with query data and limit to 8 shops
+  useEffect(() => {
+    if (queryShops && queryShops.length > 0) {
+      const mappedShops: Shop[] = queryShops.slice(0, 8).map((store: any) => ({
+        id: store.id.toString(),
+        name: store.business_name,
+        image:
+          store.store_img ||
+          "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
+        distance: store.distance_km
+          ? `${parseFloat(store.distance_km).toFixed(1)}`
+          : "N/A",
+        rating: store.rating || 0,
+        isFavorite: store.is_favorited ?? false,
+        category: store.category || "General",
+        store_open: store.open_time,
+        store_close: store.close_time,
+      }));
+      setShops(mappedShops);
+    } else if (!isLoading && queryShops?.length === 0) {
+      setShops([]);
+    }
+  }, [queryShops, isLoading]);
 
   useEffect(() => {
     if (locationStatus === "success") {
@@ -61,32 +84,11 @@ export default function ClosestShops({ refreshTrigger }: Props) {
     />
   );
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({ item }: { item: Shop }) => (
     <ShopCard
-      shop={{
-        id: item.id.toString(),
-        name: item.business_name,
-        image:
-          item.store_img ||
-          "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
-        distance: item.distance_km
-          ? `${parseFloat(item.distance_km).toFixed(1)}`
-          : "N/A",
-        rating: item.rating || 0,
-        isFavorite: item.is_favorited ?? false,
-        category: item.category || "General",
-        store_open: item.open_time,
-        store_close: item.close_time,
-      }}
+      shop={item}
       width={254}
-      onFavoritePress={async () => {
-        const token = await Storage.get("accessToken");
-        if (!token) {
-          setLoginVisible(true);
-          return;
-        }
-        favoriteMutation.mutate(item.id);
-      }}
+      onFavoritePress={() => handleFavoritePress(item.id)}
     />
   );
 
@@ -112,9 +114,9 @@ export default function ClosestShops({ refreshTrigger }: Props) {
   } else {
     content = (
       <FlatList
-        data={shops || []}
+        data={shops}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
@@ -137,11 +139,11 @@ export default function ClosestShops({ refreshTrigger }: Props) {
 
       <LogoutModal
         title="Login Required"
-        message="Sorry! you need to go back to log in to favorite a shop."
+        message="Sorry! you need to log in to favorite a shop."
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["isGuest", ]);
+          await Storage.remove("isGuest");
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

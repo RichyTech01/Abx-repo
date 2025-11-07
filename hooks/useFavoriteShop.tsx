@@ -20,7 +20,36 @@ export const useFavoriteShop = ({
 
   const favoriteMutation = useMutation({
     mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
-    onSuccess: () => {
+    onMutate: async (storeId: string) => {
+      // Cancel any outgoing refetches to avoid overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey });
+
+      // Snapshot the previous value
+      const previousShops = shops;
+
+      // Optimistically update local state
+      setShops((prevShops) =>
+        prevShops.map((shop) =>
+          shop.id === storeId ? { ...shop, isFavorite: !shop.isFavorite } : shop
+        )
+      );
+
+      // Return context with previous value for rollback
+      return { previousShops };
+    },
+    onError: (error, storeId, context) => {
+      // Rollback to previous state on error
+      if (context?.previousShops) {
+        setShops(context.previousShops);
+      }
+    },
+    onSettled: () => {
+      // Invalidate all store-related queries to sync across all screens
+      queryClient.invalidateQueries({ queryKey: ["topRatedStores"] });
+      queryClient.invalidateQueries({ queryKey: ["closestStores"] });
+      queryClient.invalidateQueries({ queryKey: ["favoriteStores"] });
+      queryClient.invalidateQueries({ queryKey: ["AlltopRatedStores"] });
+      queryClient.invalidateQueries({ queryKey: ["AllclosestStores"] });
       queryClient.invalidateQueries({ queryKey });
     },
   });
@@ -32,21 +61,8 @@ export const useFavoriteShop = ({
       return;
     }
 
-    // Optimistic UI update
-    const prevShops = shops;
-    setShops((prevShops) =>
-      prevShops.map((shop) =>
-        shop.id === storeId ? { ...shop, isFavorite: !shop.isFavorite } : shop
-      )
-    );
-
-    // Call API
-    favoriteMutation.mutate(storeId, {
-      onError: () => {
-        // Rollback on error
-        setShops(prevShops);
-      },
-    });
+    // Call mutation
+    favoriteMutation.mutate(storeId);
   };
 
   return {
@@ -54,4 +70,3 @@ export const useFavoriteShop = ({
     isLoading: favoriteMutation.isPending,
   };
 };
-

@@ -5,8 +5,7 @@ import {
   RefreshControl,
   Animated,
 } from "react-native";
-import { useState, useEffect, useCallback, } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useCallback } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useRouter } from "expo-router";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
@@ -17,13 +16,13 @@ import { useNavigation } from "@react-navigation/native";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useLocationStore } from "@/store/locationStore";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
+import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 
 export default function FavouriteStore() {
   const { latitude, longitude } = useLocationStore();
 
   const router = useRouter();
   const navigation = useNavigation();
-  const queryClient = useQueryClient();
   const shimmerAnim = useShimmerAnimation();
 
   const [shops, setShops] = useState<Shop[]>([]);
@@ -32,6 +31,22 @@ export default function FavouriteStore() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const { handleFavoritePress: hookHandleFavoritePress } = useFavoriteShop({
+    shops,
+    setShops,
+    queryKey: ["favoriteStores"],
+  });
+
+  // Custom handler for favorite store screen - removes shop immediately
+  const handleFavoritePress = async (storeId: string) => {
+    // Optimistically remove from list
+    const prevShops = shops;
+    setShops((prev) => prev.filter((shop) => shop.id !== storeId));
+
+    // Call the hook's handler which will sync with API
+    await hookHandleFavoritePress(storeId);
+  };
 
   const fetchStores = async (
     pageNum: number,
@@ -83,25 +98,6 @@ export default function FavouriteStore() {
         append ? setLoadingMore(false) : setLoading(false);
       }
     }
-  };
-
-  const favoriteMutation = useMutation({
-    mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["favoriteStores"] }),
-  });
-
-  const handleFavoritePress = async (storeId: string) => {
-    // Optimistic remove
-    const prevShops = shops;
-    setShops((prev) => prev.filter((shop) => shop.id !== storeId));
-
-    // Call API
-    favoriteMutation.mutate(storeId, {
-      onError: () => {
-        setShops(prevShops);
-      },
-    });
   };
 
   const handleRefresh = async () => {

@@ -1,6 +1,5 @@
 import { View, FlatList } from "react-native";
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import React from "react";
 import SectionHeader from "@/common/SectionHeader";
@@ -20,11 +19,13 @@ type Props = {
 
 export default function TopratedShops({ refreshTrigger }: Props) {
   const { latitude, longitude } = useLocationStore();
-
   const router = useRouter();
-  const [loginVisible, setLoginVisible] = useState(false);
-  const [shops, setShops] = useState<Shop[]>([]);
   const shimmerAnim = useShimmerAnimation();
+
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [loginVisible, setLoginVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const { handleFavoritePress } = useFavoriteShop({
     shops,
     setShops,
@@ -32,20 +33,17 @@ export default function TopratedShops({ refreshTrigger }: Props) {
     onLoginRequired: () => setLoginVisible(true),
   });
 
-  const {
-    data: queryShops = [],
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = useQuery<Shop[]>({
-    queryKey: ["topRatedStores", latitude, longitude],
-    queryFn: async () => {
+  const fetchStores = async () => {
+    if (loading) return;
+
+    setLoading(true);
+
+    try {
       if (latitude == null || longitude == null) {
         throw new Error("Location not available");
       }
-      const res = await StoreApi.getTopRatedStores(latitude, longitude);
-      return res.results.map((store: any) => ({
+      const res = await StoreApi.getTopRatedStores(latitude, longitude, 1);
+      const newShops: Shop[] = res.results.slice(0, 8).map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
         image:
@@ -58,27 +56,26 @@ export default function TopratedShops({ refreshTrigger }: Props) {
           ? `${parseFloat(store.distance_km).toFixed(1)}`
           : "N/A",
       }));
-    },
-    enabled: latitude != null && longitude != null,
-    refetchOnMount: true,
-    staleTime: 0,
-  });
 
-  // Sync local state with query data
-  useEffect(() => {
-    if (queryShops.length > 0) {
-      setShops(queryShops);
-    } else if (!isLoading && !isFetching && queryShops.length === 0) {
-      // Only clear shops if we've finished loading and there's truly no data
-      setShops([]);
+      setShops(newShops);
+    } catch (err) {
+      console.error("Error fetching stores:", err);
+    } finally {
+      setLoading(false);
     }
-  }, [queryShops, isLoading, isFetching]);
+  };
 
   useEffect(() => {
     if (latitude && longitude) {
-      refetch();
+      fetchStores();
     }
-  }, [refreshTrigger, latitude, longitude]);
+  }, [latitude, longitude]);
+
+  useEffect(() => {
+    if (refreshTrigger && latitude && longitude) {
+      fetchStores();
+    }
+  }, [refreshTrigger]);
 
   const renderSkeletons = () => (
     <FlatList
@@ -106,50 +103,36 @@ export default function TopratedShops({ refreshTrigger }: Props) {
   );
 
   const ListEmptyComponent = () => {
-    if (isLoading || isFetching) {
+    if (loading) {
       return null;
     }
 
-    if (isError) {
-      return (
-        <OreAppText
-          style={{
-            textAlign: "center",
-            color: "#F04438",
-            fontSize: 14,
-          }}
-          className="justify-center items-center p-3 mx-auto text-center"
-        >
-          Failed to load top rated stores. Please try again.
-        </OreAppText>
-      );
-    }
-
-    // Show empty state only if we have location and still no data
     if (latitude != null && longitude != null) {
       return (
-        <OreAppText
+        <View
           style={{
-            textAlign: "center",
-            color: "#535353",
-            fontSize: 14,
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 20,
+            minHeight: 100,
           }}
-          className="justify-center items-center p-3 mx-auto text-center"
         >
-          No top rated stores available at the moment.
-        </OreAppText>
+          <OreAppText
+            style={{
+              textAlign: "center",
+              color: "#535353",
+              fontSize: 14,
+            }}
+          >
+            No top rated stores available at the moment.
+          </OreAppText>
+        </View>
       );
     }
 
     return null;
   };
-
-  // Show skeletons only on initial load
-  const shouldShowSkeletons =
-    (isLoading || isFetching) &&
-    shops.length === 0 &&
-    latitude != null &&
-    longitude != null;
 
   return (
     <View className="">
@@ -158,7 +141,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
         onPress={() => router.push("/Screens/HomeScreen/AllTopRatedStores")}
       />
 
-      {shouldShowSkeletons ? (
+      {loading && shops.length === 0 ? (
         renderSkeletons()
       ) : (
         <FlatList

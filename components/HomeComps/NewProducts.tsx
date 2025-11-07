@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useCallback, memo } from "react";
 import { View, FlatList, Text, Animated } from "react-native";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
@@ -13,7 +13,7 @@ type Props = {
   refreshTrigger: boolean;
 };
 
-const BestSelling = ({ refreshTrigger }: Props) => {
+const NewProducts = ({ refreshTrigger }: Props) => {
   const router = useRouter();
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedProductId, setSelectedProductId] = React.useState<
@@ -39,10 +39,13 @@ const BestSelling = ({ refreshTrigger }: Props) => {
     ).start();
   }, []);
 
-  // Fetch products
-  const { data, isLoading, error, refetch } = useQuery<ShopProductType[]>({
-    queryKey: ["bestSellingProducts", "home"],
-    queryFn: async () => await StoreApi.getPopularProducts(),
+  // Fetch products (same endpoint as AllProductScreen, but just first page)
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["NewProduct"],
+    queryFn: async () => {
+      const res = await StoreApi.getAllProducts({ page: 1 });
+      return res;
+    },
     staleTime: 5 * 60 * 1000,
   });
 
@@ -50,11 +53,11 @@ const BestSelling = ({ refreshTrigger }: Props) => {
     useQuery<ShopProductType>({
       queryKey: ["productDetails", selectedProductId],
       queryFn: () => StoreApi.getProduct(selectedProductId as number),
-      enabled: !!selectedProductId,
+      enabled: !!selectedProductId && modalVisible,
     });
 
-  // Slice for preview performance
-  const products = data?.slice(0, 10) ?? [];
+  // Extract products and limit to 8
+  const products = data?.results?.slice(0, 8) ?? [];
 
   const handleAddToCart = useCallback((id: number) => {
     setSelectedProductId(id);
@@ -126,7 +129,6 @@ const BestSelling = ({ refreshTrigger }: Props) => {
     />
   );
 
-  // Memoized renderItem
   const renderItem = useCallback(
     ({ item }: { item: ShopProductType }) => {
       const discountPercent = item.variations?.length
@@ -156,28 +158,54 @@ const BestSelling = ({ refreshTrigger }: Props) => {
   );
 
   const ListEmptyComponent = memo(() => (
-    <Text
-      style={{ marginVertical: 16, color: "#666", textAlign: "center" }}
-      className="items-center justify-center mx-auto"
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        minHeight: 200,
+      }}
     >
-      No best-selling products available at the moment.
-    </Text>
+      <Text
+        style={{
+          color: "black",
+          textAlign: "center",
+          fontSize: 14,
+        }}
+      >
+        No any new product available at the moment.
+      </Text>
+    </View>
   ));
 
   const ErrorComponent = memo(() => (
-    <Text
-      style={{ marginTop: 16, color: "red" }}
-      className="items-center justify-center mx-auto"
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        minHeight: 200,
+      }}
     >
-      Failed to load products
-    </Text>
+      <Text
+        style={{
+          color: "red",
+          textAlign: "center",
+          fontSize: 14,
+        }}
+      >
+        Failed to load products
+      </Text>
+    </View>
   ));
 
   return (
     <View>
       <SectionHeader
-        title="Best selling products"
-        onPress={() => router.push("/Screens/HomeScreen/BestSellingProducts")}
+        title="New products"
+        onPress={() => router.push("/Screens/HomeScreen/AllProductScreen")}
       />
 
       {isLoading ? (
@@ -222,4 +250,4 @@ const BestSelling = ({ refreshTrigger }: Props) => {
   );
 };
 
-export default memo(BestSelling);
+export default memo(NewProducts);
