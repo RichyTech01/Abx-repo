@@ -54,7 +54,6 @@ function BannerSlider() {
     });
   }, []);
 
-  // Auto-scroll logic
   useEffect(() => {
     scrollTimer.current = setInterval(() => {
       setCurrentIndex((prevIndex) => {
@@ -159,9 +158,10 @@ export default function Home() {
       const init = async () => {
         try {
           const access = await AsyncStorage.getItem("accessToken");
-          if (!access) return;
+          if (access) {
+            checkNotificationStatus();
+          }
 
-          checkNotificationStatus();
           await fetchCartCount();
         } catch (err) {
           setCartItems([]);

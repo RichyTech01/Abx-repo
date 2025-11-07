@@ -6,11 +6,7 @@ import {
   Platform,
 } from "react-native";
 import { useState, useEffect } from "react";
-import {
-  useStripe,
-  // initPaymentSheet,
-  // presentPaymentSheet,
-} from "@stripe/stripe-react-native";
+import { useStripe } from "@stripe/stripe-react-native";
 import Header from "@/common/Header";
 import OreAppText from "@/common/OreApptext";
 import UrbanistText from "@/common/UrbanistText";
@@ -40,13 +36,12 @@ export default function CheckOut() {
     try {
       const data = await OrderApi.getMyAddress();
       setAddress(data);
-      // console.log("Address fetched:", data);
     } catch (err: any) {
       if (err.response?.status === 404) {
-        console.warn("No address found for user. Please add one.");
+        showToast("error", "No address found for user. Please add one.");
         setAddress(null);
       } else {
-        console.error("Failed to fetch address:", err);
+        showToast("error", "Failed to fetch address:", err);
       }
     }
   };
@@ -56,7 +51,6 @@ export default function CheckOut() {
       try {
         const data = await OrderApi.checkout();
         setCartDetails(data);
-        // console.log("cartdeta", cartDetails)
       } catch (error) {
         console.error("Checkout error:", error);
       }
@@ -65,8 +59,6 @@ export default function CheckOut() {
     if (!user) fetchUser();
     fetchAddress();
   }, [user, fetchUser]);
-
-
 
   const initiatePaymentFlow = async () => {
     if (!address) {
@@ -79,7 +71,7 @@ export default function CheckOut() {
     if (!cartDetails?.grand_total) {
       showToast("error", "Cart total not found.");
       return;
-    }  
+    }
 
     try {
       setLoadingPayment(true);
@@ -88,7 +80,6 @@ export default function CheckOut() {
         total_price: cartDetails?.grand_total,
       });
 
-      // console.log("Payment response:", res);
       const clientSecret = res.client_secret;
 
       if (!clientSecret) {
@@ -99,7 +90,6 @@ export default function CheckOut() {
         return;
       }
 
-      // Initialize the Payment Sheet
       const { error: initError } = await initPaymentSheet({
         merchantDisplayName: "ABX Store",
         paymentIntentClientSecret: clientSecret,
@@ -134,7 +124,6 @@ export default function CheckOut() {
         return;
       }
 
-      // Present the Payment Sheet
       const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
@@ -145,8 +134,6 @@ export default function CheckOut() {
           showToast("error", presentError.message || "Payment failed.");
         }
       } else {
-        // Payment succeeded
-        // console.log("Payment succeeded!");
         await AsyncStorage.removeItem("cartId");
         showToast("success", "Payment completed successfully!");
         setShowSuccessModal(true);
@@ -172,9 +159,11 @@ export default function CheckOut() {
         <Header title="Check out" />
       </View>
 
+      {/* Scrollable Content */}
       <ScrollView
         contentContainerStyle={{ paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
+        className="flex-1"
       >
         {/* Contact Details */}
         <View className="py-[19px] bg-white px-[17px] mt-[32px] mx-[16px] rounded-[4.68px] border border-[#F1EAE7]">
@@ -222,7 +211,7 @@ export default function CheckOut() {
           </View>
         </View>
 
-        {/* Order Summary */}
+        {/* Order Summary - Items Only */}
         <View className="py-[16px] px-[8px] rounded-[8px] mt-[8px] mx-[16px] bg-white">
           <OreAppText className="text-[16px] leading-[17.14px] text-[#1A1A1A] mx-auto">
             Order Summary
@@ -246,51 +235,53 @@ export default function CheckOut() {
               </UrbanistText>
             )}
           </View>
-
-          {/* Totals */}
-          <View className="border-t border-[#F1EAE7] py-[4px] mt-[8px] mr-[11px] gap-[8px] ">
-            <View className="flex-row items-center justify-between">
-              <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                Sub total
-              </UrbanistText>
-              <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                €{cartDetails?.subtotal?.toFixed(2) ?? "0.00"}
-              </UrbanistText>
-            </View>
-            <View className="flex-row items-center justify-between">
-              <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                Delivery fee
-              </UrbanistText>
-              <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
-                €{cartDetails?.total_delivery_fee?.toFixed(2) ?? "0.00"}
-              </UrbanistText>
-            </View>
-            <View className="flex-row items-center justify-between">
-              <UrbanistText
-                className="text-[16px] text-[#2D2220] leading-[22px]"
-                style={{ fontFamily: "UrbanistSemiBold" }}
-              >
-                Total
-              </UrbanistText>
-              <UrbanistText
-                className="text-[16px] text-[#2D2220] leading-[22px]"
-                style={{ fontFamily: "UrbanistSemiBold" }}
-              >
-                €{cartDetails?.grand_total?.toFixed(2) ?? "0.00"}
-              </UrbanistText>
-            </View>
-          </View>
-
-          <View className="mt-[32px] mx-[10px]">
-            <Button
-              title={"Proceed to Payment"}
-              onPress={initiatePaymentFlow}
-              disabled={loadingPayment}
-              loading={loadingPayment}
-            />
-          </View>
         </View>
       </ScrollView>
+
+      {/* Sticky Bottom Section - Totals & Payment Button */}
+      <View className="bg-white border-t border-[#F1EAE7] px-[16px] py-[16px] mx-[16px] rounded-[4.68px] ">
+        <View className="gap-[8px]">
+          <View className="flex-row items-center justify-between">
+            <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
+              Sub total
+            </UrbanistText>
+            <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
+              €{cartDetails?.subtotal?.toFixed(2) ?? "0.00"}
+            </UrbanistText>
+          </View>
+          <View className="flex-row items-center justify-between">
+            <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
+              Delivery fee
+            </UrbanistText>
+            <UrbanistText className="text-[14px] text-[#2D2220] leading-[20px]">
+              €{cartDetails?.total_delivery_fee?.toFixed(2) ?? "0.00"}
+            </UrbanistText>
+          </View>
+          <View className="flex-row items-center justify-between border-t border-[#F1EAE7] pt-[8px]">
+            <UrbanistText
+              className="text-[16px] text-[#2D2220] leading-[22px]"
+              style={{ fontFamily: "UrbanistSemiBold" }}
+            >
+              Total
+            </UrbanistText>
+            <UrbanistText
+              className="text-[16px] text-[#2D2220] leading-[22px]"
+              style={{ fontFamily: "UrbanistSemiBold" }}
+            >
+              €{cartDetails?.grand_total?.toFixed(2) ?? "0.00"}
+            </UrbanistText>
+          </View>
+        </View>
+
+        <View className="mt-[16px]">
+          <Button
+            title={"Proceed to Payment"}
+            onPress={initiatePaymentFlow}
+            disabled={loadingPayment}
+            loading={loadingPayment}
+          />
+        </View>
+      </View>
 
       {showModal && (
         <AddDeliveryAddressModal

@@ -31,9 +31,12 @@ export default function TopratedShops({ refreshTrigger }: Props) {
     queryKey: ["topRatedStores"],
     onLoginRequired: () => setLoginVisible(true),
   });
+
   const {
     data: queryShops = [],
     isLoading,
+    isFetching,
+    isError,
     refetch,
   } = useQuery<Shop[]>({
     queryKey: ["topRatedStores", latitude, longitude],
@@ -65,14 +68,17 @@ export default function TopratedShops({ refreshTrigger }: Props) {
   useEffect(() => {
     if (queryShops.length > 0) {
       setShops(queryShops);
+    } else if (!isLoading && !isFetching && queryShops.length === 0) {
+      // Only clear shops if we've finished loading and there's truly no data
+      setShops([]);
     }
-  }, [queryShops]);
+  }, [queryShops, isLoading, isFetching]);
 
   useEffect(() => {
     if (latitude && longitude) {
       refetch();
     }
-  }, [refreshTrigger]);
+  }, [refreshTrigger, latitude, longitude]);
 
   const renderSkeletons = () => (
     <FlatList
@@ -99,18 +105,51 @@ export default function TopratedShops({ refreshTrigger }: Props) {
     />
   );
 
-  const ListEmptyComponent = () => (
-    <OreAppText
-      style={{
-        textAlign: "center",
-        color: "red",
-        fontSize: 14,
-      }}
-      className="justify-center items-center p-3 mx-auto text-center "
-    >
-      No top rated stores available at the moment.
-    </OreAppText>
-  );
+  const ListEmptyComponent = () => {
+    if (isLoading || isFetching) {
+      return null;
+    }
+
+    if (isError) {
+      return (
+        <OreAppText
+          style={{
+            textAlign: "center",
+            color: "#F04438",
+            fontSize: 14,
+          }}
+          className="justify-center items-center p-3 mx-auto text-center"
+        >
+          Failed to load top rated stores. Please try again.
+        </OreAppText>
+      );
+    }
+
+    // Show empty state only if we have location and still no data
+    if (latitude != null && longitude != null) {
+      return (
+        <OreAppText
+          style={{
+            textAlign: "center",
+            color: "#535353",
+            fontSize: 14,
+          }}
+          className="justify-center items-center p-3 mx-auto text-center"
+        >
+          No top rated stores available at the moment.
+        </OreAppText>
+      );
+    }
+
+    return null;
+  };
+
+  // Show skeletons only on initial load
+  const shouldShowSkeletons =
+    (isLoading || isFetching) &&
+    shops.length === 0 &&
+    latitude != null &&
+    longitude != null;
 
   return (
     <View className="">
@@ -119,7 +158,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
         onPress={() => router.push("/Screens/HomeScreen/AllTopRatedStores")}
       />
 
-      {isLoading || (shops.length === 0 && latitude == null) ? (
+      {shouldShowSkeletons ? (
         renderSkeletons()
       ) : (
         <FlatList
@@ -143,7 +182,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["isGuest", "cartId"]);
+          await Storage.remove("isGuest");
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

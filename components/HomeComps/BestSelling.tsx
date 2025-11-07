@@ -54,7 +54,7 @@ export default function BestSelling({ refreshTrigger }: Props) {
       enabled: !!selectedProductId,
     });
 
-  const products = data ?? [];
+  const products = data?.slice(0, 10) ?? [];
 
   const handleAddToCart = (id: number) => {
     setSelectedProductId(id);
@@ -207,6 +207,7 @@ export default function BestSelling({ refreshTrigger }: Props) {
             paddingVertical: 8,
           }}
           ListEmptyComponent={ListEmptyComponent}
+          removeClippedSubviews
         />
       )}
 

@@ -27,29 +27,24 @@ const GoogleAuth: React.FC<Props> = ({
   useEffect(() => {
     GoogleSignin.configure({
       webClientId: WEB_CLIENT_ID,
-      offlineAccess: false,
       iosClientId: IOS_CLIENT_ID,
+      offlineAccess: true,
     });
   }, []);
 
   const handleGoogleSignIn = async () => {
     try {
-      // Check if device supports Google Play Services
-      await GoogleSignin.hasPlayServices();
+      await GoogleSignin.hasPlayServices({
+        showPlayServicesUpdateDialog: true,
+      });
 
-      // Sign in and get user info
-      await GoogleSignin.signIn();
-
-      // Retrieve tokens (idToken/accessToken) separately to satisfy typings
       const tokens = await GoogleSignin.getTokens();
-      const idToken = tokens.idToken;
 
-      if (!idToken) {
-        throw new Error("No ID token received");
+      if (!tokens.idToken) {
+        showToast("error", "No ID token received from Google");
       }
 
-      // Send to your backend
-      const res = await AuthApi.googleSignIn({ token: idToken });
+      const res = await AuthApi.googleSignIn({ token: tokens.idToken });
 
       await AsyncStorage.setItem("accessToken", res.access);
       await AsyncStorage.setItem("refreshToken", res.refresh);
@@ -63,21 +58,17 @@ const GoogleAuth: React.FC<Props> = ({
         showToast("success", "Logged in successfully!");
       }
     } catch (error: any) {
-      console.log("Google sign-in error:", error);
-
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // User cancelled the sign-in
         showToast("info", "Sign-in cancelled");
       } else if (error.code === statusCodes.IN_PROGRESS) {
-        // Sign-in already in progress
         showToast("info", "Sign-in in progress...");
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // Play services not available or outdated
         showToast("error", "Google Play Services not available");
       } else {
         const errorMessage =
           error?.response?.data?.detail ||
           error?.response?.data?.message ||
+          error?.message ||
           "Google sign-in failed.";
         showToast("error", errorMessage);
       }

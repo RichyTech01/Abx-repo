@@ -1,19 +1,19 @@
-import { View, Text, FlatList, Animated } from "react-native";
-import React, { useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useEffect, useRef, useCallback, memo } from "react";
+import { View, FlatList, Text, Animated } from "react-native";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
+import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
-import { ShopProductType, ProductVariation } from "@/types/store";
-import { isStoreOpen } from "@/utils/storeStatus";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
+import { isStoreOpen } from "@/utils/storeStatus";
+import { ProductVariation, ShopProductType } from "@/types/store";
 import { useRouter } from "expo-router";
 
 type Props = {
   refreshTrigger: boolean;
 };
 
-export default function NewProducts({ refreshTrigger }: Props) {
+const BestSelling = ({ refreshTrigger }: Props) => {
   const router = useRouter();
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedProductId, setSelectedProductId] = React.useState<
@@ -21,6 +21,7 @@ export default function NewProducts({ refreshTrigger }: Props) {
   >(null);
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
+  // Shimmer animation
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -38,11 +39,11 @@ export default function NewProducts({ refreshTrigger }: Props) {
     ).start();
   }, []);
 
-  const { data, isLoading, error, refetch } = useQuery<{
-    results: ShopProductType[];
-  }>({
-    queryKey: ["newProducts"],
-    queryFn: () => StoreApi.getAllProducts(),
+  // Fetch products
+  const { data, isLoading, error, refetch } = useQuery<ShopProductType[]>({
+    queryKey: ["bestSellingProducts", "home"],
+    queryFn: async () => await StoreApi.getPopularProducts(),
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: productDetails, isLoading: productLoading } =
@@ -52,18 +53,21 @@ export default function NewProducts({ refreshTrigger }: Props) {
       enabled: !!selectedProductId,
     });
 
-  const products = data?.results.slice(0, 8) ?? [];
+  // Slice for preview performance
+  const products = data?.slice(0, 10) ?? [];
 
-  const handleAddToCart = (id: number) => {
+  const handleAddToCart = useCallback((id: number) => {
     setSelectedProductId(id);
     setModalVisible(true);
-  };
+  }, []);
 
+  // Refetch on refreshTrigger change
   useEffect(() => {
-    refetch();
-  }, [refreshTrigger]);
+    if (refreshTrigger) refetch();
+  }, [refreshTrigger, refetch]);
 
-  const SkeletonCard = () => {
+  // Memoized shimmer skeleton
+  const SkeletonCard = memo(() => {
     const opacity = shimmerAnim.interpolate({
       inputRange: [0, 1],
       outputRange: [0.3, 0.7],
@@ -90,36 +94,22 @@ export default function NewProducts({ refreshTrigger }: Props) {
           }}
         />
         <View style={{ paddingHorizontal: 12 }}>
-          <View
-            style={{
-              width: "80%",
-              height: 14,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-              marginBottom: 6,
-            }}
-          />
-          <View
-            style={{
-              width: "60%",
-              height: 12,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-              marginBottom: 8,
-            }}
-          />
-          <View
-            style={{
-              width: "40%",
-              height: 16,
-              backgroundColor: "#C4D1DA",
-              borderRadius: 4,
-            }}
-          />
+          {[80, 60, 40].map((width, i) => (
+            <View
+              key={i}
+              style={{
+                width: `${width}%`,
+                height: i === 2 ? 16 : 12,
+                backgroundColor: "#C4D1DA",
+                borderRadius: 4,
+                marginBottom: i < 2 ? 6 : 0,
+              }}
+            />
+          ))}
         </View>
       </Animated.View>
     );
-  };
+  });
 
   const renderSkeletons = () => (
     <FlatList
@@ -136,54 +126,58 @@ export default function NewProducts({ refreshTrigger }: Props) {
     />
   );
 
-  const renderItem = ({ item }: { item: ShopProductType }) => {
-    const discountPercent = item.variations?.length
-      ? Math.max(...item.variations.map((v) => Number(v.discount_per ?? 0)))
-      : null;
+  // Memoized renderItem
+  const renderItem = useCallback(
+    ({ item }: { item: ShopProductType }) => {
+      const discountPercent = item.variations?.length
+        ? Math.max(...item.variations.map((v) => Number(v.discount_per ?? 0)))
+        : null;
 
-    return (
-      <ProductCard
-        productId={item.id.toString()}
-        productName={item.item_name}
-        priceRange={`€${item.min_price} - €${item.max_price}`}
-        isShopOpen={true}
-        rating={4.9}
-        onAddToCart={() => handleAddToCart(item.id)}
-        ProductImg={{ uri: item.prod_image_url }}
-        store_open={item.store?.open_time}
-        store_close={item.store?.close_time}
-        discountPercent={
-          discountPercent && discountPercent > 0
-            ? discountPercent.toString()
-            : null
-        }
-      />
-    );
-  };
-
-  const ListEmptyComponent = () => (
-    <Text
-      className="items-center justify-center mx-auto"
-      style={{ marginTop: 16, color: "#666", textAlign: "center" }}
-    >
-      No new products available at the moment.
-    </Text>
+      return (
+        <ProductCard
+          productId={item.id.toString()}
+          productName={item.item_name}
+          priceRange={`€${item.min_price} - €${item.max_price}`}
+          isShopOpen={true}
+          rating={4.9}
+          onAddToCart={() => handleAddToCart(item.id)}
+          ProductImg={{ uri: item.prod_image_url }}
+          store_open={item.store?.open_time}
+          store_close={item.store?.close_time}
+          discountPercent={
+            discountPercent && discountPercent > 0
+              ? discountPercent.toString()
+              : null
+          }
+        />
+      );
+    },
+    [handleAddToCart]
   );
 
-  const ErrorComponent = () => (
+  const ListEmptyComponent = memo(() => (
     <Text
+      style={{ marginVertical: 16, color: "#666", textAlign: "center" }}
       className="items-center justify-center mx-auto"
-      style={{ marginTop: 16, color: "red", textAlign: "center" }}
     >
-      Failed to load new products
+      No best-selling products available at the moment.
     </Text>
-  );
+  ));
+
+  const ErrorComponent = memo(() => (
+    <Text
+      style={{ marginTop: 16, color: "red" }}
+      className="items-center justify-center mx-auto"
+    >
+      Failed to load products
+    </Text>
+  ));
 
   return (
     <View>
       <SectionHeader
-        title="New products"
-        onPress={() => router.push("/Screens/HomeScreen/AllProductScreen")}
+        title="Best selling products"
+        onPress={() => router.push("/Screens/HomeScreen/BestSellingProducts")}
       />
 
       {isLoading ? (
@@ -197,12 +191,16 @@ export default function NewProducts({ refreshTrigger }: Props) {
           keyExtractor={(item) => item.id.toString()}
           horizontal
           showsHorizontalScrollIndicator={false}
+          removeClippedSubviews
           contentContainerStyle={{
             paddingHorizontal: 20,
             gap: 24,
             paddingVertical: 8,
           }}
           ListEmptyComponent={ListEmptyComponent}
+          initialNumToRender={8}
+          maxToRenderPerBatch={10}
+          windowSize={5}
         />
       )}
 
@@ -222,4 +220,6 @@ export default function NewProducts({ refreshTrigger }: Props) {
       />
     </View>
   );
-}
+};
+
+export default memo(BestSelling);

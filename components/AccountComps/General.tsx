@@ -71,7 +71,7 @@ export default function General() {
         confirmText="Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["accessToken", "isGuest", "cartId"]);
+          await Storage.multiRemove(["accessToken", "isGuest"]);
           router.replace("/Login");
         }}
       />

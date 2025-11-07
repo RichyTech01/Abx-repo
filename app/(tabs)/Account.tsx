@@ -83,7 +83,7 @@ export default function Account() {
                 if (hasToken) {
                   setShowModal(true);
                 } else {
-                  await AsyncStorage.multiRemove(["isGuest", "cartId"]);
+                  await AsyncStorage.multiRemove(["isGuest"]);
                   router.replace("/Login");
                 }
               }}

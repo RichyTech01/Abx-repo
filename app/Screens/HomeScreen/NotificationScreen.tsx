@@ -109,37 +109,37 @@ export default function NotificationScreen() {
     });
   };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      const unreadNotifications = notifications.filter((n) => !n.is_read);
+  // const handleMarkAllAsRead = async () => {
+  //   try {
+  //     const unreadNotifications = notifications.filter((n) => !n.is_read);
 
-      if (unreadNotifications.length === 0) {
-        showToast("info", "All notifications are already read");
-        return;
-      }
+  //     if (unreadNotifications.length === 0) {
+  //       showToast("info", "All notifications are already read");
+  //       return;
+  //     }
 
-      await Promise.all(
-        unreadNotifications.map((n) =>
-          NotificationApi.markAsReadPartial(n.id, {
-            title: n.title,
-            message: n.message,
-            notification_type: n.notification_type,
-            data: n.data,
-          })
-        )
-      );
+  //     await Promise.all(
+  //       unreadNotifications.map((n) =>
+  //         NotificationApi.markAsReadPartial(n.id, {
+  //           title: n.title,
+  //           message: n.message,
+  //           notification_type: n.notification_type,
+  //           data: n.data,
+  //         })
+  //       )
+  //     );
 
-      // Update store
-      markAllAsRead();
-      showToast(
-        "success",
-        `Marked ${unreadNotifications.length} notifications as read`
-      );
-    } catch (err) {
-      console.error("Error marking all as read", err);
-      showToast("error", "Failed to mark notifications as read");
-    }
-  };
+  //     // Update store
+  //     markAllAsRead();
+  //     showToast(
+  //       "success",
+  //       `Marked ${unreadNotifications.length} notifications as read`
+  //     );
+  //   } catch (err) {
+  //     console.error("Error marking all as read", err);
+  //     showToast("error", "Failed to mark notifications as read");
+  //   }
+  // };
 
   const handleLoadMore = useCallback(() => {
     if (hasMore && !loadingMore && hasToken) {
@@ -178,7 +178,7 @@ export default function NotificationScreen() {
         )} */}
 
         <View className="mx-[20px] mt-[16px] h-scree">
-          {loading && notifications.length === 0 ? (
+          {loading ? (
             <LoadingSpinner />
           ) : (
             <FlatList

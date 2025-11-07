@@ -171,7 +171,7 @@ export default function AllClosestShops() {
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["isGuest", "cartId"]);
+          await Storage.multiRemove(["isGuest",]);
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

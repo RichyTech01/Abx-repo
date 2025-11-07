@@ -31,7 +31,7 @@ export default function CartItemCard({
         <View className="w-[148px] h-[118px] items-center justify-center">
           <View className="bg-[#F6C16E] h-[24px] w-[24px] rounded-full absolute z-10 items-center justify-center right-0 top-0">
             <UrbanistText className="text-[13px] leading-[22px] text-[#000]">
-              {quantity}
+              {quantity} 
             </UrbanistText>
           </View>
           <Image
@@ -45,7 +45,7 @@ export default function CartItemCard({
             className="text-[16px] leading-[22px] text-[#4D4D4D]"
             style={{ fontFamily: "UrbanistMedium" }}
           >
-            {name}
+            {name} 
           </UrbanistText>
           <UrbanistText
             className="text-[14px] leading-[20px] text-[#2D2220] mt-[4px]"
