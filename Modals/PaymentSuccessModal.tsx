@@ -1,15 +1,15 @@
+import SuccesLog from "@/assets/svgs/PasswordResetSuccessicon.svg";
+import Button from "@/common/Button";
+import OreAppText from "@/common/OreApptext";
+import UrbanistText from "@/common/UrbanistText";
 import React from "react";
 import {
-  Modal,
-  Pressable,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  Pressable,
   View,
 } from "react-native";
-import OreAppText from "@/common/OreApptext";
-import Button from "@/common/Button";
-import SuccesLog from "@/assets/svgs/PasswordResetSuccessicon.svg";
-import UrbanistText from "@/common/UrbanistText";
 
 type PaymentSuccessModalProps = {
   visible: boolean;

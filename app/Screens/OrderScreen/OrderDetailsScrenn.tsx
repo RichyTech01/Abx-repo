@@ -47,7 +47,6 @@ export default function OrderDetailsScrenn() {
     ).start();
   }, []);
 
-  // Fetch order initially
   useEffect(() => {
     setLoading(true);
     const fetchOrder = async () => {
@@ -68,7 +67,6 @@ export default function OrderDetailsScrenn() {
     // Get the original callback from global MQTT handler
     const originalCallback = MQTTClient.getMessageCallback();
 
-    // Create a combined callback that updates this screen AND calls the original
     const combinedCallback = (notification: Notification) => {
       // Check if this notification is for the current order
       const notificationOrderId = notification.data?.order_id?.toString();
@@ -87,7 +85,6 @@ export default function OrderDetailsScrenn() {
         OrderApi.getCustomerOrderById(id)
           .then((refreshedOrder) => {
             setOrder(refreshedOrder);
-            console.log("🔄 Order data refreshed from server");
           })
           .catch((err) => {
             console.error("Failed to refresh order data:", err);
@@ -344,7 +341,6 @@ export default function OrderDetailsScrenn() {
         }
         tittle="Write a Review"
         onClose={() => setShowModal((prev) => !prev)}
-        onSecondPress={() => console.log("Secondary pressed")}
       />
     </ScreenWrapper>
   );

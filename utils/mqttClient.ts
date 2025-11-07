@@ -23,13 +23,13 @@ class MQTTClient {
 
   public connect(userId: string, onMessageCallback: MessageCallback): void {
     if (!userId) {
-      console.error("❌ User ID is required for MQTT connection");
+      // console.error("❌ User ID is required for MQTT connection");
       return;
     }
 
     // If already connected to the same user, just update callback
     if (this.isConnected && this.currentUserId === userId) {
-      console.log("🔄 Already connected to MQTT for user:", userId);
+      // console.log("🔄 Already connected to MQTT for user:", userId);
       this.messageCallback = onMessageCallback; // Update callback
       return;
     }
@@ -82,23 +82,23 @@ class MQTTClient {
           // Call the callback with the new notification
           this.messageCallback?.(notification);
         } catch (error) {
-          console.error("❌ Error parsing notification:", error);
-          console.error("❌ Raw message was:", message.toString());
+          // console.error("❌ Error parsing notification:", error);
+          // console.error("❌ Raw message was:", message.toString());
         }
       });
 
       this.client.on("error", (error: Error) => {
-        console.error("❌ MQTT Error:", error);
+        // console.error("❌ MQTT Error:", error);
         this.isConnected = false;
       });
 
       this.client.on("close", () => {
-        console.log("🔌 MQTT Connection closed");
+        // console.log("🔌 MQTT Connection closed");
         this.isConnected = false;
       });
 
       this.client.on("offline", () => {
-        console.log("📴 MQTT Client offline");
+        // console.log("📴 MQTT Client offline");
         this.isConnected = false;
       });
 
@@ -120,7 +120,6 @@ class MQTTClient {
 
   public disconnect(): void {
     if (this.client) {
-      console.log("🔌 Disconnecting MQTT client...");
       this.client.end(true); // Force close
       this.isConnected = false;
       this.messageCallback = null;
