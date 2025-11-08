@@ -1,16 +1,10 @@
-import {
-  View,
-  FlatList,
-  Platform,
-  RefreshControl,
-} from "react-native";
-import React, { useState, useCallback, useEffect, useRef } from "react";
+// AllClosestShops.tsx
+import { View, FlatList, Platform, RefreshControl } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import ScreenWrapper from "@/common/ScreenWrapper";
-import NoData from "@/common/NoData";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
@@ -19,21 +13,28 @@ import { useLocationStore } from "@/store/locationStore";
 import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
+import OreAppText from "@/common/OreApptext";
 
 export default function AllClosestShops() {
-  const { latitude, longitude } = useLocationStore();
-
-  const queryClient = useQueryClient();
   const router = useRouter();
-  const shimmerAnim = useShimmerAnimation();
+  const {
+    latitude,
+    longitude,
+    hasPermission,
+    isLoading: locationIsLoading,
+  } = useLocationStore();
 
+  const shimmerAnim = useShimmerAnimation();
+  const hasFetchedRef = useRef(false);
+  
   const [shops, setShops] = useState<Shop[]>([]);
   const [loginVisible, setLoginVisible] = useState(false);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
   const { handleFavoritePress } = useFavoriteShop({
     shops,
     setShops,
@@ -41,22 +42,25 @@ export default function AllClosestShops() {
     onLoginRequired: () => setLoginVisible(true),
   });
 
-  const fetchStores = async (
-    pageNum: number,
-    append = false,
-    isRefreshing = false
-  ) => {
-    if (loading || loadingMore) return;
+  const canFetch =
+    !locationIsLoading &&
+    hasPermission === true &&
+    latitude != null &&
+    longitude != null;
 
-    if (!isRefreshing) {
-      append ? setLoadingMore(true) : setLoading(true);
-    }
+  const fetchStores = async (pageNum: number = 1, append = false) => {
+    if (!canFetch) return;
+
+    if (!append) setLoading(true);
+    if (append) setLoadingMore(true);
 
     try {
-      if (latitude == null || longitude == null) {
-        throw new Error("Location not available");
-      }
-      const res = await StoreApi.getNearestStores(latitude, longitude, pageNum);
+      const res = await StoreApi.getNearestStores(
+        latitude!,
+        longitude!,
+        pageNum
+      );
+      
       const newShops: Shop[] = res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
@@ -68,54 +72,140 @@ export default function AllClosestShops() {
         isFavorite: store.is_favorited ?? false,
         rating: store.store_rating,
         distance: store.distance_km
-          ? `${parseFloat(store.distance_km).toFixed(1)}`
+          ? `${parseFloat(store.distance_km).toFixed(1)} km`
           : "N/A",
       }));
 
       setShops((prev) => (append ? [...prev, ...newShops] : newShops));
-
-      setHasMore(res.next !== null);
-    } catch (err) {
-      console.error("Error fetching closest stores:", err);
-    } finally {
-      if (!isRefreshing) {
-        append ? setLoadingMore(false) : setLoading(false);
+      
+      // Check for both null and empty string
+      setHasMore(res.next !== null && res.next !== "" && res.next !== undefined);
+      
+      if (append) {
+        setPage(pageNum);
       }
+    } catch (err) {
+      console.error("Error fetching stores:", err);
+      if (!append) setShops([]);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
   };
+
+  useEffect(() => {
+    if (!hasFetchedRef.current && canFetch) {
+      hasFetchedRef.current = true;
+      fetchStores(1);
+    }
+  }, [canFetch]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     setPage(1);
-    await fetchStores(1, false, true);
+    setHasMore(true);
+    await fetchStores(1);
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    fetchStores(1, false);
-  }, []);
-
-  const handleLoadMore = useCallback(() => {
-    if (hasMore && !loadingMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchStores(nextPage, true);
+  const handleLoadMore = () => {
+    if (hasMore && !loadingMore && !loading) {
+      fetchStores(page + 1, true);
     }
-  }, [page, hasMore, loadingMore]);
+  };
 
   const renderSkeletons = () => (
-    <View
-      style={{
-        paddingBottom: Platform.OS === "ios" ? 20 : 40,
-        marginHorizontal: 20,
-        paddingTop: 15,
-      }}
-    >
-      {[1, 2, 3, 4].map((item) => (
-        <SkeletonCard key={item} shimmerAnim={shimmerAnim} />
+    <View style={{ marginHorizontal: 20, paddingTop: 15, gap: 24 }}>
+      {[1, 2, 3, 4].map((i) => (
+        <SkeletonCard key={i} shimmerAnim={shimmerAnim} />
       ))}
     </View>
   );
+
+  const ListEmptyComponent = () => {
+    if (loading && canFetch) return null;
+
+    if (locationIsLoading) {
+      return (
+        <View className="py-20 px-6">
+          <OreAppText
+            style={{ textAlign: "center", color: "#888", fontSize: 16 }}
+          >
+            Getting your location...
+          </OreAppText>
+        </View>
+      );
+    }
+
+    if (hasPermission === false) {
+      return (
+        <View className="py-20 px-6">
+          <OreAppText
+            style={{
+              textAlign: "center",
+              color: "#F04438",
+              fontSize: 16,
+              fontWeight: "600",
+            }}
+          >
+            Location access not permitted
+          </OreAppText>
+          <OreAppText
+            style={{
+              textAlign: "center",
+              color: "#535353",
+              fontSize: 14,
+              marginTop: 8,
+            }}
+          >
+            Enable location in settings to see nearby stores
+          </OreAppText>
+        </View>
+      );
+    }
+
+    if (!latitude || !longitude) {
+      return (
+        <View className="py-20 px-6">
+          <OreAppText
+            style={{ textAlign: "center", color: "#888", fontSize: 16 }}
+          >
+            Waiting for your location...
+          </OreAppText>
+          <OreAppText
+            style={{
+              textAlign: "center",
+              color: "#666",
+              fontSize: 13,
+              marginTop: 8,
+            }}
+          >
+            Make sure location services are enabled
+          </OreAppText>
+        </View>
+      );
+    }
+
+    return (
+      <View className="py-20 px-6">
+        <OreAppText
+          style={{ textAlign: "center", color: "#535353", fontSize: 16 }}
+        >
+          No nearby stores found
+        </OreAppText>
+        <OreAppText
+          style={{
+            textAlign: "center",
+            color: "#888",
+            fontSize: 14,
+            marginTop: 8,
+          }}
+        >
+          Try moving to a different area
+        </OreAppText>
+      </View>
+    );
+  };
 
   return (
     <ScreenWrapper>
@@ -123,55 +213,53 @@ export default function AllClosestShops() {
         <HeaderWithSearchInput label="Closest shops" />
       </View>
 
-      {loading ? (
+      {loading && shops.length === 0 && canFetch ? (
         renderSkeletons()
       ) : (
         <FlatList
           data={shops}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ShopCard
+              shop={item}
+              onFavoritePress={() => handleFavoritePress(item.id)}
+            />
+          )}
           contentContainerStyle={{
             paddingBottom: Platform.OS === "ios" ? 20 : 40,
             marginHorizontal: 20,
             paddingTop: 15,
             gap: 24,
           }}
-          keyExtractor={(shop, index) => `store-${shop.id}-${index}`}
-          renderItem={({ item: shop }) => (
-            <ShopCard
-              shop={shop}
-              onFavoritePress={() => handleFavoritePress(shop.id)}
-            />
-          )}
           onEndReached={handleLoadMore}
-          onEndReachedThreshold={0}
+          onEndReachedThreshold={0.5}
           ListFooterComponent={
             loadingMore && hasMore ? (
-              <View className="py-4 items-center">
+              <View className="py-6 items-center">
                 <LoadingSpinner />
               </View>
             ) : null
           }
-          ListEmptyComponent={
-            <View className="py-10">
-              <NoData
-                title="No nearby stores"
-                subtitle="No closest stores available at the moment."
-              />
-            </View>
-          }
+          ListEmptyComponent={<ListEmptyComponent />}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={["#0C513F"]}
+              tintColor="#0C513F"
+            />
           }
         />
       )}
 
       <LogoutModal
         title="Login Required"
-        message="Sorry! you need to go back to log in to favorite a shop."
+        message="Sorry! you need to log in to favorite a shop."
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["isGuest",]);
+          await Storage.remove("isGuest");
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

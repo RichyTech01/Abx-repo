@@ -12,9 +12,9 @@ interface CategoryCardProps {
   image: ImageSourcePropType;
   title: string;
   subtitle: string;
-  width?: number
+  width?: number;
   paddingY?: number;
-  onPress: () => void
+  onPress: () => void;
 }
 
 export default function CategoryCard({
@@ -25,7 +25,7 @@ export default function CategoryCard({
   image,
   width = 176,
   paddingY = 20,
-  onPress
+  onPress,
 }: CategoryCardProps) {
   return (
     <Pressable

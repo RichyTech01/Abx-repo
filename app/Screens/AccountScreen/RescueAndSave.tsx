@@ -1,5 +1,5 @@
 import { View, Dimensions, FlatList, RefreshControl } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -13,9 +13,12 @@ import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
 import NoData from "@/common/NoData";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
+import { useLocationStore } from "@/store/locationStore";
+import { getDistanceInKm } from "@/utils/getDistanceInKm";
 
 export default function RescueAndSave() {
   const router = useRouter();
+  const { latitude, longitude } = useLocationStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [productDetails, setProductDetails] = useState<any>(null);
   const [productLoading, setProductLoading] = useState(false);
@@ -44,6 +47,25 @@ export default function RescueAndSave() {
         return { results: allResults };
       },
     }
+  );
+
+  // Calculate distance for a product
+  const calculateDistance = useCallback(
+    (product: ShopProductType): number => {
+      if (
+        latitude == null ||
+        longitude == null ||
+        !product.store?.store_address?.location?.coordinates
+      ) {
+        return 0;
+      }
+
+      const storeLon = product.store.store_address.location.coordinates[0];
+      const storeLat = product.store.store_address.location.coordinates[1];
+
+      return getDistanceInKm(latitude, longitude, storeLat, storeLon);
+    },
+    [latitude, longitude]
   );
 
   const handleRefresh = async () => {
@@ -105,38 +127,43 @@ export default function RescueAndSave() {
                 justifyContent: "space-between",
                 marginBottom: GAP,
               }}
-              renderItem={({ item }) => (
-                <View style={{ width: ITEM_WIDTH }}>
-                  <CategoryProduct
-                    image={{ uri: item.prod_image_url }}
-                    name={item.item_name}
-                    price={`€${item.min_price} - €${item.max_price}`}
-                    rating={2}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/Screens/HomeScreen/ProductDetails",
-                        params: { id: item.id },
-                      })
-                    }
-                    onAddToCart={() => handleAddToCart(item.id)}
-                    isOutOfStock={
-                      item.variations?.[0]?.stock === 0 ||
-                      !item.variations?.length
-                    }
-                    isOpen={
-                      item.store
-                        ? isStoreOpen(
-                            item.store.open_time,
-                            item.store.close_time
-                          )
-                        : false
-                    }
-                    discountPercent={
-                      Number(item.variations?.[0]?.discount_per) || 0
-                    }
-                  />
-                </View>
-              )}
+              renderItem={({ item }) => {
+                const distance = calculateDistance(item);
+
+                return (
+                  <View style={{ width: ITEM_WIDTH }}>
+                    <CategoryProduct
+                      image={{ uri: item.prod_image_url }}
+                      name={item.item_name}
+                      price={`€${item.min_price} - €${item.max_price}`}
+                      rating={2}
+                      distance={parseFloat(distance.toFixed(1))}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/Screens/HomeScreen/ProductDetails",
+                          params: { id: item.id },
+                        })
+                      }
+                      onAddToCart={() => handleAddToCart(item.id)}
+                      isOutOfStock={
+                        item.variations?.[0]?.stock === 0 ||
+                        !item.variations?.length
+                      }
+                      isOpen={
+                        item.store
+                          ? isStoreOpen(
+                              item.store.open_time,
+                              item.store.close_time
+                            )
+                          : false
+                      }
+                      discountPercent={
+                        Number(item.variations?.[0]?.discount_per) || 0
+                      }
+                    />
+                  </View>
+                );
+              }}
               ListEmptyComponent={
                 <NoData
                   title="No Discounted Product"

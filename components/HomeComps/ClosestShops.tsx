@@ -1,34 +1,37 @@
-import { View, FlatList, Text, Animated } from "react-native";
+import { View, FlatList } from "react-native";
 import { useState, useEffect, useRef } from "react";
-import React from "react";
 import SectionHeader from "@/common/SectionHeader";
 import { useRouter } from "expo-router";
 import ShopCard, { Shop } from "@/common/ShopCard";
-import { useClosestStores } from "@/hooks/useClosestStores";
+import StoreApi from "@/api/StoreApi";
 import LogoutModal from "@/Modals/LogoutModal";
 import Storage from "@/utils/Storage";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 import { useFavoriteShop } from "@/hooks/useFavoriteShop";
+import { useLocationStore } from "@/store/locationStore";
+import OreAppText from "@/common/OreApptext";
 
-type Props = {
-  refreshTrigger: boolean;
-};
+type Props = { refreshTrigger: boolean };
 
 export default function ClosestShops({ refreshTrigger }: Props) {
   const router = useRouter();
-  const [loginVisible, setLoginVisible] = useState(false);
+  const {
+    latitude,
+    longitude,
+    hasPermission,
+    isLoading: locationLoading,
+  } = useLocationStore();
+
   const [shops, setShops] = useState<Shop[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loginVisible, setLoginVisible] = useState(false);
   const shimmerAnim = useShimmerAnimation();
 
-  const {
-    data: queryShops,
-    isLoading,
-    isError,
-    refetch,
-    locationStatus,
-    locationError,
-  } = useClosestStores();
+  // Track if we've successfully fetched data
+  const hasFetchedRef = useRef(false);
+  // Track the last location we fetched with
+  const lastFetchedLocation = useRef<{ lat: number; lng: number } | null>(null);
 
   const { handleFavoritePress } = useFavoriteShop({
     shops,
@@ -37,35 +40,86 @@ export default function ClosestShops({ refreshTrigger }: Props) {
     onLoginRequired: () => setLoginVisible(true),
   });
 
-  // Sync local state with query data and limit to 8 shops
-  useEffect(() => {
-    if (queryShops && queryShops.length > 0) {
-      const mappedShops: Shop[] = queryShops.slice(0, 8).map((store: any) => ({
+  const fetchStores = async () => {
+    // Need actual coordinates for closest shops
+    if (!latitude || !longitude) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await StoreApi.getNearestStores(latitude, longitude, 1);
+      const newShops: Shop[] = res.results.slice(0, 8).map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
         image:
           store.store_img ||
           "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
+        store_open: store.open_time,
+        store_close: store.close_time,
+        isFavorite: store.is_favorited ?? false,
         distance: store.distance_km
           ? `${parseFloat(store.distance_km).toFixed(1)}`
           : "N/A",
-        rating: store.rating || 0,
-        isFavorite: store.is_favorited ?? false,
-        category: store.category || "General",
-        store_open: store.open_time,
-        store_close: store.close_time,
       }));
-      setShops(mappedShops);
-    } else if (!isLoading && queryShops?.length === 0) {
+      setShops(newShops);
+      hasFetchedRef.current = true;
+      lastFetchedLocation.current = { lat: latitude, lng: longitude };
+    } catch (err) {
+      console.error(err);
       setShops([]);
+    } finally {
+      setLoading(false);
     }
-  }, [queryShops, isLoading]);
+  };
 
+  // Initial fetch - only when location is ready and hasn't been fetched
   useEffect(() => {
-    if (locationStatus === "success") {
-      refetch();
+    // Skip if already fetched
+    if (hasFetchedRef.current) {
+      setLoading(false);
+      return;
     }
-  }, [refreshTrigger]);
+
+    // Wait for location to initialize
+    if (locationLoading) return;
+
+    // Permission denied - can't show closest shops
+    if (hasPermission === false) {
+      setLoading(false);
+      return;
+    }
+
+    // No coordinates yet
+    if (!latitude || !longitude) {
+      setLoading(false);
+      return;
+    }
+
+    // Check if location changed significantly (more than ~100m)
+    if (lastFetchedLocation.current) {
+      const { lat: lastLat, lng: lastLng } = lastFetchedLocation.current;
+      const latDiff = Math.abs(latitude - lastLat);
+      const lngDiff = Math.abs(longitude - lastLng);
+
+      // If location hasn't changed significantly, skip fetch
+      if (latDiff < 0.001 && lngDiff < 0.001) {
+        setLoading(false);
+        return;
+      }
+    }
+
+    fetchStores();
+  }, [locationLoading, hasPermission, latitude, longitude]);
+
+  // Refresh trigger - force refetch
+  useEffect(() => {
+    if (refreshTrigger && latitude && longitude) {
+      hasFetchedRef.current = false; // Reset flag to allow refetch
+      fetchStores();
+    }
+  }, [refreshTrigger, latitude, longitude]);
 
   const renderSkeletons = () => (
     <FlatList
@@ -92,27 +146,82 @@ export default function ClosestShops({ refreshTrigger }: Props) {
     />
   );
 
-  const ListEmptyComponent = () => (
-    <Text className="mx-auto py-8">No nearby stores found.</Text>
+  const LocationPermissionDenied = () => (
+    <View className="px-[20px] py-[16px] min-h-[120px] justify-center">
+      <OreAppText
+        style={{
+          textAlign: "center",
+          color: "#F04438",
+          fontSize: 15,
+          fontWeight: "500",
+        }}
+      >
+        Location access not permitted
+      </OreAppText>
+      <OreAppText
+        style={{
+          textAlign: "center",
+          color: "#535353",
+          fontSize: 13,
+          marginTop: 8,
+        }}
+      >
+        Enable location to see stores near you
+      </OreAppText>
+    </View>
   );
 
-  const ErrorComponent = ({ message }: { message: string }) => (
-    <Text className="mx-auto py-8 text-red-500">{message}</Text>
-  );
+  const renderContent = () => {
+    // Permission denied
+    if (!locationLoading && hasPermission === false) {
+      return <LocationPermissionDenied />;
+    }
 
-  let content;
-  if (locationStatus === "pending" || isLoading) {
-    content = renderSkeletons();
-  } else if (locationStatus === "error") {
-    content = (
-      <ErrorComponent
-        message={locationError || "Location permission denied."}
-      />
-    );
-  } else if (isError) {
-    content = <ErrorComponent message="Failed to fetch nearest stores." />;
-  } else {
-    content = (
+    // Loading
+    if (loading) {
+      return renderSkeletons();
+    }
+
+    // No location yet
+    if (!latitude || !longitude) {
+      return (
+        <View
+          style={{
+            paddingHorizontal: 20,
+            minHeight: 120,
+            justifyContent: "center",
+          }}
+        >
+          <OreAppText
+            style={{ textAlign: "center", color: "#888", fontSize: 14 }}
+          >
+            Waiting for your location...
+          </OreAppText>
+        </View>
+      );
+    }
+
+    // No shops found
+    if (shops.length === 0) {
+      return (
+        <View
+          style={{
+            paddingHorizontal: 20,
+            minHeight: 120,
+            justifyContent: "center",
+          }}
+        >
+          <OreAppText
+            style={{ textAlign: "center", color: "#535353", fontSize: 14 }}
+          >
+            No nearby stores found
+          </OreAppText>
+        </View>
+      );
+    }
+
+    // Show shops
+    return (
       <FlatList
         data={shops}
         renderItem={renderItem}
@@ -124,10 +233,9 @@ export default function ClosestShops({ refreshTrigger }: Props) {
           gap: 24,
           paddingVertical: 8,
         }}
-        ListEmptyComponent={ListEmptyComponent}
       />
     );
-  }
+  };
 
   return (
     <View>
@@ -135,8 +243,7 @@ export default function ClosestShops({ refreshTrigger }: Props) {
         title="Closest shops"
         onPress={() => router.push("/Screens/HomeScreen/AllClosestShops")}
       />
-      {content}
-
+      {renderContent()}
       <LogoutModal
         title="Login Required"
         message="Sorry! you need to log in to favorite a shop."

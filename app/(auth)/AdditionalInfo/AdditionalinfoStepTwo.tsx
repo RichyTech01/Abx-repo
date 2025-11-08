@@ -56,8 +56,14 @@ export default function AdditionalinfoStepTwo({
 
       fetchUser();
       await AsyncStorage.setItem("isLoggedIn", "true");
+      const redirect = await AsyncStorage.getItem("redirectAfterLogin");
 
-      router.replace("/(tabs)");
+      if (redirect) {
+        await AsyncStorage.removeItem("redirectAfterLogin");
+        router.replace(redirect as any);
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch (err: any) {
       console.log(
         "Address submission error:",

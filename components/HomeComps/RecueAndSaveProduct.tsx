@@ -5,7 +5,7 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
-import React from "react";
+import React, { useCallback } from "react";
 import { useRouter } from "expo-router";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
@@ -16,6 +16,8 @@ import { ShopProductType, ProductVariation } from "@/types/store";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import showToast from "@/utils/showToast";
 import { isStoreOpen } from "@/utils/storeStatus";
+import { useLocationStore } from "@/store/locationStore";
+import { getDistanceInKm } from "@/utils/getDistanceInKm";
 
 type Props = {
   refreshTrigger: boolean;
@@ -23,6 +25,7 @@ type Props = {
 
 export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
   const router = useRouter();
+  const { latitude, longitude } = useLocationStore();
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedProductId, setSelectedProductId] = React.useState<
     number | null
@@ -46,6 +49,25 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
       queryFn: () => StoreApi.getProduct(selectedProductId as number),
       enabled: !!selectedProductId,
     });
+
+  // Calculate distance for a product
+  const calculateDistance = useCallback(
+    (product: ShopProductType): number => {
+      if (
+        latitude == null ||
+        longitude == null ||
+        !product.store?.store_address?.location?.coordinates
+      ) {
+        return 0;
+      }
+
+      const storeLon = product.store.store_address.location.coordinates[0];
+      const storeLat = product.store.store_address.location.coordinates[1];
+
+      return getDistanceInKm(latitude, longitude, storeLat, storeLon);
+    },
+    [latitude, longitude]
+  );
 
   if (error) {
     showToast("error", (error as Error).message || "Failed to load product");
@@ -105,6 +127,7 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
         >
           {products.map((product) => {
             const firstVariation = product.variations?.[0];
+            const distance = calculateDistance(product);
 
             return (
               <ProductCard
@@ -117,7 +140,7 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
                 }
                 isShopOpen={true}
                 rating={4.9}
-                sizes={product.variations?.length ?? 0}
+                distance={parseFloat(distance.toFixed(1))}
                 onAddToCart={() => handleAddToCart(product.id)}
                 ProductImg={{ uri: product.prod_image_url }}
                 store_open={product.store?.open_time}

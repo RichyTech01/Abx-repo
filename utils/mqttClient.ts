@@ -42,13 +42,13 @@ class MQTTClient {
     this.currentUserId = userId;
     const brokerUrl = MQTT_BROKER;
     const options: IClientOptions = {
-      username: MQTT_USERNAME, 
-      password: MQTT_PASSWORD,  
+      username: MQTT_USERNAME,
+      password: MQTT_PASSWORD,
       clean: true,
       connectTimeout: 30000,
-      reconnectPeriod: 5000, 
+      reconnectPeriod: 5000,
       keepalive: 60,
-      clientId: `mobile_${userId}_${Date.now()}`, 
+      clientId: `mobile_${userId}_${Date.now()}`,
     };
 
     try {
@@ -59,7 +59,7 @@ class MQTTClient {
       this.client.on("connect", () => {
         // console.log("✅ MQTT Connected successfully");
         this.isConnected = true;
-        this.reconnectAttempts = 0; 
+        this.reconnectAttempts = 0;
 
         const topic = `notifications/user/${userId}`;
         this.client?.subscribe(topic, { qos: 1 }, (err) => {
@@ -75,14 +75,14 @@ class MQTTClient {
         try {
           const notificationData = message.toString();
           // console.log("📨 Raw message received:", notificationData);
-          
+
           const notification: Notification = JSON.parse(notificationData);
           // console.log("📬 Parsed notification:", notification);
-          
+
           // Call the callback with the new notification
           this.messageCallback?.(notification);
         } catch (error) {
-          // console.error("❌ Error parsing notification:", error);
+          console.error("❌ Error parsing notification:", error);
           // console.error("❌ Raw message was:", message.toString());
         }
       });
@@ -104,14 +104,17 @@ class MQTTClient {
 
       this.client.on("reconnect", () => {
         this.reconnectAttempts++;
-        console.log(`🔄 MQTT Reconnecting... (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-        
+        console.log(
+          `🔄 MQTT Reconnecting... (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
+        );
+
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-          console.log("❌ Max reconnection attempts reached. Stopping reconnection.");
+          console.log(
+            "❌ Max reconnection attempts reached. Stopping reconnection."
+          );
           this.client?.end(true);
         }
       });
-
     } catch (error) {
       console.error("❌ MQTT Connection failed:", error);
       this.isConnected = false;

@@ -23,6 +23,7 @@ import {
 } from "@expo-google-fonts/urbanist";
 import { Inter_400Regular } from "@expo-google-fonts/inter";
 import { Manrope_600SemiBold } from "@expo-google-fonts/manrope";
+import { useLocationStore } from "@/store/locationStore";
 
 // Import MQTT and stores
 import MQTTClient from "@/utils/mqttClient";
@@ -196,6 +197,7 @@ function GlobalNotificationHandler() {
 }
 
 export default function RootLayout() {
+  const { requestLocation } = useLocationStore();
   const [fontsLoaded] = useFonts({
     OrelegaOne: OrelegaOne_400Regular,
     UrbanistLight: Urbanist_300Light_Italic,
@@ -206,6 +208,11 @@ export default function RootLayout() {
     InterRegular: Inter_400Regular,
     ManropeSemiBold: Manrope_600SemiBold,
   });
+  useEffect(() => {
+    if (fontsLoaded) {
+      requestLocation();
+    }
+  }, [fontsLoaded, requestLocation]);
 
   if (!fontsLoaded) {
     return null;

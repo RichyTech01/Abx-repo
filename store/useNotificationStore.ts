@@ -58,7 +58,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       return {
         notifications: updated,
         hasNewNotifications: true,
-        unreadCount: updated.filter((n) => !n.is_read).length,
+        unreadCount: state.unreadCount + 1, // Increment unread count
       };
     }),
 
@@ -91,24 +91,15 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   // Lightweight method - just check if there are unread notifications
   checkNotificationStatus: async () => {
     try {
-      let page = 1;
-      let unreadTotal = 0;
-      let hasNext = true;
+      // Fetch first page to get unread_count from API
+      const data = await NotificationApi.getNotifications(1);
 
-      while (hasNext) {
-        const data = await NotificationApi.getNotifications(page);
-
-        unreadTotal += data.results.filter(
-          (n: Notification) => !n.is_read
-        ).length;
-
-        hasNext = !!data.next;
-        page++;
-      }
+      // Use the unread_count directly from API response
+      const unreadCount = data.unread_count || 0;
 
       set({
-        hasNewNotifications: unreadTotal > 0,
-        unreadCount: unreadTotal,
+        hasNewNotifications: unreadCount > 0,
+        unreadCount: unreadCount,
       });
     } catch (err) {
       console.error("Error checking notification status:", err);
@@ -117,19 +108,20 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   // Full fetch method - initial load
   fetchNotifications: async () => {
-    
     try {
       set({ loading: true });
       const data = await NotificationApi.getNotifications(1);
-      const notifications = data.results || [];
+
+      // Updated to match new API structure
+      const notifications = data.notifications || [];
+      const unreadCount = data.unread_count || 0;
 
       set({
         notifications,
-        hasNewNotifications: notifications.some(
-          (n: Notification) => !n.is_read
-        ),
+        unreadCount,
+        hasNewNotifications: unreadCount > 0,
         currentPage: 1,
-        hasMore: !!data.next,
+        hasMore: !!data.next, // Check if pagination still exists
         lastFetchTime: Date.now(),
       });
     } catch (err) {
@@ -153,7 +145,9 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
       const nextPage = currentPage + 1;
       const data = await NotificationApi.getNotifications(nextPage);
-      const newNotifications = data.results || [];
+
+      // Updated to match new API structure
+      const newNotifications = data.notifications || [];
 
       set({
         notifications: [...notifications, ...newNotifications],

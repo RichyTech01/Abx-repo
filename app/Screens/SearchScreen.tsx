@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   TextInput,
@@ -7,7 +7,7 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import StoreApi from "@/api/StoreApi";
 import UrbanistText from "@/common/UrbanistText";
 import { useLocationStore } from "@/store/locationStore";
@@ -20,13 +20,16 @@ import LogoutModal from "@/Modals/LogoutModal";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
-import Backarrow from "@/assets/svgs/BackArrow.svg"
-
+import Backarrow from "@/assets/svgs/BackArrow.svg";
+import { getDistanceInKm } from "@/utils/getDistanceInKm";
 
 export default function SearchScreen() {
   const { latitude, longitude } = useLocationStore();
   const queryClient = useQueryClient();
-  const [query, setQuery] = useState("");
+  const params = useLocalSearchParams();
+  const searchParam = params.search as string | undefined;
+
+  const [query, setQuery] = useState(searchParam || "");
   const [stores, setStores] = useState<Shop[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,8 +51,28 @@ export default function SearchScreen() {
       queryClient.invalidateQueries({ queryKey: ["searchStores"] }),
   });
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
+  // Calculate distance for a product
+  const calculateDistance = useCallback(
+    (product: any): number => {
+      if (
+        latitude == null ||
+        longitude == null ||
+        !product.store?.store_address?.location?.coordinates
+      ) {
+        return 0;
+      }
+
+      const storeLon = product.store.store_address.location.coordinates[0];
+      const storeLat = product.store.store_address.location.coordinates[1];
+
+      return getDistanceInKm(latitude, longitude, storeLat, storeLon);
+    },
+    [latitude, longitude]
+  );
+
+  const handleSearch = async (searchQuery?: string) => {
+    const searchTerm = searchQuery || query;
+    if (!searchTerm.trim()) return;
 
     try {
       setLoading(true);
@@ -59,9 +82,14 @@ export default function SearchScreen() {
         throw new Error("Location not available");
       }
 
-      const res = await StoreApi.searchMarketplace(query, latitude, longitude);
+      const res = await StoreApi.searchMarketplace(
+        searchTerm,
+        latitude,
+        longitude
+      );
 
       // Map stores to Shop format
+      // Matches by business name or postal code
       const storeResults: Shop[] = (res.stores || []).map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
@@ -77,6 +105,7 @@ export default function SearchScreen() {
           : "N/A",
       }));
 
+      // Products matched by name
       const productResults = res.products || [];
 
       setStores(storeResults);
@@ -89,6 +118,14 @@ export default function SearchScreen() {
       setLoading(false);
     }
   };
+
+  // Handle search from query parameter
+  useEffect(() => {
+    if (searchParam && searchParam.trim()) {
+      setQuery(searchParam);
+      handleSearch(searchParam);
+    }
+  }, [searchParam]);
 
   const handleFavoritePress = async (storeId: string) => {
     const token = await Storage.get("accessToken");
@@ -132,7 +169,10 @@ export default function SearchScreen() {
       {/* Header with Back Button and Search */}
       <View className="px-5 py-3 border-b border-[#F1EAE7]">
         <View className="flex-row items-center gap-3 mb-3">
-          <TouchableOpacity className="w-[24px] h-[24px] items-start justify-center " onPress={() => router.back()}>
+          <TouchableOpacity
+            className="w-[24px] h-[24px] items-start justify-center "
+            onPress={() => router.back()}
+          >
             <Backarrow />
           </TouchableOpacity>
 
@@ -144,9 +184,9 @@ export default function SearchScreen() {
               value={query}
               onChangeText={setQuery}
               selectionColor="#036047"
-              autoFocus
+              autoFocus={!searchParam}
               returnKeyType="search"
-              onSubmitEditing={handleSearch}
+              onSubmitEditing={() => handleSearch()}
             />
           </View>
         </View>
@@ -169,6 +209,9 @@ export default function SearchScreen() {
                 <UrbanistText className="text-[18px] font-bold text-[#121212] mb-4">
                   Stores ({stores.length})
                 </UrbanistText>
+                <UrbanistText className="text-[12px] text-[#656565] mb-3">
+                  Matched by business name or postal code
+                </UrbanistText>
                 <View style={{ gap: 24 }}>
                   {stores.map((shop) => (
                     <ShopCard
@@ -187,6 +230,9 @@ export default function SearchScreen() {
                 <UrbanistText className="text-[18px] font-bold text-[#121212] mb-4 mx-[20px]">
                   Products ({products.length})
                 </UrbanistText>
+                <UrbanistText className="text-[12px] text-[#656565] mb-3 mx-[20px]">
+                  Matched by product name
+                </UrbanistText>
                 <View
                   style={{
                     flexDirection: "row",
@@ -195,41 +241,46 @@ export default function SearchScreen() {
                     gap: GAP,
                   }}
                 >
-                  {products.map((item) => (
-                    <View
-                      key={`product-${item.id}`}
-                      style={{ width: ITEM_WIDTH }}
-                    >
-                      <CategoryProduct
-                        image={{ uri: item.prod_image_url }}
-                        name={item.item_name}
-                        price={`€${item.min_price} - €${item.max_price}`}
-                        rating={2}
-                        onPress={() =>
-                          router.push({
-                            pathname: "/Screens/HomeScreen/ProductDetails",
-                            params: { id: item.id },
-                          })
-                        }
-                        onAddToCart={() => handleAddToCart(item.id)}
-                        isOutOfStock={
-                          item.variations?.[0]?.stock === 0 ||
-                          !item.variations?.length
-                        }
-                        isOpen={
-                          item.store
-                            ? isStoreOpen(
-                                item.store.open_time,
-                                item.store.close_time
-                              )
-                            : false
-                        }
-                        discountPercent={
-                          Number(item.variations?.[0]?.discount_per) || 0
-                        }
-                      />
-                    </View>
-                  ))}
+                  {products.map((item) => {
+                    const distance = calculateDistance(item);
+
+                    return (
+                      <View
+                        key={`product-${item.id}`}
+                        style={{ width: ITEM_WIDTH }}
+                      >
+                        <CategoryProduct
+                          image={{ uri: item.prod_image_url }}
+                          name={item.item_name}
+                          price={`€${item.min_price} - €${item.max_price}`}
+                          rating={2}
+                          distance={parseFloat(distance.toFixed(1))}
+                          onPress={() =>
+                            router.push({
+                              pathname: "/Screens/HomeScreen/ProductDetails",
+                              params: { id: item.id },
+                            })
+                          }
+                          onAddToCart={() => handleAddToCart(item.id)}
+                          isOutOfStock={
+                            item.variations?.[0]?.stock === 0 ||
+                            !item.variations?.length
+                          }
+                          isOpen={
+                            item.store
+                              ? isStoreOpen(
+                                  item.store.open_time,
+                                  item.store.close_time
+                                )
+                              : false
+                          }
+                          discountPercent={
+                            Number(item.variations?.[0]?.discount_per) || 0
+                          }
+                        />
+                      </View>
+                    );
+                  })}
                 </View>
               </View>
             )}
@@ -240,6 +291,9 @@ export default function SearchScreen() {
                 <UrbanistText className="text-[16px] text-[#656565] text-center">
                   No stores or products found for "{query}"
                 </UrbanistText>
+                <UrbanistText className="text-[12px] text-[#999] text-center mt-2">
+                  Try searching by store name, postal code, or product name
+                </UrbanistText>
               </View>
             )}
           </View>
@@ -247,6 +301,9 @@ export default function SearchScreen() {
           <View className="py-20 items-center px-10">
             <UrbanistText className="text-[16px] text-[#656565] text-center">
               Enter a search term and tap "Search" to find stores and products
+            </UrbanistText>
+            <UrbanistText className="text-[12px] text-[#999] text-center mt-2">
+              Search by store name, postal code, or product name
             </UrbanistText>
           </View>
         )}

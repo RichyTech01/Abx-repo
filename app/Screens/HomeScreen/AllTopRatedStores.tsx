@@ -1,17 +1,10 @@
-import {
-  View,
-  Platform,
-  FlatList,
-  RefreshControl,
-  Animated,
-} from "react-native";
-import { useState, useCallback, useEffect, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+// AllTopRatedStores.tsx
+import { View, Platform, FlatList, RefreshControl } from "react-native";
+import { useState, useEffect, useRef } from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
 import StoreApi from "@/api/StoreApi";
 import ScreenWrapper from "@/common/ScreenWrapper";
-import NoData from "@/common/NoData";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
@@ -20,50 +13,68 @@ import { useLocationStore } from "@/store/locationStore";
 import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
+import OreAppText from "@/common/OreApptext";
 
 export default function AllTopRatedStores() {
-  const { latitude, longitude } = useLocationStore();
-
-  const queryClient = useQueryClient();
   const router = useRouter();
+  const {
+    latitude,
+    longitude,
+    hasPermission,
+    isLoading: locationLoading,
+  } = useLocationStore();
   const shimmerAnim = useShimmerAnimation();
+  const hasFetchedRef = useRef(false);
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [loginVisible, setLoginVisible] = useState(false);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { handleFavoritePress: handleFavoritePressHook } = useFavoriteShop({
+  const { handleFavoritePress } = useFavoriteShop({
     shops,
     setShops,
     queryKey: ["AlltopRatedStores"],
     onLoginRequired: () => setLoginVisible(true),
   });
 
-  const fetchStores = async (
-    pageNum: number,
-    append = false,
-    isRefreshing = false
-  ) => {
-    if (loading || loadingMore) return;
+  const fetchStores = async (pageNum: number = 1, append = false) => {
+    console.log(
+      "FETCHING TOP RATED STORES... page:",
+      pageNum,
+      "append:",
+      append
+    );
 
-    if (!isRefreshing) {
-      append ? setLoadingMore(true) : setLoading(true);
-    }
+    if (!append) setLoading(true);
+    if (append) setLoadingMore(true);
 
     try {
-      if (latitude == null || longitude == null) {
-        throw new Error("Location not available");
-      }
+      // Only send coordinates if we have explicit permission AND valid coordinates
+      const lat = hasPermission === true && latitude != null ? latitude : null;
+      const lng =
+        hasPermission === true && longitude != null ? longitude : null;
+
+      console.log(
+        "Sending lat/lng:",
+        lat,
+        lng,
+        "hasPermission:",
+        hasPermission
+      );
+
       const res = await StoreApi.getTopRatedStores(
-        latitude,
-        longitude,
+        lat as number,
+        lng as number,
         pageNum
       );
-      const newShops: Shop[] = res.results.map((store: any) => ({
+
+      console.log("API SUCCESS:", res.results?.length, "stores");
+
+      const newShops: Shop[] = (res.results || []).map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
         image:
@@ -74,108 +85,125 @@ export default function AllTopRatedStores() {
         isFavorite: store.is_favorited ?? false,
         rating: store.store_rating,
         distance: store.distance_km
-          ? `${parseFloat(store.distance_km).toFixed(1)}`
+          ? `${parseFloat(store.distance_km).toFixed(1)} km`
           : "N/A",
       }));
 
       setShops((prev) => (append ? [...prev, ...newShops] : newShops));
-
       setHasMore(res.next !== null);
-    } catch (err) {
-      console.error("Error fetching stores:", err);
+      setPage(pageNum);
+    } catch (err: any) {
+      console.error("FETCH FAILED:", err);
+      console.error("Response:", err.response?.data);
+      if (!append) setShops([]);
     } finally {
-      if (!isRefreshing) {
-        append ? setLoadingMore(false) : setLoading(false);
-      }
+      setLoading(false);
+      setLoadingMore(false);
     }
   };
 
+  // Fetch immediately on mount - don't wait for anything
+  useEffect(() => {
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      fetchStores(1);
+    }
+  }, []);
+
+  // REFRESH
   const handleRefresh = async () => {
     setRefreshing(true);
-    setPage(1);
-    await fetchStores(1, false, true);
+    await fetchStores(1);
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    fetchStores(1, false);
-  }, []);
-
-  const handleLoadMore = useCallback(() => {
-    if (hasMore && !loadingMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchStores(nextPage, true);
+  // LOAD MORE
+  const handleLoadMore = () => {
+    if (hasMore && !loadingMore && !loading) {
+      fetchStores(page + 1, true);
     }
-  }, [page, hasMore, loadingMore]);
+  };
 
   const renderSkeletons = () => (
-    <View
-      style={{
-        paddingBottom: Platform.OS === "ios" ? 20 : 40,
-        marginHorizontal: 20,
-        paddingTop: 15,
-      }}
-    >
-      {[1, 2, 3, 4].map((item) => (
-        <SkeletonCard key={item} shimmerAnim={shimmerAnim} />
+    <View style={{ marginHorizontal: 20, paddingTop: 15, gap: 24 }}>
+      {[1, 2, 3, 4].map((i) => (
+        <SkeletonCard key={i} shimmerAnim={shimmerAnim} />
       ))}
     </View>
   );
+
+  const EmptyState = () => (
+    <View className="py-20 items-center px-6">
+      <OreAppText
+        style={{ fontSize: 16, color: "#535353", textAlign: "center" }}
+      >
+        No top rated stores available right now.
+      </OreAppText>
+      <OreAppText
+        style={{
+          fontSize: 14,
+          color: "#888",
+          marginTop: 8,
+          textAlign: "center",
+        }}
+      >
+        Pull down to try again.
+      </OreAppText>
+    </View>
+  );
+
   return (
     <ScreenWrapper>
-      <View className={` pb-[15px]`}>
+      <View className="pb-[15px]">
         <HeaderWithSearchInput label="Top rated stores" />
       </View>
 
-      {loading ? (
+      {loading && shops.length === 0 ? (
         renderSkeletons()
       ) : (
         <FlatList
           data={shops}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ShopCard
+              shop={item}
+              onFavoritePress={() => handleFavoritePress(item.id)}
+            />
+          )}
           contentContainerStyle={{
             paddingBottom: Platform.OS === "ios" ? 20 : 40,
             marginHorizontal: 20,
             paddingTop: 15,
             gap: 24,
           }}
-          keyExtractor={(shop, index) => `store-${shop.id}-${index}`}
-          renderItem={({ item: shop }) => (
-            <ShopCard
-              shop={shop}
-              onFavoritePress={() => handleFavoritePressHook(shop.id)}
-            />
-          )}
           onEndReached={handleLoadMore}
-          onEndReachedThreshold={0}
+          onEndReachedThreshold={0.5}
           ListFooterComponent={
-            loadingMore && hasMore ? (
-              <View className="py-4 items-center">
+            loadingMore ? (
+              <View className="py-6 items-center">
                 <LoadingSpinner />
               </View>
             ) : null
           }
-          ListEmptyComponent={
-            <View className="py-10  ">
-              <NoData
-                title="No data "
-                subtitle="No top rated stores available at the moment."
-              />
-            </View>
-          }
+          ListEmptyComponent={<EmptyState />}
+          showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={["#0C513F"]}
+            />
           }
         />
       )}
 
       <LogoutModal
         title="Login Required"
-        message="Sorry! you need to go back to log in to favorite a shop."
+        message="Sorry! you need to log in to favorite a shop."
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["accessToken", "isGuest",]);
+          await Storage.multiRemove(["accessToken", "isGuest"]);
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

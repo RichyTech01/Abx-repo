@@ -1,11 +1,5 @@
-import {
-  View,
-  Platform,
-  FlatList,
-  RefreshControl,
-  Animated,
-} from "react-native";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { View, Platform, FlatList, RefreshControl } from "react-native";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
@@ -18,12 +12,14 @@ import { useRouter } from "expo-router";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useLocationStore } from "@/store/locationStore";
 import { SkeletonCard } from "@/common/SkeletonCard";
+
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 
 export default function AllStore() {
   const router = useRouter();
-  const { latitude, longitude } = useLocationStore();
+  const { latitude, longitude, hasPermission } = useLocationStore();
   const shimmerAnim = useShimmerAnimation();
+  const hasFetchedRef = useRef(false);
 
   const queryClient = useQueryClient();
   const [shops, setShops] = useState<Shop[]>([]);
@@ -39,17 +35,19 @@ export default function AllStore() {
     append = false,
     isRefreshing = false
   ) => {
-    if (loading || loadingMore) return;
+    if ((loading && !append && !isRefreshing) || loadingMore) return;
 
     if (!isRefreshing) {
       append ? setLoadingMore(true) : setLoading(true);
     }
 
     try {
-      if (latitude == null || longitude == null) {
-        throw new Error("Location not available");
-      }
-      const res = await StoreApi.getAllStores(latitude, longitude, pageNum);
+      // Send location if available, otherwise null
+      const lat = hasPermission === true && latitude != null ? latitude : null;
+      const lng =
+        hasPermission === true && longitude != null ? longitude : null;
+
+      const res = await StoreApi.getAllStores(lat as any, lng as any, pageNum);
       const newShops: Shop[] = res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
@@ -74,10 +72,21 @@ export default function AllStore() {
       }
     } catch (err) {
       console.error("Error fetching stores:", err);
+      if (!append) setShops([]);
     } finally {
-      append ? setLoadingMore(false) : setLoading(false);
+      if (!isRefreshing) {
+        append ? setLoadingMore(false) : setLoading(false);
+      }
     }
   };
+
+  // Fetch immediately on mount
+  useEffect(() => {
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      fetchStores(1, false);
+    }
+  }, []);
 
   const favoriteMutation = useMutation({
     mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
@@ -115,17 +124,13 @@ export default function AllStore() {
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    fetchStores(1, false);
-  }, []);
-
   const handleLoadMore = useCallback(() => {
-    if (hasMore && !loadingMore) {
+    if (hasMore && !loadingMore && !loading) {
       const nextPage = page + 1;
       setPage(nextPage);
       fetchStores(nextPage, true);
     }
-  }, [page, hasMore, loadingMore]);
+  }, [page, hasMore, loadingMore, loading]);
 
   const renderSkeletons = () => (
     <View
@@ -133,6 +138,7 @@ export default function AllStore() {
         paddingBottom: Platform.OS === "ios" ? 20 : 40,
         marginHorizontal: 20,
         paddingTop: 15,
+        gap: 24,
       }}
     >
       {[1, 2, 3, 4].map((item) => (
@@ -147,7 +153,7 @@ export default function AllStore() {
         <HeaderWithSearchInput label="All available stores on ABX" />
       </View>
 
-      {loading || (shops.length === 0 && latitude == null) ? (
+      {loading && shops.length === 0 ? (
         renderSkeletons()
       ) : (
         <FlatList
@@ -166,7 +172,7 @@ export default function AllStore() {
             />
           )}
           onEndReached={handleLoadMore}
-          onEndReachedThreshold={0}
+          onEndReachedThreshold={0.5}
           ListFooterComponent={
             loadingMore && hasMore ? (
               <View className="py-4 items-center">
@@ -175,16 +181,20 @@ export default function AllStore() {
             ) : null
           }
           ListEmptyComponent={
-            <View className="py-10  ">
+            <View className="py-10">
               <NoData
-                title="No data "
+                title="No data"
                 subtitle="No shop available at the moment."
               />
             </View>
           }
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={HandleRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={HandleRefresh}
+              colors={["#0C513F"]}
+            />
           }
         />
       )}

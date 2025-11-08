@@ -4,7 +4,7 @@ import {
   Image,
   TouchableOpacity,
   Pressable,
-  Text
+  Text,
 } from "react-native";
 import UrbanistText from "./UrbanistText";
 import DropDownArrow from "@/assets/svgs/DropDownArrow";
@@ -17,7 +17,7 @@ interface CategoryProductProps {
   name: string;
   price: string;
   rating?: number;
-  sizes?: number;
+  distance?: number;
   onPress?: () => void;
   onAddToCart: () => void;
   isOutOfStock: boolean;
@@ -30,7 +30,7 @@ export default function CategoryProduct({
   name,
   price,
   rating = 0,
-  sizes,
+  distance,
   onPress,
   onAddToCart,
   isOpen,
@@ -47,7 +47,7 @@ export default function CategoryProduct({
         {discountPercent ? (
           <View className="py-[2px] px-[8px] rounded-[4px] bg-[#F4B551] absolute z-50 my-2 mx-2 ">
             <Text className="text-[12px] leading-[16px] font-urbanist text-white">
-              Sale {discountPercent}% 
+              Sale {discountPercent}%
             </Text>
           </View>
         ) : (
@@ -71,11 +71,16 @@ export default function CategoryProduct({
           {price}
         </UrbanistText>
 
+        {distance ? (
+          <Text className="text-[12px] leading-[16px] font-urbanist-semibold text-[#2D2220] my-[4px] ">
+            {distance} km
+          </Text>
+        ) : null}
+
         <View className="py-[8px]">
           <StarRating rating={rating} />
         </View>
 
-        {/* {sizes !== undefined && ( */}
         <Pressable
           className="bg-[#F2F2F2] p-[4px] rounded-[8px] flex-row items-center justify-center max-w-[69px] gap-[4px]"
           onPress={onAddToCart}
@@ -85,7 +90,6 @@ export default function CategoryProduct({
           </UrbanistText>
           <DropDownArrow />
         </Pressable>
-        {/* )} */}
 
         <View className="mt-[8px]">
           <Button

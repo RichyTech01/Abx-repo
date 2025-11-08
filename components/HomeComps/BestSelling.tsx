@@ -1,5 +1,6 @@
 import { View, FlatList, Text, Animated } from "react-native";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import * as Location from "expo-location";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 import { useQuery } from "@tanstack/react-query";
@@ -8,17 +9,22 @@ import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
 import { ProductVariation, ShopProductType } from "@/types/store";
 import { useRouter } from "expo-router";
+import { useLocationStore } from "@/store/locationStore";
+import { getDistanceInKm } from "@/utils/getDistanceInKm";
 
 type Props = {
   refreshTrigger: boolean;
 };
 
 export default function BestSelling({ refreshTrigger }: Props) {
+  const { longitude, latitude } = useLocationStore();
+
   const router = useRouter();
-  const [modalVisible, setModalVisible] = React.useState(false);
-  const [selectedProductId, setSelectedProductId] = React.useState<
-    number | null
-  >(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
+
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -60,6 +66,29 @@ export default function BestSelling({ refreshTrigger }: Props) {
     setSelectedProductId(id);
     setModalVisible(true);
   };
+
+  // Calculate distance for a product
+  const calculateDistance = useCallback(
+    (product: ShopProductType): number => {
+      if (
+        (!longitude && !latitude) ||
+        !product.store?.store_address?.location?.coordinates
+      ) {
+        return 0;
+      }
+
+      const storeLon = product.store.store_address.location.coordinates[0];
+      const storeLat = product.store.store_address.location.coordinates[1];
+
+      return getDistanceInKm(
+        latitude as number,
+        longitude as number,
+        storeLat,
+        storeLon
+      );
+    },
+    [latitude, longitude]
+  );
 
   useEffect(() => {
     if (refreshTrigger) {
@@ -145,6 +174,8 @@ export default function BestSelling({ refreshTrigger }: Props) {
       ? Math.max(...item.variations.map((v) => Number(v.discount_per ?? 0)))
       : null;
 
+    const distance = calculateDistance(item);
+
     return (
       <ProductCard
         productId={item.id.toString()}
@@ -152,6 +183,7 @@ export default function BestSelling({ refreshTrigger }: Props) {
         priceRange={`€${item.min_price} - €${item.max_price}`}
         isShopOpen={true}
         rating={4.9}
+        distance={parseFloat(distance.toFixed(1))}
         onAddToCart={() => handleAddToCart(item.id)}
         ProductImg={{ uri: item.prod_image_url }}
         store_open={item.store?.open_time}

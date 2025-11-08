@@ -1,5 +1,6 @@
+// TopratedShops.tsx
 import { View, FlatList } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import StoreApi from "@/api/StoreApi";
 import React from "react";
 import SectionHeader from "@/common/SectionHeader";
@@ -18,13 +19,26 @@ type Props = {
 };
 
 export default function TopratedShops({ refreshTrigger }: Props) {
-  const { latitude, longitude } = useLocationStore();
   const router = useRouter();
+  const {
+    latitude,
+    longitude,
+    hasPermission,
+    isLoading: locationLoading,
+  } = useLocationStore();
   const shimmerAnim = useShimmerAnimation();
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [loginVisible, setLoginVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Track if we've successfully fetched data
+  const hasFetchedRef = useRef(false);
+  // Track the last location we fetched with
+  const lastFetchedLocation = useRef<{
+    lat: number | null;
+    lng: number | null;
+  } | null>(null);
 
   const { handleFavoritePress } = useFavoriteShop({
     shops,
@@ -34,45 +48,68 @@ export default function TopratedShops({ refreshTrigger }: Props) {
   });
 
   const fetchStores = async () => {
-    if (loading) return;
-
     setLoading(true);
 
     try {
-      if (latitude == null || longitude == null) {
-        throw new Error("Location not available");
+      let lat: number | null = null;
+      let lng: number | null = null;
+
+      // ONLY USE LOCATION IF WE HAVE PERMISSION + COORDINATES
+      if (hasPermission === true && latitude && longitude) {
+        lat = latitude;
+        lng = longitude;
       }
-      const res = await StoreApi.getTopRatedStores(latitude, longitude, 1);
-      const newShops: Shop[] = res.results.slice(0, 8).map((store: any) => ({
-        id: store.id.toString(),
-        name: store.business_name,
-        image:
-          store.store_img ||
-          "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
-        store_open: store.open_time,
-        store_close: store.close_time,
-        isFavorite: store.is_favorited ?? false,
-        distance: store.distance_km
-          ? `${parseFloat(store.distance_km).toFixed(1)}`
-          : "N/A",
-      }));
+      // OTHERWISE: send null,null → backend handles it perfectly
+
+      const res = await StoreApi.getTopRatedStores(
+        lat as number,
+        lng as number,
+        1
+      );
+
+      const newShops: Shop[] = (res.results || [])
+        .slice(0, 8)
+        .map((store: any) => ({
+          id: store.id.toString(),
+          name: store.business_name,
+          image:
+            store.store_img ||
+            "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
+          store_open: store.open_time,
+          store_close: store.close_time,
+          isFavorite: store.is_favorited ?? false,
+          distance: store.distance_km
+            ? `${parseFloat(store.distance_km).toFixed(1)}`
+            : "N/A",
+        }));
 
       setShops(newShops);
+      hasFetchedRef.current = true;
+      lastFetchedLocation.current = { lat, lng };
     } catch (err) {
-      console.error("Error fetching stores:", err);
+      console.error("Top rated fetch error:", err);
+      setShops([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (latitude && longitude) {
-      fetchStores();
-    }
-  }, [latitude, longitude]);
+    if (hasFetchedRef.current) return;
 
+    if (locationLoading) return;
+
+    if (hasPermission && latitude && longitude) {
+      fetchStores(); 
+    } else if (hasPermission === false) {
+      fetchStores(); // without location
+    }
+  }, [locationLoading, hasPermission, latitude, longitude]);
+
+  // Parent refresh (pull-to-refresh) - force refetch
   useEffect(() => {
-    if (refreshTrigger && latitude && longitude) {
+    if (refreshTrigger) {
+      hasFetchedRef.current = false; // Reset the flag to allow refetch
       fetchStores();
     }
   }, [refreshTrigger]);
@@ -80,12 +117,12 @@ export default function TopratedShops({ refreshTrigger }: Props) {
   const renderSkeletons = () => (
     <FlatList
       data={[1, 2, 3]}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      keyExtractor={(i) => i.toString()}
       renderItem={() => (
         <SkeletonCard shimmerAnim={shimmerAnim} style={{ width: 254 }} />
       )}
-      keyExtractor={(item) => item.toString()}
-      horizontal
-      showsHorizontalScrollIndicator={false}
       contentContainerStyle={{
         paddingHorizontal: 20,
         gap: 24,
@@ -102,47 +139,33 @@ export default function TopratedShops({ refreshTrigger }: Props) {
     />
   );
 
-  const ListEmptyComponent = () => {
-    if (loading) {
-      return null;
-    }
-
-    if (latitude != null && longitude != null) {
-      return (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            paddingHorizontal: 20,
-            minHeight: 100,
-          }}
-        >
-          <OreAppText
-            style={{
-              textAlign: "center",
-              color: "#535353",
-              fontSize: 14,
-            }}
-          >
-            No top rated stores available at the moment.
-          </OreAppText>
-        </View>
-      );
-    }
-
-    return null;
-  };
+  const EmptyMessage = () => (
+    <View
+      style={{
+        paddingHorizontal: 20,
+        minHeight: 100,
+        justifyContent: "center",
+      }}
+    >
+      <OreAppText
+        style={{ textAlign: "center", color: "#535353", fontSize: 14 }}
+      >
+        No top rated stores available at the moment.
+      </OreAppText>
+    </View>
+  );
 
   return (
-    <View className="">
+    <View>
       <SectionHeader
         title="Top Rated Shops"
         onPress={() => router.push("/Screens/HomeScreen/AllTopRatedStores")}
       />
 
-      {loading && shops.length === 0 ? (
+      {loading ? (
         renderSkeletons()
+      ) : shops.length === 0 ? (
+        <EmptyMessage />
       ) : (
         <FlatList
           data={shops}
@@ -155,7 +178,6 @@ export default function TopratedShops({ refreshTrigger }: Props) {
             gap: 24,
             paddingVertical: 8,
           }}
-          ListEmptyComponent={ListEmptyComponent}
         />
       )}
 

@@ -5,7 +5,7 @@ import {
   RefreshControl,
   Animated,
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useRouter } from "expo-router";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
@@ -19,11 +19,12 @@ import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 
 export default function FavouriteStore() {
-  const { latitude, longitude } = useLocationStore();
+  const { latitude, longitude, hasPermission } = useLocationStore();
 
   const router = useRouter();
   const navigation = useNavigation();
   const shimmerAnim = useShimmerAnimation();
+  const hasFetchedRef = useRef(false);
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [page, setPage] = useState(1);
@@ -38,13 +39,10 @@ export default function FavouriteStore() {
     queryKey: ["favoriteStores"],
   });
 
-  // Custom handler for favorite store screen - removes shop immediately
   const handleFavoritePress = async (storeId: string) => {
-    // Optimistically remove from list
     const prevShops = shops;
     setShops((prev) => prev.filter((shop) => shop.id !== storeId));
 
-    // Call the hook's handler which will sync with API
     await hookHandleFavoritePress(storeId);
   };
 
@@ -53,20 +51,20 @@ export default function FavouriteStore() {
     append = false,
     isRefreshing = false
   ) => {
-    if (loading || loadingMore) return;
+    if ((loading && !append && !isRefreshing) || loadingMore) return;
 
     if (!isRefreshing) {
       append ? setLoadingMore(true) : setLoading(true);
     }
 
     try {
-      if (latitude == null || longitude == null) {
-        throw new Error("Location not available");
-      }
+      // Send location if available, otherwise null
+      const lat = hasPermission === true && latitude != null ? latitude : null;
+      const lng = hasPermission === true && longitude != null ? longitude : null;
 
       const res = await StoreApi.getFavoriteStores(
-        latitude,
-        longitude,
+        lat as any,
+        lng as any,
         pageNum
       );
       const newShops: Shop[] = res.results.map((store: any) => ({
@@ -93,12 +91,21 @@ export default function FavouriteStore() {
       }
     } catch (err) {
       console.error("Error fetching stores:", err);
+      if (!append) setShops([]);
     } finally {
       if (!isRefreshing) {
         append ? setLoadingMore(false) : setLoading(false);
       }
     }
   };
+
+  // Fetch immediately on mount
+  useEffect(() => {
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      fetchStores(1, false);
+    }
+  }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -107,17 +114,13 @@ export default function FavouriteStore() {
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    fetchStores(1, false);
-  }, []);
-
   const handleLoadMore = useCallback(() => {
-    if (hasMore && !loadingMore) {
+    if (hasMore && !loadingMore && !loading) {
       const nextPage = page + 1;
       setPage(nextPage);
       fetchStores(nextPage, true);
     }
-  }, [page, hasMore, loadingMore]);
+  }, [page, hasMore, loadingMore, loading]);
 
   const SkeletonCard = () => {
     const opacity = shimmerAnim.interpolate({
@@ -175,6 +178,7 @@ export default function FavouriteStore() {
         paddingBottom: Platform.OS === "ios" ? 20 : 40,
         marginHorizontal: 20,
         paddingTop: 15,
+        gap: 24,
       }}
     >
       {[1, 2, 3, 4].map((item) => (
@@ -189,7 +193,7 @@ export default function FavouriteStore() {
         <HeaderWithSearchInput label="Your favorite stores" />
       </View>
 
-      {loading ? (
+      {loading && shops.length === 0 ? (
         renderSkeletons()
       ) : (
         <FlatList
@@ -209,7 +213,7 @@ export default function FavouriteStore() {
             />
           )}
           onEndReached={handleLoadMore}
-          onEndReachedThreshold={0}
+          onEndReachedThreshold={0.5}
           ListFooterComponent={
             loadingMore && hasMore ? (
               <View className="py-4 items-center">
@@ -220,7 +224,7 @@ export default function FavouriteStore() {
           ListEmptyComponent={
             <NoData
               title="No favorite stores"
-              subtitle="Looks like you don't have any favorite stores yet—no worries, Start browsing and find a store you'll love. We've got plenty of great stores waiting for you! "
+              subtitle="Looks like you don't have any favorite stores yet—no worries, Start browsing and find a store you'll love. We've got plenty of great stores waiting for you!"
               buttonTitle="Explore ABX stores"
               onButtonPress={() => {
                 navigation.goBack();
@@ -230,7 +234,11 @@ export default function FavouriteStore() {
           }
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={handleRefresh}
+              colors={["#0C513F"]}
+            />
           }
         />
       )}

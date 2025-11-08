@@ -1,27 +1,33 @@
-import React, { useEffect, useRef, useCallback, memo } from "react";
+import React, { useEffect, useRef, useCallback, memo, useState } from "react";
 import { View, FlatList, Text, Animated } from "react-native";
+import * as Location from "expo-location";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
 import { ProductVariation, ShopProductType } from "@/types/store";
 import { useRouter } from "expo-router";
+import { useLocationStore } from "@/store/locationStore";
+import { getDistanceInKm } from "@/utils/getDistanceInKm";
 
 type Props = {
   refreshTrigger: boolean;
 };
 
+
 const NewProducts = ({ refreshTrigger }: Props) => {
+  const { longitude, latitude } = useLocationStore();
+
   const router = useRouter();
-  const [modalVisible, setModalVisible] = React.useState(false);
-  const [selectedProductId, setSelectedProductId] = React.useState<
-    number | null
-  >(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
+
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
-  // Shimmer animation
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -37,9 +43,9 @@ const NewProducts = ({ refreshTrigger }: Props) => {
         }),
       ])
     ).start();
-  }, []);
+  }, [shimmerAnim]);
 
-  // Fetch products (same endpoint as AllProductScreen, but just first page)
+  // Fetch products
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["NewProduct"],
     queryFn: async () => {
@@ -55,6 +61,29 @@ const NewProducts = ({ refreshTrigger }: Props) => {
       queryFn: () => StoreApi.getProduct(selectedProductId as number),
       enabled: !!selectedProductId && modalVisible,
     });
+
+  // Calculate distance for a product
+  const calculateDistance = useCallback(
+    (product: ShopProductType): number => {
+      if (
+        (!longitude && !latitude) ||
+        !product.store?.store_address?.location?.coordinates
+      ) {
+        return 0;
+      }
+
+      const storeLon = product.store.store_address.location.coordinates[0];
+      const storeLat = product.store.store_address.location.coordinates[1];
+
+      return getDistanceInKm(
+        latitude as number,
+        longitude as number,
+        storeLat,
+        storeLon
+      );
+    },
+    [longitude, latitude]
+  );
 
   // Extract products and limit to 8
   const products = data?.results?.slice(0, 8) ?? [];
@@ -135,13 +164,16 @@ const NewProducts = ({ refreshTrigger }: Props) => {
         ? Math.max(...item.variations.map((v) => Number(v.discount_per ?? 0)))
         : null;
 
+      const distance = calculateDistance(item);
+
       return (
         <ProductCard
           productId={item.id.toString()}
           productName={item.item_name}
           priceRange={`€${item.min_price} - €${item.max_price}`}
           isShopOpen={true}
-          rating={4.9}
+          distance={parseFloat(distance.toFixed(1))}
+          rating={(item as any).average_rating}
           onAddToCart={() => handleAddToCart(item.id)}
           ProductImg={{ uri: item.prod_image_url }}
           store_open={item.store?.open_time}
@@ -154,7 +186,7 @@ const NewProducts = ({ refreshTrigger }: Props) => {
         />
       );
     },
-    [handleAddToCart]
+    [handleAddToCart, calculateDistance]
   );
 
   const ListEmptyComponent = memo(() => (

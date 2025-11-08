@@ -20,7 +20,7 @@ type ProductCardProps = {
   isOutOfStock?: boolean;
   isShopOpen?: boolean;
   rating?: number;
-  sizes?: number;
+  distance?: number;
   ProductImg: ImageSourcePropType;
   onAddToCart: () => void;
   store_open: string;
@@ -32,8 +32,8 @@ export default function ProductCard({
   productName,
   priceRange,
   discountPercent,
-  rating = 0, 
-  // sizes = 0,
+  rating = 0,
+  distance = 0,
   onAddToCart,
   ProductImg,
   store_open,
@@ -114,7 +114,9 @@ export default function ProductCard({
           </Pressable>
         </View>
       </View>
-
+      <Text className="text-[12px] leading-[16px] font-urbanist-semibold text-[#2D2220] my-[4px]">
+        {distance} km
+      </Text>
       {/* Add to cart */}
       <View className="pt-[12px]">
         <IconButton

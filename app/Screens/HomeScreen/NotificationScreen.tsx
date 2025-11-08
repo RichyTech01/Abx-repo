@@ -51,7 +51,6 @@ export default function NotificationScreen() {
     fetchNotifications().then(() => setRefreshing(false));
   };
 
-  // Fetch notifications whenever user becomes available
   useEffect(() => {
     if (!user && !hasToken) {
       return;

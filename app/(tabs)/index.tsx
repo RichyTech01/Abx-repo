@@ -29,6 +29,7 @@ import { useUserStore } from "@/store/useUserStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useCartStore } from "@/store/useCartStore";
+import { useLocationStore } from "@/store/locationStore";
 import OrderApi from "@/api/OrderApi";
 import NotificationBadge from "@/common/NotificationBadge";
 import ScreenWrapper from "@/common/ScreenWrapper";
@@ -145,6 +146,8 @@ export default function Home() {
   const { user, loading } = useUserStore();
   const { unreadCount, checkNotificationStatus } = useNotificationStore();
   const { cartItems, setCartItems } = useCartStore();
+  const { requestLocation } = useLocationStore();
+
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
@@ -152,7 +155,6 @@ export default function Home() {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
 
-  // Check notification status on focus
   useFocusEffect(
     useCallback(() => {
       const init = async () => {
@@ -188,7 +190,7 @@ export default function Home() {
             await AsyncStorage.removeItem("cartId");
           }
         } catch (err: any) {
-          // Handle 500 or “cart not found” gracefully
+          // Handle 500 or "cart not found" gracefully
           const status = err?.response?.status;
 
           if (status === 404 || status === 500) {
@@ -207,10 +209,11 @@ export default function Home() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-
+    await requestLocation();
     setRefreshTrigger((prev) => !prev);
     setRefreshing(false);
   }, []);
+
 
   return (
     <ScreenWrapper>
