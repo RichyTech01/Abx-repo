@@ -48,14 +48,20 @@ export default function NotificationScreen() {
       return;
     }
     setRefreshing(true);
-    fetchNotifications().then(() => setRefreshing(false));
+    try {
+      await fetchNotifications(true);
+    } catch (error) {
+      console.error("Error refreshing:", error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
     if (!user && !hasToken) {
       return;
     }
-    fetchNotifications();
+    fetchNotifications(false);
   }, [fetchNotifications]);
 
   useEffect(() => {

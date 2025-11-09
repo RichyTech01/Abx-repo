@@ -1,4 +1,3 @@
-// AllTopRatedStores.tsx
 import { View, Platform, FlatList, RefreshControl } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
@@ -42,13 +41,6 @@ export default function AllTopRatedStores() {
   });
 
   const fetchStores = async (pageNum: number = 1, append = false) => {
-    console.log(
-      "FETCHING TOP RATED STORES... page:",
-      pageNum,
-      "append:",
-      append
-    );
-
     if (!append) setLoading(true);
     if (append) setLoadingMore(true);
 
@@ -57,22 +49,11 @@ export default function AllTopRatedStores() {
       const lat = hasPermission === true && latitude != null ? latitude : null;
       const lng =
         hasPermission === true && longitude != null ? longitude : null;
-
-      console.log(
-        "Sending lat/lng:",
-        lat,
-        lng,
-        "hasPermission:",
-        hasPermission
-      );
-
       const res = await StoreApi.getTopRatedStores(
         lat as number,
         lng as number,
         pageNum
       );
-
-      console.log("API SUCCESS:", res.results?.length, "stores");
 
       const newShops: Shop[] = (res.results || []).map((store: any) => ({
         id: store.id.toString(),
@@ -85,7 +66,7 @@ export default function AllTopRatedStores() {
         isFavorite: store.is_favorited ?? false,
         rating: store.store_rating,
         distance: store.distance_km
-          ? `${parseFloat(store.distance_km).toFixed(1)} km`
+          ? `${parseFloat(store.distance_km).toFixed(1)}`
           : "N/A",
       }));
 

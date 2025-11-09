@@ -1,4 +1,3 @@
-// TopratedShops.tsx
 import { View, FlatList } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import StoreApi from "@/api/StoreApi";
@@ -100,7 +99,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
     if (locationLoading) return;
 
     if (hasPermission && latitude && longitude) {
-      fetchStores(); 
+      fetchStores();
     } else if (hasPermission === false) {
       fetchStores(); // without location
     }

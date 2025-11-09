@@ -26,7 +26,7 @@ export default function AllClosestShops() {
 
   const shimmerAnim = useShimmerAnimation();
   const hasFetchedRef = useRef(false);
-  
+
   const [shops, setShops] = useState<Shop[]>([]);
   const [loginVisible, setLoginVisible] = useState(false);
   const [page, setPage] = useState(1);
@@ -60,7 +60,7 @@ export default function AllClosestShops() {
         longitude!,
         pageNum
       );
-      
+
       const newShops: Shop[] = res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
@@ -72,15 +72,17 @@ export default function AllClosestShops() {
         isFavorite: store.is_favorited ?? false,
         rating: store.store_rating,
         distance: store.distance_km
-          ? `${parseFloat(store.distance_km).toFixed(1)} km`
+          ? `${parseFloat(store.distance_km).toFixed(1)}`
           : "N/A",
       }));
 
       setShops((prev) => (append ? [...prev, ...newShops] : newShops));
-      
+
       // Check for both null and empty string
-      setHasMore(res.next !== null && res.next !== "" && res.next !== undefined);
-      
+      setHasMore(
+        res.next !== null && res.next !== "" && res.next !== undefined
+      );
+
       if (append) {
         setPage(pageNum);
       }

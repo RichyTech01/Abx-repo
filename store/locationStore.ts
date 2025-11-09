@@ -1,7 +1,6 @@
-// store/locationStore.ts
-import { create } from 'zustand';
-import * as Location from 'expo-location';
-import showToast from '@/utils/showToast';
+import { create } from "zustand";
+import * as Location from "expo-location";
+import showToast from "@/utils/showToast";
 
 interface LocationState {
   latitude: number | null;
@@ -10,17 +9,17 @@ interface LocationState {
   hasPermission: boolean | null;
   error: string | null;
   isInitialized: boolean;
-  permissionChecked: boolean; // NEW: Track if we've checked permission
-  
+  permissionChecked: boolean;
+
   // Actions
   requestLocation: () => Promise<void>;
-  checkPermissionOnly: () => Promise<boolean>; // NEW: Just check permission without getting location
+  checkPermissionOnly: () => Promise<boolean>;
   setLocation: (lat: number, lng: number) => void;
   clearLocation: () => void;
   reset: () => void;
 }
 
-let locationPromise: Promise<void> | null = null; // Global promise to prevent duplicate calls
+let locationPromise: Promise<void> | null = null;
 
 export const useLocationStore = create<LocationState>((set, get) => ({
   latitude: null,
@@ -33,7 +32,7 @@ export const useLocationStore = create<LocationState>((set, get) => ({
 
   checkPermissionOnly: async () => {
     const state = get();
-    
+
     // Return cached result if already checked
     if (state.permissionChecked && state.hasPermission !== null) {
       return state.hasPermission;
@@ -41,16 +40,15 @@ export const useLocationStore = create<LocationState>((set, get) => ({
 
     try {
       const { status } = await Location.getForegroundPermissionsAsync();
-      const granted = status === 'granted';
-      
-      set({ 
+      const granted = status === "granted";
+
+      set({
         hasPermission: granted,
-        permissionChecked: true 
+        permissionChecked: true,
       });
-      
+
       return granted;
     } catch (error) {
-      console.error('Error checking permission:', error);
       set({ permissionChecked: true, hasPermission: false });
       return false;
     }
@@ -58,49 +56,46 @@ export const useLocationStore = create<LocationState>((set, get) => ({
 
   requestLocation: async () => {
     const state = get();
-    
+
     // If already loading, return the existing promise
     if (locationPromise) {
-      console.log('Location request already in progress, waiting...');
       return locationPromise;
     }
 
     // If we already have location and it's recent, don't fetch again
     if (state.latitude && state.longitude && state.isInitialized) {
-      console.log('Location already available, skipping request');
       return;
     }
 
-    console.log('Starting new location request');
-    
     locationPromise = (async () => {
       set({ isLoading: true, error: null });
 
       try {
         // First check if we already have permission
         let hasPermission = state.hasPermission;
-        
+
         if (!state.permissionChecked) {
-          const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
-          hasPermission = existingStatus === 'granted';
+          const { status: existingStatus } =
+            await Location.getForegroundPermissionsAsync();
+          hasPermission = existingStatus === "granted";
           set({ permissionChecked: true, hasPermission });
         }
 
         // If no permission, request it
         if (!hasPermission) {
           const { status } = await Location.requestForegroundPermissionsAsync();
-          hasPermission = status === 'granted';
-          
-          set({ 
+          hasPermission = status === "granted";
+
+          set({
             hasPermission,
-            permissionChecked: true 
+            permissionChecked: true,
           });
 
           if (!hasPermission) {
-            set({ 
+            set({
               isLoading: false,
-              error: 'Location permission denied',
-              isInitialized: true
+              error: "Location permission denied",
+              isInitialized: true,
             });
             showToast("info", "Location permission denied");
             return;
@@ -120,15 +115,14 @@ export const useLocationStore = create<LocationState>((set, get) => ({
           hasPermission: true,
         });
 
-        console.log('Location obtained:', {
+        console.log("Location obtained:", {
           lat: location.coords.latitude,
           lng: location.coords.longitude,
         });
-
       } catch (error) {
-        console.error('Error getting location:', error);
-        set({ 
-          error: 'Failed to get location',
+        console.error("Error getting location:", error);
+        set({
+          error: "Failed to get location",
           isLoading: false,
           hasPermission: false,
           isInitialized: true,
@@ -142,20 +136,20 @@ export const useLocationStore = create<LocationState>((set, get) => ({
   },
 
   setLocation: (lat: number, lng: number) => {
-    set({ 
-      latitude: lat, 
+    set({
+      latitude: lat,
       longitude: lng,
       hasPermission: true,
       isLoading: false,
-      isInitialized: true 
+      isInitialized: true,
     });
   },
 
   clearLocation: () => {
-    set({ 
-      latitude: null, 
+    set({
+      latitude: null,
       longitude: null,
-      error: null 
+      error: null,
     });
   },
 

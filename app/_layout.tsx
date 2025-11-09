@@ -1,5 +1,5 @@
 import "./global.css";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { AppState, AppStateStatus } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";

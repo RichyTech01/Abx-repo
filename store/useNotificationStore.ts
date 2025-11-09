@@ -88,7 +88,6 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   markNotificationsAsSeen: () => set({ hasNewNotifications: false }),
 
-  // Lightweight method - just check if there are unread notifications
   checkNotificationStatus: async () => {
     try {
       // Fetch first page to get unread_count from API
@@ -107,35 +106,40 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   },
 
   // Full fetch method - initial load
-  fetchNotifications: async () => {
-    try {
+fetchNotifications: async (isRefresh = false) => {
+  try {
+    // Only show loading spinner on initial load, not on refresh
+    if (!isRefresh) {
       set({ loading: true });
-      const data = await NotificationApi.getNotifications(1);
+    }
+    
+    const data = await NotificationApi.getNotifications(1);
 
-      // Updated to match new API structure
-      const notifications = data.notifications || [];
-      const unreadCount = data.unread_count || 0;
+    // Updated to match new API structure
+    const notifications = data.notifications || [];
+    const unreadCount = data.unread_count || 0;
 
-      set({
-        notifications,
-        unreadCount,
-        hasNewNotifications: unreadCount > 0,
-        currentPage: 1,
-        hasMore: !!data.next, // Check if pagination still exists
-        lastFetchTime: Date.now(),
-      });
-    } catch (err) {
-      console.error("Error fetching notifications", err);
-    } finally {
+    set({
+      notifications,
+      unreadCount,
+      hasNewNotifications: unreadCount > 0,
+      currentPage: 1,
+      hasMore: !!data.next,
+      lastFetchTime: Date.now(),
+    });
+  } catch (err) {
+    console.error("Error fetching notifications", err);
+  } finally {
+    if (!isRefresh) {
       set({ loading: false });
     }
-  },
+  }
+},
 
   // Fetch more notifications (pagination)
   fetchMoreNotifications: async () => {
     const { currentPage, hasMore, loadingMore, notifications } = get();
 
-    // Don't fetch if already loading or no more data
     if (loadingMore || !hasMore) {
       return;
     }
