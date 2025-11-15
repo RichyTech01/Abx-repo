@@ -200,6 +200,30 @@ class OrderApi {
       throw error;
     }
   }
+
+  public async createProductReview(
+    productId: number,
+    rating: number,
+    comment: string
+  ): Promise<any> {
+    try {
+      const payload = {
+        product: productId,
+        rating,
+        comment,
+      };
+
+      const res = await this.client.post("/customer/product/review", payload);
+
+      return res.data;
+    } catch (error: any) {
+      console.error(
+        "Error creating product review:",
+        error.response || error.message
+      );
+      throw error;
+    }
+  }
 }
 
 export default new OrderApi();

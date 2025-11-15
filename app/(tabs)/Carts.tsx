@@ -109,18 +109,22 @@ export default function Carts() {
 
     const newQty =
       action === "increase" ? item.quantity + 1 : item.quantity - 1;
+
+    // ✅ Calculate unit price from current total to ensure accuracy
+    const unitPrice = item.total_item_price / item.quantity;
+
+    // Optimistic update with correct calculation
     const optimisticItems = cartItems.map((cartItem) => {
       if (cartItem.id === cartItemId) {
         return {
           ...cartItem,
           quantity: newQty,
-          total_item_price: newQty * parseFloat(cartItem.item.price),
+          total_item_price: newQty * unitPrice, // ✅ Correct calculation
         };
       }
       return cartItem;
     });
 
-    // Update UI instantly
     setCartItems(optimisticItems);
 
     // Mark as updating (prevents multiple clicks)
@@ -128,11 +132,14 @@ export default function Carts() {
 
     try {
       // ✅ API call happens in background
-      await OrderApi.updateCart(cartItemId, { action });
+      const response = await OrderApi.updateCart(cartItemId, { action });
+
+      if (response?.cart?.items) {
+        setCartItems(response.cart.items);
+      }
     } catch (err) {
       console.error(`Failed to ${action} quantity:`, err);
 
-      // ✅ ROLLBACK on error - revert to original state
       setCartItems(cartItems);
       showToast("error", "Failed to update cart. Please try again.");
     } finally {
@@ -168,10 +175,13 @@ export default function Carts() {
     }
   };
 
-  const total = cartItems.reduce(
-    (acc, item) => acc + parseFloat(String(item.total_item_price)),
-    0
-  );
+  const total = cartItems.reduce((acc, item) => {
+    const itemTotal =
+      typeof item.total_item_price === "number"
+        ? item.total_item_price
+        : parseFloat(String(item.total_item_price)) || 0;
+    return acc + itemTotal;
+  }, 0);
 
   return (
     <ScreenWrapper>

@@ -45,23 +45,16 @@ const loopedBanners = [banners[banners.length - 1], ...banners, banners[0]];
 
 function BannerSlider() {
   const flatListRef = useRef<FlatList>(null);
-  const [currentIndex, setCurrentIndex] = useState(1);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const scrollTimer = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    flatListRef.current?.scrollToOffset({
-      offset: width,
-      animated: false,
-    });
-  }, []);
 
   useEffect(() => {
     scrollTimer.current = setInterval(() => {
       setCurrentIndex((prevIndex) => {
-        const nextIndex = prevIndex + 1;
+        const nextIndex = (prevIndex + 1) % banners.length;
 
-        flatListRef.current?.scrollToOffset({
-          offset: nextIndex * width,
+        flatListRef.current?.scrollToIndex({
+          index: nextIndex,
           animated: true,
         });
 
@@ -76,50 +69,16 @@ function BannerSlider() {
     };
   }, []);
 
-  const handleMomentumScrollEnd = (e: any) => {
-    const offsetX = e.nativeEvent.contentOffset.x;
-    const newIndex = Math.round(offsetX / width);
-
-    // If we scrolled to the last clone (first banner clone at end)
-    if (newIndex === loopedBanners.length - 1) {
-      // Jump back to the real first banner without animation
-      setTimeout(() => {
-        flatListRef.current?.scrollToOffset({
-          offset: width, // Index 1
-          animated: false,
-        });
-        setCurrentIndex(1);
-      }, 50);
-    } else if (newIndex === 0) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToOffset({
-          offset: banners.length * width,
-          animated: false,
-        });
-        setCurrentIndex(banners.length);
-      }, 50);
-    } else {
-      setCurrentIndex(newIndex);
-    }
-  };
-
   return (
     <FlatList
       ref={flatListRef}
-      data={loopedBanners}
+      data={banners}
       horizontal
       pagingEnabled
       showsHorizontalScrollIndicator={false}
-      scrollEnabled={false}
       keyExtractor={(_, index) => `banner-${index}`}
       renderItem={({ item }) => (
-        <View
-          style={{
-            width,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+        <View style={{ width }}>
           <Image
             source={item}
             resizeMode="cover"
@@ -127,16 +86,19 @@ function BannerSlider() {
               width: width * 0.9,
               height: 180,
               borderRadius: 20,
+              marginHorizontal: width * 0.05,
             }}
           />
         </View>
       )}
-      onMomentumScrollEnd={handleMomentumScrollEnd}
       getItemLayout={(_, index) => ({
         length: width,
         offset: width * index,
         index,
       })}
+      initialNumToRender={3}
+      maxToRenderPerBatch={3}
+      windowSize={3}
     />
   );
 }
@@ -213,7 +175,6 @@ export default function Home() {
     setRefreshTrigger((prev) => !prev);
     setRefreshing(false);
   }, []);
-
 
   return (
     <ScreenWrapper>

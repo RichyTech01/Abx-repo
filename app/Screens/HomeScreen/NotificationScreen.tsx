@@ -13,7 +13,7 @@ import MQTTClient from "@/utils/mqttClient";
 import showToast from "@/utils/showToast";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect } from "react";
-import { FlatList, Pressable, Text, View, RefreshControl } from "react-native";
+import { FlatList, View, RefreshControl } from "react-native";
 import Storage from "@/utils/Storage";
 
 export default function NotificationScreen() {
@@ -80,7 +80,7 @@ export default function NotificationScreen() {
     }
 
     return () => {
-      console.log("Cleaning up notification screen MQTT listener");
+      // console.log("Cleaning up notification screen MQTT listener");
     };
   }, [user?.id, handleRealtimeNotification]);
 
@@ -101,7 +101,7 @@ export default function NotificationScreen() {
         // Update local state
         markNotificationAsRead(Number(notification.id));
         checkNotificationStatus();
-        console.log(`Marked notification ${notification.id} as read`);
+        // console.log(`Marked notification ${notification.id} as read`);
       } catch (err) {
         console.error("Error marking notification as read", err);
         showToast("error", "Failed to mark notification as read");
@@ -166,7 +166,7 @@ export default function NotificationScreen() {
     <ScreenWrapper>
       <Header title="Notifications" />
 
-      <View className="mt-[22px]">
+      <View className="mt-[10px]">
         {/* {notifications.length > 0 && unread.length > 0 && (
           <Pressable
             onPress={handleMarkAllAsRead}
@@ -182,13 +182,13 @@ export default function NotificationScreen() {
           </Pressable>
         )} */}
 
-        <View className="mx-[20px] mt-[16px] h-scree">
+        <View className="mx-[20px] h-scree">
           {loading ? (
             <LoadingSpinner />
           ) : (
             <FlatList
               data={notifications}
-              contentContainerStyle={{ paddingBottom: 110 }}
+              contentContainerStyle={{ paddingBottom: 100 }}
               keyExtractor={(item, index) =>
                 item.id !== undefined
                   ? item.id.toString()
