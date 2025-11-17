@@ -38,13 +38,18 @@ const GoogleAuth: React.FC<Props> = ({
         showPlayServicesUpdateDialog: true,
       });
 
+      await GoogleSignin.signIn();
+
       const tokens = await GoogleSignin.getTokens();
 
       if (!tokens.idToken) {
         showToast("error", "No ID token received from Google");
+        return;
       }
 
-      const res = await AuthApi.googleSignIn({ token: tokens.idToken });
+      const idToken = tokens.idToken;
+
+      const res = await AuthApi.googleSignIn({ token: idToken });
 
       await AsyncStorage.setItem("accessToken", res.access);
       await AsyncStorage.setItem("refreshToken", res.refresh);
@@ -58,6 +63,8 @@ const GoogleAuth: React.FC<Props> = ({
         showToast("success", "Logged in successfully!");
       }
     } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
+
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         showToast("info", "Sign-in cancelled");
       } else if (error.code === statusCodes.IN_PROGRESS) {
@@ -69,7 +76,7 @@ const GoogleAuth: React.FC<Props> = ({
           error?.response?.data?.detail ||
           error?.response?.data?.message ||
           error?.message ||
-          "Google sign-in failed.";
+          "Google sign-in failed";
         showToast("error", errorMessage);
       }
     }
