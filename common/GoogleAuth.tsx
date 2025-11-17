@@ -28,7 +28,7 @@ const GoogleAuth: React.FC<Props> = ({
     GoogleSignin.configure({
       webClientId: WEB_CLIENT_ID,
       iosClientId: IOS_CLIENT_ID,
-      offlineAccess: true,
+      offlineAccess: false,
     });
   }, []);
 
