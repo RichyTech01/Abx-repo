@@ -57,7 +57,7 @@ export default function Support() {
           }
         } catch (err) {
           // if we hit "Active chat session not found or have ended."
-          console.warn("Session not active, starting new...");
+          // console.warn("Session not active, starting new...");
           await AsyncStorage.removeItem("ChatSessionId");
         }
       }

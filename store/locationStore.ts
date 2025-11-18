@@ -115,10 +115,10 @@ export const useLocationStore = create<LocationState>((set, get) => ({
           hasPermission: true,
         });
 
-        console.log("Location obtained:", {
-          lat: location.coords.latitude,
-          lng: location.coords.longitude,
-        });
+        // console.log("Location obtained:", {
+        //   lat: location.coords.latitude,
+        //   lng: location.coords.longitude,
+        // });
       } catch (error) {
         console.error("Error getting location:", error);
         set({

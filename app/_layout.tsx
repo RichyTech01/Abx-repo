@@ -114,7 +114,6 @@ function GlobalNotificationHandler() {
 
   // Setup push notification listeners
   useEffect(() => {
-    // Handle notifications received while app is foregrounded
     const notificationListener =
       PushNotificationService.addNotificationReceivedListener(
         (notification) => {
