@@ -24,13 +24,10 @@ export default function AdditionalinfoStepOne({ nextStep }: AdditionalInfoStepOn
     try {
       setLoading(true);
 
-      // Step 1: validate phone number
       await AuthApi.validateCredential({ phone_number: fullPhoneNumber });
 
-      // Step 2: send phone number to backend
       await AuthApi.updatePhoneNumber({ phone_number: fullPhoneNumber });
 
-      // Step 3: move to next step
       nextStep();
     } catch (err: any) {
       const backendErrors = err.response?.data || {};

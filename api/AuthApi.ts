@@ -21,6 +21,7 @@ class AuthApi {
       post_code: string;
       city: string;
     };
+    marketing_opt_in: boolean;
     password: string;
   }) {
     const res = await this.client.post("/auth/sign-up", data);
@@ -82,10 +83,9 @@ class AuthApi {
 
   // Confirm reset code
   public async confirmResetCode(data: { otp: string }) {
-    const res = await this.client.post(
-      "/auth/password-reset-code-confirm",
-      { otp: String(data.otp) } 
-    );
+    const res = await this.client.post("/auth/password-reset-code-confirm", {
+      otp: String(data.otp),
+    });
     return res.data;
   }
 

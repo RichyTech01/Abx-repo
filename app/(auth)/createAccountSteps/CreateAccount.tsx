@@ -29,6 +29,7 @@ export default function CreateAccount() {
       post_code: "",
       city: "",
     },
+    marketing_opt_in: false,
     password: "",
   });
 
@@ -88,7 +89,7 @@ export default function CreateAccount() {
   return (
     <ScreenWrapper style={{ flex: 1, backgroundColor: "white" }}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" :   "height"}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -110,7 +111,13 @@ export default function CreateAccount() {
                   className="text-[16px] leading-[22px] font-urbanist-semibold"
                   style={{ color: "#0C513F" }}
                 >
-                  {step}/2
+                  {step}
+                </Text>
+                <Text
+                  className="text-[16px] leading-[22px] font-urbanist-semibold"
+                  style={{ color: step === 2? "#0C513F":"#AEC5BF" }}
+                >
+                  /2
                 </Text>
               </View>
 

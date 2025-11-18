@@ -1,11 +1,11 @@
-import { View } from "react-native";
+import { View, TouchableOpacity, Text } from "react-native";
 import React, { useState } from "react";
 import CustomTextInput from "@/common/CustomTextInput";
 import Button from "@/common/Button";
 import CustomPhoneInput from "@/common/PhoneNumberInput";
 import { isValidEmail } from "@/utils/isValidateEmail";
 import AuthApi from "@/api/AuthApi";
-
+import showToast from "@/utils/showToast";
 
 export default function StepOne({
   nextStep,
@@ -19,6 +19,11 @@ export default function StepOne({
   const [rawPhoneNumber, setRawPhoneNumber] = useState(
     formData.phone_number?.replace("+44", "") || ""
   );
+  const [marketingConsent, setMarketingConsent] = useState(
+    formData.marketing_opt_in ?? false
+  );
+
+  console.log(marketingConsent)
 
   const [errors, setErrors] = useState({
     first_name: "",
@@ -92,7 +97,7 @@ export default function StepOne({
           } else if (message.toLowerCase().includes("email")) {
             updatedErrors.email = message;
           } else {
-            // optional toast fallback if it's some generic error
+            showToast("error", "What's wrong with you?");
           }
         }
 
@@ -151,6 +156,32 @@ export default function StepOne({
           }}
           error={errors.phone_number}
         />
+
+        {/* Check Box for marketting email */}
+        <TouchableOpacity
+          onPress={() => {
+            const newValue = !marketingConsent;
+            setMarketingConsent(newValue);
+            setFormData({ ...formData, marketing_consent: newValue });
+          }}
+          className="flex-row items-center gap-3"
+          activeOpacity={0.7}
+        >
+          <View
+            className={`w-5 h-5 rounded border-2 items-center justify-center ${
+              marketingConsent
+                ? "bg-[#0C513F] border-[#0C513F]"
+                : "bg-white border-[#AEC5BF]"
+            }`}
+          >
+            {marketingConsent && (
+              <Text className="text-white text-[12px] font-bold ">✓</Text>
+            )}
+          </View>
+          <Text className="text-[#333333] text-sm flex-1">
+            I agree to receive marketing emails from ABX
+          </Text>
+        </TouchableOpacity>
 
         <Button
           title={"Click to continue"}
