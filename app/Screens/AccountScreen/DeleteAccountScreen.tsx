@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   View,
   Text,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -15,9 +14,12 @@ import ScreenWrapper from "@/common/ScreenWrapper";
 import CustomTextInput from "@/common/CustomTextInput";
 import LogoutModal from "@/Modals/LogoutModal";
 import AuthApi from "@/api/AuthApi";
-import { logoutUser } from "@/utils/logoutUser";
 import Button from "@/common/Button";
 import showToast from "@/utils/showToast";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import apiService from "@/api/apiService";
+import { useNotificationStore } from "@/store/useNotificationStore";
+import { useCartStore } from "@/store/useCartStore";
 
 export default function DeleteAccountScreen() {
   const router = useRouter();
@@ -31,10 +33,6 @@ export default function DeleteAccountScreen() {
   const validatePassword = () => {
     if (!password) {
       setError({ password: "Password is required" });
-      return false;
-    }
-    if (password.length < 7) {
-      setError({ password: "Password must be at least 7 characters" });
       return false;
     }
     return true;
@@ -55,21 +53,35 @@ export default function DeleteAccountScreen() {
     try {
       await AuthApi.deleteAccount({ password });
       showToast(
-        "error",
+        "success",
         "Account Deleted",
         "Your account has been successfully deleted. We're sorry to see you go."
       );
-      logoutUser(router);
+
+      await AsyncStorage.multiRemove([
+        "accessToken",
+        "cartId",
+        "isGuest",
+        "PushNotificationToken",
+      ]);
+      await AsyncStorage.setItem("isLoggedIn", "false");
+
+      delete apiService.getClient().defaults.headers.common["Authorization"];
+      useUserStore.getState().clearUser();
+      useNotificationStore.getState().reset();
+      useCartStore.getState().reset();
+      router.dismiss(1);
+      router.replace("/OnboardingScreen");
     } catch (err: any) {
       console.error("Delete account error:", err);
 
       if (err.response?.status === 401 || err.response?.status === 400) {
         setError({ password: "Incorrect password. Please try again." });
       } else if (err.response?.data?.message) {
-        Alert.alert("Error", err.response.data.message);
+        showToast("error", err.response.data.message);
       } else {
-        Alert.alert(
-          "Error",
+        showToast(
+          "error",
           "Failed to delete account. Please check your connection and try again."
         );
       }

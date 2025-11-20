@@ -62,7 +62,7 @@ export default function StepOne({
         phone_number: fullPhoneNumber,
       });
 
-      console.log("Validation success:", res);
+      // console.log("Validation success:", res);
 
       setFormData({
         ...formData,

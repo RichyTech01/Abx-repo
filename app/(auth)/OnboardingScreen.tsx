@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  SafeAreaView,
+
   Platform,
 } from "react-native";
 import Button from "@/common/Button";
@@ -41,7 +41,6 @@ export default function OnboardingScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Auto slide effect
   useEffect(() => {
     const interval = setInterval(() => {
       let nextIndex = currentIndex + 1;

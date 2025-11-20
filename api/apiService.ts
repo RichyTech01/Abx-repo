@@ -21,17 +21,22 @@ class ApiService {
         const accessToken = await AsyncStorage.getItem("accessToken");
         const cartId = await AsyncStorage.getItem("cartId");
 
-        if (accessToken) {
+        if (
+          accessToken &&
+          accessToken !== "null" &&
+          accessToken !== "undefined"
+        ) {
           config.headers["Authorization"] = `Bearer ${accessToken}`;
+        } else {
+          delete config.headers["Authorization"];
         }
 
         if (cartId) {
           config.headers["X-Cart-ID"] = cartId;
         }
-        // console.log("carttt",cartId)
+
         return config;
-      },
-      (error) => Promise.reject(error)
+      }
     );
 
     this.client.interceptors.response.use(
