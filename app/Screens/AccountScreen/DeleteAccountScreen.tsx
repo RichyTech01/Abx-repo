@@ -66,10 +66,10 @@ export default function DeleteAccountScreen() {
       if (err.response?.status === 401 || err.response?.status === 400) {
         setError({ password: "Incorrect password. Please try again." });
       } else if (err.response?.data?.message) {
-        Alert.alert("Error", err.response.data.message);
+        showToast("error", err.response.data.message);
       } else {
-        Alert.alert(
-          "Error",
+        showToast(
+          "error",
           "Failed to delete account. Please check your connection and try again."
         );
       }
