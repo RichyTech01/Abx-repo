@@ -67,7 +67,7 @@ export default function Account() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: Platform.OS === "ios" ? 110 : 160,
+          paddingBottom: Platform.OS === "ios" ? 110 : 120,
         }}
       >
         <View className="mx-[16px]">
@@ -85,7 +85,6 @@ export default function Account() {
                 } else {
                   await AsyncStorage.multiRemove(["isGuest"]);
                   router.replace("/Login");
-                  
                 }
               }}
             >
@@ -98,6 +97,25 @@ export default function Account() {
               <ArrowRIght />
             </TouchableOpacity>
           </View>
+
+          {hasToken && (
+            <View className="border border-[#F1EAE7] rounded-[8px] py-[8px] px-[8px] bg-white mt-[16px] ">
+              <TouchableOpacity
+                className="py-[4px] pl-[4px] flex-row items-center justify-between "
+                onPress={() =>
+                  router.push("/Screens/AccountScreen/DeleteAccountScreen")
+                }
+              >
+                <View className="flex-row items-center ">
+                  <LogoutIcon />
+                  <Text className="font-urbanist-medium text-[#F04438] text-[16px] leading-[22px] ml-[8px]  ">
+                    Delete Account
+                  </Text>
+                </View>
+                <ArrowRIght />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
 

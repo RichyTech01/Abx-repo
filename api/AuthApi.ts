@@ -34,6 +34,11 @@ class AuthApi {
     return res.data;
   }
 
+  public async deleteAccount(data: { password: string }) {
+    const res = await this.client.post("/auth/delete-account", data);
+    return res.data;
+  }
+
   // Sign in
   public async signIn(data: { email: string; password: string }) {
     const res = await this.client.post("/auth/sign-in", data);
