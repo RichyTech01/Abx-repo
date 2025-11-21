@@ -5,11 +5,10 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useRouter } from "expo-router";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import { ShopProductType, ProductVariation } from "@/types/store";
@@ -27,9 +26,7 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
   const router = useRouter();
   const { latitude, longitude } = useLocationStore();
   const [modalVisible, setModalVisible] = React.useState(false);
-  const [selectedProductId, setSelectedProductId] = React.useState<
-    number | null
-  >(null);
+  const [selectedProductId, setSelectedProductId] = React.useState<number | null>(null);
 
   const { data, isLoading, error, refetch } = useQuery<{
     results: ShopProductType[];
@@ -50,7 +47,6 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
       enabled: !!selectedProductId,
     });
 
-  // Calculate distance for a product
   const calculateDistance = useCallback(
     (product: ShopProductType): number => {
       if (
@@ -69,9 +65,17 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
     [latitude, longitude]
   );
 
-  if (error) {
-    showToast("error", (error as Error).message || "Failed to load product");
-  }
+  // Handle error in useEffect instead of during render
+  useEffect(() => {
+    if (error) {
+      showToast("error", (error as Error).message || "Failed to load product");
+    }
+  }, [error]);
+
+  // Refetch when refreshTrigger changes
+  useEffect(() => {
+    refetch();
+  }, [refreshTrigger, refetch]);
 
   const products = (data?.results ?? []).slice(0, 4);
 
@@ -79,10 +83,6 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
     setSelectedProductId(id);
     setModalVisible(true);
   };
-
-  useEffect(() => {
-    refetch();
-  }, [refreshTrigger]);
 
   return (
     <View className={`${Platform.OS === "ios" ? "mb-16" : "mb-28"} mb-16`}>

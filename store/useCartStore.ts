@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import OrderApi from "@/api/OrderApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type CartItem = {
   id: number;
@@ -10,33 +11,49 @@ type CartItem = {
 
 type CartState = {
   cartItems: CartItem[];
+  lastFetchTime: number;
+  isFetching: boolean;
+  shouldRefetch: boolean;
   setCartItems: (items: CartItem[]) => void;
   addItem: (item: CartItem) => void;
   removeItem: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
   reset: () => void;
-  // NEW: Fetch cart from API
   refreshCart: () => Promise<void>;
-  // Computed getter for cart count
+  setShouldRefetch: (value: boolean) => void;
   getCartCount: () => number;
-  // Computed getter for total cart value
   getTotalValue: () => number;
 };
 
-const initialState: Pick<CartState, "cartItems"> = {
+const FETCH_COOLDOWN = 10000; // 10 seconds - adjust based on your rate limits
+
+const initialState: Pick<
+  CartState,
+  "cartItems" | "lastFetchTime" | "isFetching" | "shouldRefetch"
+> = {
   cartItems: [],
+  lastFetchTime: 0,
+  isFetching: false,
+  shouldRefetch: true,
 };
 
 export const useCartStore = create<CartState>((set, get) => ({
   cartItems: [],
+  lastFetchTime: 0,
+  isFetching: false,
+  shouldRefetch: true,
+
   setCartItems: (items) => set({ cartItems: items }),
+
   addItem: (item) =>
     set((state) => ({ cartItems: [...state.cartItems, item] })),
+
   removeItem: (id) =>
     set((state) => ({
       cartItems: state.cartItems.filter((i) => i.id !== id),
     })),
+
   updateQuantity: (id, quantity) =>
     set((state) => ({
       cartItems: state.cartItems.map((i) =>
@@ -49,17 +66,65 @@ export const useCartStore = create<CartState>((set, get) => ({
           : i
       ),
     })),
+
   clearCart: () => set({ cartItems: [] }),
 
   reset: () => set(initialState),
 
-  // NEW: Refresh cart from API
+  setShouldRefetch: (value) => set({ shouldRefetch: value }),
+
+  // Refresh cart from API with throttling
   refreshCart: async () => {
+    const state = get();
+
+    // Prevent concurrent requests
+    if (state.isFetching) {
+      console.log("Cart fetch already in progress, skipping...");
+      return;
+    }
+
+    // Check cooldown (skip if recently fetched)
+    const now = Date.now();
+    if (now - state.lastFetchTime < FETCH_COOLDOWN) {
+      console.log(
+        `Cart fetch on cooldown (${Math.round(
+          (FETCH_COOLDOWN - (now - state.lastFetchTime)) / 1000
+        )}s remaining), skipping...`
+      );
+      return;
+    }
+
+    set({ isFetching: true, lastFetchTime: now });
+
     try {
       const res = await OrderApi.getCart();
-      set({ cartItems: res.cart?.items || [] });
-    } catch (err) {
-      console.error("Failed to refresh cart:", err);
+
+      if (res?.cart) {
+        const items = res.cart.items || [];
+        const cartId = res.cart.id;
+
+        set({ cartItems: items });
+
+        if (cartId) {
+          await AsyncStorage.setItem("cartId", cartId);
+        }
+      } else {
+        // No cart yet
+        set({ cartItems: [] });
+        await AsyncStorage.removeItem("cartId");
+      }
+    } catch (err: any) {
+      const status = err?.response?.status;
+
+      if (status === 404 || status === 500) {
+        console.log("No active cart yet, clearing local cart");
+        set({ cartItems: [] });
+        await AsyncStorage.removeItem("cartId");
+      } else {
+        console.error("Failed to refresh cart:", err);
+      }
+    } finally {
+      set({ isFetching: false });
     }
   },
 

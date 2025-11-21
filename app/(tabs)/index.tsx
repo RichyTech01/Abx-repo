@@ -107,7 +107,8 @@ export default function Home() {
   const router = useRouter();
   const { user, loading } = useUserStore();
   const { unreadCount, checkNotificationStatus } = useNotificationStore();
-  const { cartItems, setCartItems } = useCartStore();
+  const { cartItems, refreshCart, shouldRefetch, setShouldRefetch } =
+    useCartStore();
   const { requestLocation } = useLocationStore();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -126,55 +127,24 @@ export default function Home() {
             checkNotificationStatus();
           }
 
-          await fetchCartCount();
+          // This will automatically throttle if called too frequently
+          await refreshCart();
         } catch (err) {
-          setCartItems([]);
-        }
-      };
-
-      const fetchCartCount = async () => {
-        try {
-          const res = await OrderApi.getCart();
-
-          if (res?.cart) {
-            const items = res.cart.items || [];
-            const cartId = res.cart.id;
-
-            // update local store and AsyncStorage
-            setCartItems(items);
-
-            if (cartId) {
-              await AsyncStorage.setItem("cartId", cartId);
-            }
-          } else {
-            // No cart yet, clear items safely
-            setCartItems([]);
-            await AsyncStorage.removeItem("cartId");
-          }
-        } catch (err: any) {
-          // Handle 500 or "cart not found" gracefully
-          const status = err?.response?.status;
-
-          if (status === 404 || status === 500) {
-            console.log("No active cart yet, skipping...");
-            setCartItems([]);
-            await AsyncStorage.removeItem("cartId");
-          } else {
-            console.error("Error fetching cart:", err);
-          }
+          console.error("Init error:", err);
         }
       };
 
       init();
-    }, [checkNotificationStatus, setCartItems])
+    }, [checkNotificationStatus, refreshCart])
   );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await requestLocation();
+    await refreshCart(); // Throttled automatically
     setRefreshTrigger((prev) => !prev);
     setRefreshing(false);
-  }, []);
+  }, [requestLocation, refreshCart]);
 
   return (
     <ScreenWrapper>
@@ -209,7 +179,6 @@ export default function Home() {
         <SearchInput />
       </View>
 
-      {/* Scrollable content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -217,7 +186,6 @@ export default function Home() {
         }
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Auto sliding banners */}
         <View className="mt-[32px]">
           <BannerSlider />
         </View>
