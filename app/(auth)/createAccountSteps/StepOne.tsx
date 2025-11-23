@@ -57,12 +57,12 @@ export default function StepOne({
     try {
       setLoading(true);
 
-      const res = await AuthApi.validateCredential({
+      await AuthApi.validateCredential({
         email: formData.email,
         phone_number: fullPhoneNumber,
       });
 
-      console.log("Validation success:", res);
+      // console.log("Validation success:", res);
 
       setFormData({
         ...formData,

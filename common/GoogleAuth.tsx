@@ -38,21 +38,19 @@ const GoogleAuth: React.FC<Props> = ({
         showPlayServicesUpdateDialog: true,
       });
 
-      await GoogleSignin.signIn();
+      const userInfo = await GoogleSignin.signIn();
 
-      const tokens = await GoogleSignin.getTokens();
+      const idToken = userInfo.data?.idToken;
 
-      if (!tokens.idToken) {
+      if (!idToken) {
         showToast("error", "No ID token received from Google");
         return;
       }
 
-      const idToken = tokens.idToken;
-
       const res = await AuthApi.googleSignIn({ token: idToken });
 
       await AsyncStorage.setItem("accessToken", res.access);
-      await AsyncStorage.setItem("refreshToken", res.refresh);
+      // await AsyncStorage.setItem("refreshToken", res.refresh);
 
       if (res.is_first_login === true) {
         router.push("/AdditionalInfo/AdditionalInfo");
