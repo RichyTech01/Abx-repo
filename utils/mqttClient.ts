@@ -1,5 +1,6 @@
-import mqtt, { MqttClient, IClientOptions } from "mqtt";
-import { Notification, MessageCallback } from "@/types/NotificationType";
+import { MessageCallback, Notification } from "@/types/NotificationType";
+import mqtt, { IClientOptions, MqttClient } from "mqtt";
+
 
 
 const MQTT_USERNAME = process.env.EXPO_PUBLIC_MQTT_USERNAME;

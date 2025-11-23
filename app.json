@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "abx-mobile",
+    "name": "abx",
     "slug": "abx-mobile-app",
     "version": "1.0.2",
     "orientation": "portrait",
@@ -38,6 +38,7 @@
       "scheme": "abxmobileapplication"
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "CAMERA",
