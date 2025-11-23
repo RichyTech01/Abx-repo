@@ -80,11 +80,15 @@ export default function Categories({ refreshTrigger }: Props) {
   );
 
   const ListEmptyComponent = () => (
-    <View className="items-center justify-center py-10">
-      <Text className="text-red-600 font-normal text-[14px]">
-        No categories found
-      </Text>
-    </View>
+    <Text
+      style={{
+        textAlign: "center",
+        maxWidth: "60%",
+      }}
+      className="font-orelega py-10 text-black text-[16px] mx-auto justify-center "
+    >
+      No category shops available at the moment.
+    </Text>
   );
 
   const SkeletonCard = () => {
@@ -157,6 +161,8 @@ export default function Categories({ refreshTrigger }: Props) {
       />
       {loading ? (
         renderSkeletons()
+      ) : categories.length === 0 ? (
+        <ListEmptyComponent />
       ) : (
         <FlatList
           data={categories}

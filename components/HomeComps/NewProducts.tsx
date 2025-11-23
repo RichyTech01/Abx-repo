@@ -16,7 +16,6 @@ type Props = {
   refreshTrigger: boolean;
 };
 
-
 const NewProducts = ({ refreshTrigger }: Props) => {
   const { longitude, latitude } = useLocationStore();
 
@@ -190,43 +189,30 @@ const NewProducts = ({ refreshTrigger }: Props) => {
   );
 
   const ListEmptyComponent = memo(() => (
-    <View
+    <Text
       style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 20,
-        minHeight: 200,
+        textAlign: "center",
+        maxWidth: "60%",
       }}
+      className="font-orelega py-10 text-black text-[16px] mx-auto "
     >
-      <Text
-        style={{
-          color: "black",
-          textAlign: "center",
-          fontSize: 14,
-        }}
-      >
-        No any new product available at the moment.
-      </Text>
-    </View>
+      No new products available at the moment.
+    </Text>
   ));
 
   const ErrorComponent = memo(() => (
     <View
       style={{
-        flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        paddingHorizontal: 20,
-        minHeight: 200,
       }}
     >
       <Text
         style={{
-          color: "red",
           textAlign: "center",
-          fontSize: 14,
+          maxWidth: "60%",
         }}
+        className="font-orelega py-10 text-black text-[16px] mx-auto "
       >
         Failed to load products
       </Text>
@@ -258,9 +244,6 @@ const NewProducts = ({ refreshTrigger }: Props) => {
             paddingVertical: 8,
           }}
           ListEmptyComponent={ListEmptyComponent}
-          initialNumToRender={8}
-          maxToRenderPerBatch={10}
-          windowSize={5}
         />
       )}
 

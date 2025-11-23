@@ -19,7 +19,7 @@ export default function VariationCard({
 }: VariationCardProps) {
   const { updating, addToCart, updateCartQuantity, removeFromCart } =
     useCartOperations();
-  
+
   // Local loading state for this specific item
   const [isLoading, setIsLoading] = useState(false);
 
@@ -44,7 +44,7 @@ export default function VariationCard({
 
   const handleDecrease = async () => {
     if (!existingItem) return;
-    
+
     setIsLoading(true);
     try {
       if (quantity > 1) {
@@ -85,9 +85,7 @@ export default function VariationCard({
 
       {/* Cart Actions */}
       <View
-        className={`flex-row items-center ${
-          item.stock === 0 && "opacity-30"
-        }`}
+        className={`flex-row items-center ${item.stock === 0 && "opacity-30"}`}
       >
         <Pressable
           className={`w-[35px] ${

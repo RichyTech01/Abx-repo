@@ -26,7 +26,9 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
   const router = useRouter();
   const { latitude, longitude } = useLocationStore();
   const [modalVisible, setModalVisible] = React.useState(false);
-  const [selectedProductId, setSelectedProductId] = React.useState<number | null>(null);
+  const [selectedProductId, setSelectedProductId] = React.useState<
+    number | null
+  >(null);
 
   const { data, isLoading, error, refetch } = useQuery<{
     results: ShopProductType[];
@@ -100,8 +102,11 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
         <ActivityIndicator size="small" style={{ marginTop: 16 }} />
       ) : error ? (
         <Text
-          style={{ marginTop: 16, color: "red" }}
-          className="items-center justify-center mx-auto"
+          style={{
+            textAlign: "center",
+            maxWidth: "60%",
+          }}
+          className="font-orelega py-10 text-black text-[16px] mx-auto "
         >
           Failed to load rescue and save products
         </Text>

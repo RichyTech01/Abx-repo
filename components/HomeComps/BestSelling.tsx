@@ -199,17 +199,23 @@ export default function BestSelling({ refreshTrigger }: Props) {
 
   const ListEmptyComponent = () => (
     <Text
-      style={{ marginVertical: 16, color: "#666", textAlign: "center" }}
-      className="items-center justify-center mx-auto"
+      style={{
+        textAlign: "center",
+        maxWidth: "60%",
+      }}
+      className="font-orelega py-10 text-black text-[16px] mx-auto "
     >
-      No best-selling products available at the moment.
+      No best selling products available at the moment.
     </Text>
   );
 
   const ErrorComponent = () => (
     <Text
-      style={{ marginTop: 16, color: "red" }}
-      className="items-center justify-center mx-auto"
+      style={{
+        textAlign: "center",
+        maxWidth: "60%",
+      }}
+      className="font-orelega py-10 text-black text-[16px] mx-auto "
     >
       Failed to load products
     </Text>

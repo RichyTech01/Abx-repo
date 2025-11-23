@@ -1,4 +1,4 @@
-import { View, FlatList } from "react-native";
+import { View, FlatList, Text } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import StoreApi from "@/api/StoreApi";
 import React from "react";
@@ -139,19 +139,15 @@ export default function TopratedShops({ refreshTrigger }: Props) {
   );
 
   const EmptyMessage = () => (
-    <View
+    <Text
       style={{
-        paddingHorizontal: 20,
-        minHeight: 100,
-        justifyContent: "center",
+        textAlign: "center",
+        maxWidth: "60%",
       }}
+      className="font-orelega py-10 text-black text-[16px] mx-auto "
     >
-      <OreAppText
-        style={{ textAlign: "center", color: "#535353", fontSize: 14 }}
-      >
-        No top rated stores available at the moment.
-      </OreAppText>
-    </View>
+      No Top rated shops available at the moment.
+    </Text>
   );
 
   return (

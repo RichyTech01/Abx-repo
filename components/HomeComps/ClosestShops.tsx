@@ -1,4 +1,4 @@
-import { View, FlatList } from "react-native";
+import { View, FlatList, Text } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import SectionHeader from "@/common/SectionHeader";
 import { useRouter } from "expo-router";
@@ -204,19 +204,15 @@ export default function ClosestShops({ refreshTrigger }: Props) {
     // No shops found
     if (shops.length === 0) {
       return (
-        <View
+        <Text
           style={{
-            paddingHorizontal: 20,
-            minHeight: 120,
-            justifyContent: "center",
+            textAlign: "center",
+            maxWidth: "60%",
           }}
+          className="font-orelega py-10 text-black text-[16px] mx-auto "
         >
-          <OreAppText
-            style={{ textAlign: "center", color: "#535353", fontSize: 14 }}
-          >
-            No nearby stores found
-          </OreAppText>
-        </View>
+          No closest shops available at the moment.
+        </Text>
       );
     }
 

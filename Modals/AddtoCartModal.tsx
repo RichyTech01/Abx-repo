@@ -124,7 +124,8 @@ export default function AddtoCartModal({
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["accessToken", "isGuest"]);
+          await Storage.multiRemove(["isGuest"]);
+          await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Carts");
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"
