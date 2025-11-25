@@ -1,5 +1,5 @@
 import { View, FlatList, Platform } from "react-native";
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Header from "@/common/Header";
 import UrbanistText from "@/common/UrbanistText";
 import CartItemCard from "@/common/CartItemCard";
@@ -7,7 +7,6 @@ import Button from "@/common/Button";
 import { useRouter } from "expo-router";
 import OrderApi from "@/api/OrderApi";
 import showToast from "@/utils/showToast";
-import { useFocusEffect } from "@react-navigation/native";
 import NoData from "@/common/NoData";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useCartStore } from "@/store/useCartStore";
@@ -22,6 +21,7 @@ export default function Carts() {
   const { cartItems, setCartItems } = useCartStore();
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
+  const [refreshing, setRefreshing] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const fetchCart = async () => {
@@ -62,30 +62,34 @@ export default function Carts() {
       setShowLoginModal(true);
     }
   };
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchCart();
+    setRefreshing(false);
+  }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      const checkLoginAndFetch = async () => {
-        try {
-          const wasLoggedIn = await AsyncStorage.getItem("accessToken");
-          const cartId = await AsyncStorage.getItem("cartId");
-          const guest = await AsyncStorage.getItem("isGuest");
-          if ((wasLoggedIn && cartId) || (guest && cartId)) {
-            fetchCart();
-          } else {
-            setCartItems([]);
-            setLoading(false);
-          }
-        } catch (err) {
-          console.error("Error checking login/cart:", err);
+  useEffect(() => {
+    const checkLoginAndFetch = async () => {
+      try {
+        const wasLoggedIn = await AsyncStorage.getItem("accessToken");
+        const cartId = await AsyncStorage.getItem("cartId");
+        const guest = await AsyncStorage.getItem("isGuest");
+
+        if ((wasLoggedIn && cartId) || (guest && cartId)) {
+          fetchCart();
+        } else {
           setCartItems([]);
           setLoading(false);
         }
-      };
+      } catch (err) {
+        console.error("Error checking login/cart:", err);
+        setCartItems([]);
+        setLoading(false);
+      }
+    };
 
-      checkLoginAndFetch();
-    }, [])
-  );
+    checkLoginAndFetch();
+  }, []);
 
   const updateQuantity = async (
     cartItemId: number,
@@ -234,8 +238,8 @@ export default function Carts() {
                 </View>
               )}
               showsVerticalScrollIndicator={false}
-              // refreshing={loading}
-              // onRefresh={fetchCart}
+              refreshing={refreshing}
+              onRefresh={onRefresh}
             />
           )}
 
@@ -288,7 +292,6 @@ export default function Carts() {
         onConfirm={async () => {
           await Storage.multiRemove(["isGuest"]);
 
-          
           await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Carts");
 
           // Now go to login

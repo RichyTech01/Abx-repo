@@ -79,18 +79,18 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     // Prevent concurrent requests
     if (state.isFetching) {
-      console.log("Cart fetch already in progress, skipping...");
+      // console.log("Cart fetch already in progress, skipping...");
       return;
     }
 
     // Check cooldown (skip if recently fetched)
     const now = Date.now();
     if (now - state.lastFetchTime < FETCH_COOLDOWN) {
-      console.log(
-        `Cart fetch on cooldown (${Math.round(
-          (FETCH_COOLDOWN - (now - state.lastFetchTime)) / 1000
-        )}s remaining), skipping...`
-      );
+      // console.log(
+      //   `Cart fetch on cooldown (${Math.round(
+      //     (FETCH_COOLDOWN - (now - state.lastFetchTime)) / 1000
+      //   )}s remaining), skipping...`
+      // );
       return;
     }
 

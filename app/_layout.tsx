@@ -47,12 +47,13 @@ function GlobalNotificationHandler() {
     useNotificationStore();
   const router = useRouter();
   const appState = useRef(AppState.currentState);
+  const hasInitiallyChecked = useRef(false);
 
   // Unified notification handler
   const handleNewNotification = useCallback(
     (newNotification: Notification) => {
       handleRealtimeNotification(newNotification);
-      checkNotificationStatus();
+      // checkNotificationStatus();
 
       showToast(
         "success",
@@ -60,8 +61,19 @@ function GlobalNotificationHandler() {
         newNotification.message ?? "You have a new notification."
       );
     },
-    [handleRealtimeNotification, checkNotificationStatus]
+    [handleRealtimeNotification]
   );
+
+  useEffect(() => {
+    if (!user?.id || hasInitiallyChecked.current) return;
+
+    const initialCheck = async () => {
+      await checkNotificationStatus();
+      hasInitiallyChecked.current = true;
+    };
+
+    initialCheck();
+  }, [user?.id, checkNotificationStatus]);
 
   // Initialize push notifications and register token
   useEffect(() => {
@@ -180,7 +192,7 @@ function GlobalNotificationHandler() {
           }
 
           // Refresh notifications
-          checkNotificationStatus();
+          // checkNotificationStatus();
         }
 
         appState.current = nextAppState;

@@ -23,7 +23,7 @@ export default function StepOne({
     formData.marketing_opt_in ?? false
   );
 
-  console.log(marketingConsent);
+  // console.log(marketingConsent);
 
   const [errors, setErrors] = useState({
     first_name: "",
