@@ -15,6 +15,7 @@ import AuthApi from "@/api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useUserStore } from "@/store/useUserStore";
+import showToast from "@/utils/showToast";
 
 interface SignInResponse {
   access: string;
@@ -79,6 +80,33 @@ export default function Login() {
     } catch (err: any) {
       console.log("Login error:", err);
       console.log("Full error response:", err.response?.data);
+      let message = "Something went wrong. Please try again.";
+
+      const rawDetail = err.response?.data?.detail;
+
+      if (rawDetail && typeof rawDetail === "string") {
+        const match = rawDetail.match(/Expected available in (\d+) seconds?/);
+        if (match) {
+          const seconds = parseInt(match[1], 10);
+          const minutes = Math.ceil(seconds / 60);
+
+          if (minutes < 1) {
+            message = "Too many requests. Please wait a moment and try again.";
+          } else if (minutes === 1) {
+            message = "Rate limit reached. Please try again in 1 minute.";
+          } else if (minutes < 60) {
+            message = `Rate limit reached. Please try again in ${minutes} minutes.`;
+          } else {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            message = `Rate limit reached. Please try again in ${hours}h ${mins}m.`;
+          }
+        } else {
+          message = rawDetail;
+        }
+      }
+
+      showToast("error", message || err.response?.data.non_field_errors);
 
       const backendErrors = err.response?.data || {};
       const fieldErrors: typeof errors = {};
@@ -93,7 +121,6 @@ export default function Login() {
         fieldErrors.password = Array.isArray(backendErrors.password)
           ? backendErrors.password[0]
           : backendErrors.password;
-        console.log("Password error set:", fieldErrors.password);
       }
 
       // Handle non-field errors (like invalid credentials)
@@ -106,26 +133,17 @@ export default function Login() {
         const errorLower = errorMessage.toLowerCase();
         if (errorLower.includes("email") || errorLower.includes("username")) {
           fieldErrors.email = errorMessage;
-          console.log("Non-field error set to email:", fieldErrors.email);
         } else if (
           errorLower.includes("password") ||
           errorLower.includes("pass")
         ) {
           fieldErrors.password = errorMessage;
-          console.log("Non-field error set to password:", fieldErrors.password);
         } else {
-          // For generic messages, show under both fields
           fieldErrors.email = errorMessage;
           fieldErrors.password = errorMessage;
-          console.log("Non-field error set to both fields:", errorMessage);
         }
       }
-      // Debug: Log field errors before setting
-      console.log("Field errors to set:", fieldErrors);
-
-      // Always set errors to show them in the form
       setErrors(fieldErrors);
-      console.log("Setting field errors:", fieldErrors);
       setLoading(false);
     }
   };

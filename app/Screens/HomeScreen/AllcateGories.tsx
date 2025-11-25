@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import OreAppText from "@/common/OreApptext";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import StoreApi from "@/api/StoreApi";
+import NoData from "@/common/NoData";
 
 const CATEGORY_COLORS: Record<
   number,
@@ -140,8 +141,11 @@ export default function AllCategories() {
   );
 
   const ListEmptyComponent = () => (
-    <View className="flex-1 items-center justify-center">
-      <OreAppText>No categories found.</OreAppText>
+    <View className="flex-1 items-center justify-center py-4">
+      <NoData
+        title="Empty data"
+        subtitle="No category data at the moment, come back later"
+      />
     </View>
   );
 

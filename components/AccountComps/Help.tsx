@@ -47,6 +47,21 @@ export default function Help() {
           <ArrowRIght />
         </TouchableOpacity>
 
+        <TouchableOpacity
+          className="py-[10px] pl-[4px] border-b border-[#F1EAE7] flex-row items-center justify-between "
+          onPress={() =>
+            router.push("/Screens/AccountScreen/Terms")
+          }
+        >
+          <View className="flex-row items-center ">
+            <PrivacyAndPolicyIcon />
+            <Text className="font-urbanist-medium text-[#2D2220] text-[14px] leading-[20px] ml-[8px]  ">
+              Terms & condition
+            </Text>
+          </View>
+          <ArrowRIght />
+        </TouchableOpacity>
+
         <TouchableOpacity className="py-[10px] pl-[4px] flex-row items-center justify-between ">
           <View className="flex-row items-center ">
             <RateThisAppIcon />
