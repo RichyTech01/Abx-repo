@@ -53,7 +53,7 @@ export default function Authheader({
         </View>
       </View>
 
-      <GoogleAuth /> 
+      {/* <GoogleAuth />  */}
     </View>
   );
 }

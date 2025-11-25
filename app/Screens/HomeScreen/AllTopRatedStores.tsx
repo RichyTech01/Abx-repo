@@ -13,6 +13,7 @@ import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 import OreAppText from "@/common/OreApptext";
+import NoData from "@/common/NoData";
 
 export default function AllTopRatedStores() {
   const router = useRouter();
@@ -115,21 +116,10 @@ export default function AllTopRatedStores() {
 
   const EmptyState = () => (
     <View className="py-20 items-center px-6">
-      <OreAppText
-        style={{ fontSize: 16, color: "#535353", textAlign: "center" }}
-      >
-        No top rated stores available right now.
-      </OreAppText>
-      <OreAppText
-        style={{
-          fontSize: 14,
-          color: "#888",
-          marginTop: 8,
-          textAlign: "center",
-        }}
-      >
-        Pull down to try again.
-      </OreAppText>
+       <NoData 
+         title="Empty data"
+         subtitle="No top rated product at the moment"
+       />
     </View>
   );
 

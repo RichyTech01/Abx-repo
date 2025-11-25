@@ -288,7 +288,7 @@ export default function Carts() {
         onConfirm={async () => {
           await Storage.multiRemove(["isGuest"]);
 
-          // Save where the user was before login
+          
           await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Carts");
 
           // Now go to login

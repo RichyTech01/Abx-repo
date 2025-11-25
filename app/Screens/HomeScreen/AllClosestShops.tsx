@@ -14,6 +14,7 @@ import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 import OreAppText from "@/common/OreApptext";
+import NoData from "@/common/NoData";
 
 export default function AllClosestShops() {
   const router = useRouter();
@@ -189,22 +190,11 @@ export default function AllClosestShops() {
     }
 
     return (
-      <View className="py-20 px-6">
-        <OreAppText
-          style={{ textAlign: "center", color: "#535353", fontSize: 16 }}
-        >
-          No nearby stores found
-        </OreAppText>
-        <OreAppText
-          style={{
-            textAlign: "center",
-            color: "#888",
-            fontSize: 14,
-            marginTop: 8,
-          }}
-        >
-          Try moving to a different area
-        </OreAppText>
+      <View className="py-20 px-6 ">
+        <NoData
+          title=" No nearby stores found"
+          subtitle="Try moving to a different area"
+        />
       </View>
     );
   };

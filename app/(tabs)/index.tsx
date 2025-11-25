@@ -30,7 +30,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useLocationStore } from "@/store/locationStore";
-import OrderApi from "@/api/OrderApi";
 import NotificationBadge from "@/common/NotificationBadge";
 import ScreenWrapper from "@/common/ScreenWrapper";
 

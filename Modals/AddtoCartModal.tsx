@@ -32,16 +32,16 @@ export default function AddtoCartModal({
   const { cartItems, refreshCart } = useCartStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  useEffect(() => {
-    const fetchCart = async () => {
-      const cartId = await Storage.get("cartId");
-      if (value && cartId) {
-        refreshCart();
-      }
-    };
+  // useEffect(() => {
+  //   const fetchCart = async () => {
+  //     const cartId = await Storage.get("cartId");
+  //     if (value && cartId) {
+  //       refreshCart();
+  //     }
+  //   };
 
-    fetchCart();
-  }, [value]);
+  //   fetchCart();
+  // }, [value]);
 
   return (
     <Modal

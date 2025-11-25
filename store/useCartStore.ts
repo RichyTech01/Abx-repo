@@ -26,7 +26,7 @@ type CartState = {
   getTotalValue: () => number;
 };
 
-const FETCH_COOLDOWN = 10000; // 10 seconds - adjust based on your rate limits
+const FETCH_COOLDOWN = 15000;
 
 const initialState: Pick<
   CartState,
@@ -116,8 +116,15 @@ export const useCartStore = create<CartState>((set, get) => ({
     } catch (err: any) {
       const status = err?.response?.status;
 
+      // Handle 429 specifically
+      if (status === 429) {
+        console.log("Rate limited! Come back later...");
+        // Extend the cooldown temporarily
+        set({ lastFetchTime: now + FETCH_COOLDOWN * 2 });
+        return;
+      }
+
       if (status === 404 || status === 500) {
-        console.log("No active cart yet, clearing local cart");
         set({ cartItems: [] });
         await AsyncStorage.removeItem("cartId");
       } else {
