@@ -1,6 +1,5 @@
 import { useState } from "react";
 import NotificationApi from "@/api/NotificationApi";
-import MarkIcon from "@/assets/svgs/MarkIcon.svg";
 import Header from "@/common/Header";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import NoData from "@/common/NoData";
@@ -65,22 +64,17 @@ export default function NotificationScreen() {
   }, [fetchNotifications]);
 
   useEffect(() => {
-    if (user?.id && MQTTClient.isClientConnected()) {
-      const originalCallback = MQTTClient.getMessageCallback();
+    if (!user?.id || !MQTTClient.isClientConnected()) return;
 
-      const combinedCallback = (notification: Notification) => {
-        if (originalCallback) {
-          originalCallback(notification);
-        }
-        handleRealtimeNotification(notification);
-      };
+    const notificationScreenCallback = (notification: Notification) => {
+      console.log("📱 NotificationScreen received:", notification);
+      handleRealtimeNotification(notification);
+    };
 
-      // Update MQTT callback
-      MQTTClient.updateCallback(combinedCallback);
-    }
+    MQTTClient.addCallback(notificationScreenCallback);
 
     return () => {
-      // console.log("Cleaning up notification screen MQTT listener");
+      MQTTClient.removeCallback(notificationScreenCallback);
     };
   }, [user?.id, handleRealtimeNotification]);
 
@@ -113,38 +107,6 @@ export default function NotificationScreen() {
       params: { id: notification.data.order_id },
     });
   };
-
-  // const handleMarkAllAsRead = async () => {
-  //   try {
-  //     const unreadNotifications = notifications.filter((n) => !n.is_read);
-
-  //     if (unreadNotifications.length === 0) {
-  //       showToast("info", "All notifications are already read");
-  //       return;
-  //     }
-
-  //     await Promise.all(
-  //       unreadNotifications.map((n) =>
-  //         NotificationApi.markAsReadPartial(n.id, {
-  //           title: n.title,
-  //           message: n.message,
-  //           notification_type: n.notification_type,
-  //           data: n.data,
-  //         })
-  //       )
-  //     );
-
-  //     // Update store
-  //     markAllAsRead();
-  //     showToast(
-  //       "success",
-  //       `Marked ${unreadNotifications.length} notifications as read`
-  //     );
-  //   } catch (err) {
-  //     console.error("Error marking all as read", err);
-  //     showToast("error", "Failed to mark notifications as read");
-  //   }
-  // };
 
   const handleLoadMore = useCallback(() => {
     if (hasMore && !loadingMore && hasToken) {

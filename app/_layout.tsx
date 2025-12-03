@@ -34,20 +34,58 @@ import AuthApi from "@/api/AuthApi";
 import showToast from "@/utils/showToast";
 import type { Notification } from "@/types/NotificationType";
 
+export const initializePushNotifications = async () => {
+  try {
+    const storedToken = await AsyncStorage.getItem("PushNotificationToken");
+    const isGuest = await AsyncStorage.getItem("isGuest");
+    const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+
+    // Always allow getting the token
+    if (!storedToken) {
+      const token =
+        await PushNotificationService.registerForPushNotifications();
+      console.log("push token", token);
+      if (token) await AsyncStorage.setItem("PushNotificationToken", token);
+    }
+
+    // Only send device token to backend if user is logged in
+    if (isGuest !== "true" && isLoggedIn === "true") {
+      const token = await AsyncStorage.getItem("PushNotificationToken");
+      if (token) {
+        try {
+          await AuthApi.sendDeviceToken(token);
+        } catch (error) {
+          console.error("Failed to register token with backend:", error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error initializing push notifications:", error);
+  }
+};
+
 SplashScreen.preventAutoHideAsync();
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: 1,
+    },
+  },
+});
 
 const STRIPE_PUBLISHABLE_KEY =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
 
-// Global notification handler with both MQTT and Push
 function GlobalNotificationHandler() {
   const { user, fetchUser } = useUserStore();
   const { handleRealtimeNotification, checkNotificationStatus } =
     useNotificationStore();
   const router = useRouter();
   const appState = useRef(AppState.currentState);
-  const hasInitiallyChecked = useRef(false);
 
   // Unified notification handler
   const handleNewNotification = useCallback(
@@ -65,53 +103,24 @@ function GlobalNotificationHandler() {
   );
 
   useEffect(() => {
-    if (!user?.id || hasInitiallyChecked.current) return;
+    if (!user?.id) return;
 
-    const initialCheck = async () => {
-      await checkNotificationStatus();
-      hasInitiallyChecked.current = true;
+    const globalHandler = (newNotification: Notification) => {
+      console.log("🌍 Global handler received notification:", newNotification);
+      handleNewNotification(newNotification);
     };
 
-    initialCheck();
-  }, [user?.id, checkNotificationStatus]);
+    MQTTClient.connect(String(user.id), globalHandler);
 
-  // Initialize push notifications and register token
+    return () => {
+      MQTTClient.disconnect();
+    };
+  }, [user?.id, handleNewNotification]);
+
   useEffect(() => {
-    if (!user?.id) {
-      fetchUser();
-      return;
-    }
-
-    const initializePushNotifications = async () => {
-      try {
-        const storedToken = await AsyncStorage.getItem("PushNotificationToken");
-        const isGuest = await AsyncStorage.getItem("isGuest");
-
-        // Skip registration for guests or if token already exists
-        if (isGuest === "true" || storedToken) {
-          return;
-        }
-
-        // Register for push notifications
-        const token =
-          await PushNotificationService.registerForPushNotifications();
-
-        if (token) {
-          await AsyncStorage.setItem("PushNotificationToken", token);
-
-          try {
-            await AuthApi.sendDeviceToken(token);
-          } catch (error) {
-            console.error("Failed to register token with backend:", error);
-          }
-        }
-      } catch (error) {
-        console.error("Error initializing push notifications:", error);
-      }
-    };
-
+    if (!user?.id) return;
     initializePushNotifications();
-  }, [user?.id, fetchUser]);
+  }, [user?.id]);
 
   // Setup MQTT connection
   useEffect(() => {

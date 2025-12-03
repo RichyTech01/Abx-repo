@@ -1,9 +1,13 @@
-import { View, FlatList, Text, Animated } from "react-native";
-import React, { useEffect, useState, useRef } from "react";
+import { View, FlatList, Text } from "react-native";
+import React from "react";
 import SectionHeader from "@/common/SectionHeader";
 import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
 import StoreApi from "@/api/StoreApi";
+import { useQuery } from "@tanstack/react-query";
+import { SkeletonCard } from "@/common/SkeletonCard";
+import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
+import OreAppText from "@/common/OreApptext";
 
 type Props = {
   refreshTrigger: boolean;
@@ -14,53 +18,39 @@ const CATEGORY_COLORS: Record<
   { bgColor: string; borderColor: string }
 > = {
   1: { bgColor: "#ECF1F0", borderColor: "#5D8B7F" },
-  3: { bgColor: "#DDE5FF", borderColor: "#E6A14A" },
-  4: { bgColor: "#E6F2FF", borderColor: "#4A90E2" },
+  2: { bgColor: "#FDF0DC", borderColor: "#F4B551" },
+  3: { bgColor: "#EBFFDF", borderColor: "#05A85A" },
+  4: { bgColor: "#DCE7FD", borderColor: "#89AFFD" },
   5: { bgColor: "#FDE6F2", borderColor: "#D14A78" },
-  6: { bgColor: "#E8F8F5", borderColor: "#48C9B0" },
-  7: { bgColor: "#FDF0DC", borderColor: "#F4D03F" },
+  6: { bgColor: "#FDF0DC", borderColor: "#B29870" },
 };
 
 export default function Categories({ refreshTrigger }: Props) {
   const router = useRouter();
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useShimmerAnimation();
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
+  const {
+    data: categories = [],
+    isLoading: loading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
       const data = await StoreApi.getCategories();
       const withColors = (data.results || []).map((cat: any) => ({
         ...cat,
         ...CATEGORY_COLORS[cat.id],
       }));
-      setCategories(withColors.slice(0, 4));
-    } catch (err) {
-      console.error("Failed to fetch categories", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return withColors.slice(0, 4);
+    },
+    staleTime: 1000 * 60 * 10,
+  });
 
-  useEffect(() => {
-    fetchCategories();
+  React.useEffect(() => {
+    if (refreshTrigger && error) {
+      refetch();
+    }
   }, [refreshTrigger]);
 
   const renderItem = ({ item }: { item: any }) => (
@@ -91,57 +81,15 @@ export default function Categories({ refreshTrigger }: Props) {
     </Text>
   );
 
-  const SkeletonCard = () => {
-    const opacity = shimmerAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.3, 0.7],
-    });
-
-    return (
-      <Animated.View
-        style={{
-          opacity,
-          width: 160,
-          height: 120,
-          backgroundColor: "#E1E9EE",
-          borderRadius: 12,
-          padding: 12,
-        }}
-      >
-        <View
-          style={{
-            width: "60%",
-            height: 16,
-            backgroundColor: "#C4D1DA",
-            borderRadius: 4,
-            marginBottom: 8,
-          }}
-        />
-        <View
-          style={{
-            width: "80%",
-            height: 12,
-            backgroundColor: "#C4D1DA",
-            borderRadius: 4,
-            marginBottom: 6,
-          }}
-        />
-        <View
-          style={{
-            width: "40%",
-            height: 12,
-            backgroundColor: "#C4D1DA",
-            borderRadius: 4,
-          }}
-        />
-      </Animated.View>
-    );
-  };
-
   const renderSkeletons = () => (
     <FlatList
       data={[1, 2, 3, 4]}
-      renderItem={() => <SkeletonCard />}
+      renderItem={() => (
+        <SkeletonCard
+          shimmerAnim={shimmerAnim}
+          style={{ width: 160, height: 136 }}
+        />
+      )}
       keyExtractor={(item) => item.toString()}
       horizontal
       showsHorizontalScrollIndicator={false}
@@ -161,8 +109,12 @@ export default function Categories({ refreshTrigger }: Props) {
       />
       {loading ? (
         renderSkeletons()
-      ) : categories.length === 0 ? (
-        <ListEmptyComponent />
+      ) : error ? (
+        <View className="mx-auto py-6">
+          <OreAppText className="text-[16px] text-red-500 ">
+            Fetch Error
+          </OreAppText>
+        </View>
       ) : (
         <FlatList
           data={categories}

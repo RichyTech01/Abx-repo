@@ -3,12 +3,23 @@ import { useRouter } from "expo-router";
 import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useCartStore } from "@/store/useCartStore";
+import AuthApi from "@/api/AuthApi";
 
 export const logoutUser = async (router: ReturnType<typeof useRouter>) => {
   try {
-    // Clear AsyncStorage
+    const refreshToken = await AsyncStorage.getItem("refreshToken");
+    const pushToken = await AsyncStorage.getItem("PushNotificationToken");
+
+    if (refreshToken && pushToken) {
+      await AuthApi.logout({
+        refresh: refreshToken,
+        device_token: pushToken,
+      });
+    }
+
     await AsyncStorage.removeItem("accessToken");
-    await AsyncStorage.removeItem("isGuest");
+    await AsyncStorage.removeItem("refreshToken");
+    await AsyncStorage.removeItem("PushNotificationToken");
 
     // Reset all Zustand stores
     useUserStore.getState().clearUser();

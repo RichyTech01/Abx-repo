@@ -8,6 +8,7 @@ import OrderApi from "@/api/OrderApi";
 import { useUserStore } from "@/store/useUserStore";
 import showToast from "@/utils/showToast";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { initializePushNotifications } from "@/app/_layout";
 
 export default function AdditionalinfoStepTwo({
   goBackStep,
@@ -54,6 +55,7 @@ export default function AdditionalinfoStepTwo({
         city: addressData.city,
       });
 
+      await initializePushNotifications();
       fetchUser();
       await AsyncStorage.setItem("isLoggedIn", "true");
       const redirect = await AsyncStorage.getItem("redirectAfterLogin");

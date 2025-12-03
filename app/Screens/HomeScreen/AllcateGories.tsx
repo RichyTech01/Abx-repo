@@ -3,122 +3,63 @@ import {
   FlatList,
   Platform,
   RefreshControl,
-  Animated,
   Dimensions,
 } from "react-native";
 import Header from "@/common/Header";
-import { useState, useEffect, useRef } from "react";
 import CategoryCard from "@/common/Categorycard";
 import { useRouter } from "expo-router";
-import OreAppText from "@/common/OreApptext";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import StoreApi from "@/api/StoreApi";
 import NoData from "@/common/NoData";
+import { useQuery } from "@tanstack/react-query";
+import { SkeletonCard } from "@/common/SkeletonCard";
+import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
+import OreAppText from "@/common/OreApptext";
+import { generateCategoryColor } from "@/utils/generateCategoryColor";
 
 const CATEGORY_COLORS: Record<
   number,
   { bgColor: string; borderColor: string }
 > = {
   1: { bgColor: "#ECF1F0", borderColor: "#5D8B7F" },
-  3: { bgColor: "#FDF0DC", borderColor: "#F4B551" },
-  4: { bgColor: "#EBFFDF", borderColor: "#05A85A" },
-  5: { bgColor: "#DCE7FD", borderColor: "#89AFFD" },
-  6: { bgColor: "#FDE6F2", borderColor: "#D14A78" },
-  7: { bgColor: "#FDF0DC", borderColor: "#B29870" },
+  2: { bgColor: "#FDF0DC", borderColor: "#F4B551" },
+  3: { bgColor: "#EBFFDF", borderColor: "#05A85A" },
+  4: { bgColor: "#DCE7FD", borderColor: "#89AFFD" },
+  5: { bgColor: "#FDE6F2", borderColor: "#D14A78" },
+  6: { bgColor: "#FDF0DC", borderColor: "#B29870" },
 };
 
 export default function AllCategories() {
   const router = useRouter();
-
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useShimmerAnimation();
 
   const SCREEN_PADDING = 20;
   const GAP = 16;
   const ITEM_WIDTH =
     (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
 
-  const fetchCategories = async () => {
-    try {
+  const {
+    data: categories = [],
+    isLoading: loading,
+    refetch,
+    error,
+    isRefetching: refreshing,
+  } = useQuery({
+    queryKey: ["All-categories"],
+    queryFn: async () => {
       const data = await StoreApi.getCategories();
-      const withColors = (data.results || []).map((cat: any) => ({
+      const withColors = (data.results || []).map((cat: any, idx: number) => ({
         ...cat,
-        ...CATEGORY_COLORS[cat.id],
+        ...generateCategoryColor(idx),
       }));
-      setCategories(withColors);
-    } catch (error) {
-      console.error("Failed to fetch categories", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+      return withColors;
+    },
+    staleTime: 1000 * 60 * 10,
+  });
 
   const HandleRefreshing = async () => {
-    setRefreshing(true);
-    await fetchCategories();
-    setRefreshing(false);
-  };
-
-  const SkeletonCard = () => {
-    const opacity = shimmerAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.3, 0.7],
-    });
-
-    return (
-      <Animated.View
-        style={{
-          opacity,
-          width: ITEM_WIDTH,
-          height: 140,
-          backgroundColor: "#E1E9EE",
-          borderRadius: 12,
-          padding: 12,
-        }}
-      >
-        <View
-          style={{
-            width: 60,
-            height: 60,
-            backgroundColor: "#C4D1DA",
-            borderRadius: 8,
-            marginBottom: 12,
-          }}
-        />
-        <View
-          style={{
-            width: "70%",
-            height: 14,
-            backgroundColor: "#C4D1DA",
-            borderRadius: 4,
-            marginBottom: 6,
-          }}
-        />
-        <View
-          style={{
-            width: "90%",
-            height: 12,
-            backgroundColor: "#C4D1DA",
-            borderRadius: 4,
-            marginBottom: 4,
-          }}
-        />
-        <View
-          style={{
-            width: "60%",
-            height: 12,
-            backgroundColor: "#C4D1DA",
-            borderRadius: 4,
-          }}
-        />
-      </Animated.View>
-    );
+    await refetch();
   };
 
   const renderSkeletons = () => (
@@ -135,7 +76,12 @@ export default function AllCategories() {
         justifyContent: "space-between",
         marginBottom: Platform.OS === "android" ? 40 : 25,
       }}
-      renderItem={() => <SkeletonCard />}
+      renderItem={() => (
+        <SkeletonCard
+          shimmerAnim={shimmerAnim}
+          style={{ width: ITEM_WIDTH, height: 140 }}
+        />
+      )}
       showsVerticalScrollIndicator={false}
     />
   );
@@ -156,6 +102,12 @@ export default function AllCategories() {
       </View>
       {loading ? (
         renderSkeletons()
+      ) : error ? (
+        <View className="mx-auto py-6">
+          <OreAppText className="text-[20px] text-red-500 ">
+            Fetch Error
+          </OreAppText>
+        </View>
       ) : (
         <FlatList
           data={categories}
@@ -203,6 +155,7 @@ export default function AllCategories() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={HandleRefreshing}
+              colors={["#0C513F"]}
             />
           }
           ListEmptyComponent={ListEmptyComponent}

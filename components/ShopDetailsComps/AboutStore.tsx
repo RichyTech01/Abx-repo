@@ -1,5 +1,5 @@
 import { FlatList, View, ActivityIndicator, Text } from "react-native";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import OreAppText from "@/common/OreApptext";
 import CategoryProduct from "@/common/CategoryProduct";
 import StoreApi from "@/api/StoreApi";
@@ -7,6 +7,7 @@ import { useRouter } from "expo-router";
 import { ShopProductType } from "@/types/store";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
+import { useQuery } from "@tanstack/react-query";
 
 export interface StoreProductProps {
   id: number;
@@ -17,46 +18,36 @@ export interface StoreProductProps {
 }
 
 export default function AboutStore({ id }: { id: number; image: string }) {
-  const [shopProduct, setShopProduct] = useState<StoreProductProps | null>(
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
     null
   );
-  const [modalVisible, setModalVisible] = useState(false);
-  // const [, setSelectedProductId] = useState<number | null>(
-  //   null
-  // );
-  const [productDetails, setProductDetails] = useState<any>(null);
-  const [productLoading, setProductLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchpr = async () => {
-      setLoading(true);
-      try {
-        const data = await StoreApi.getStoreWithProducts(id);
-        setShopProduct(data);
-      } catch (error) {
-        console.error("Failed to fetch store:", error);
-      }
-      setLoading(false);
-    };
-    fetchpr();
-  }, [id]);
+  const {
+    data: shopProduct,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["storeWithProducts", id],
+    queryFn: () => StoreApi.getStoreWithProducts(id),
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+  });
 
-  const handleAddToCart = async (id: number) => {
-    // setSelectedProductId(id);
+  const handleAddToCart = (id: number) => {
+    setSelectedProductId(id);
     setModalVisible(true);
-    setProductLoading(true);
-
-    try {
-      const product = await StoreApi.getProduct(id);
-      setProductDetails(product);
-    } catch (err) {
-      console.error("Failed to fetch product details", err);
-    } finally {
-      setProductLoading(false);
-    }
   };
+
+  const { data: product, isLoading: productLoading } =
+    useQuery<ShopProductType>({
+      queryKey: ["productDetails", selectedProductId],
+      queryFn: () => StoreApi.getProduct(selectedProductId as number),
+      enabled: !!selectedProductId && modalVisible,
+      staleTime: 6 * 60 * 1000,
+    });
 
   return (
     <View>
@@ -64,9 +55,15 @@ export default function AboutStore({ id }: { id: number; image: string }) {
         Available food items in store
       </OreAppText>
 
-      {loading ? (
+      {isLoading ? (
         <View className="py-10">
-          <ActivityIndicator size={"large"} color={"black"} />
+          <ActivityIndicator size={"large"} color={"#0C513F"} />
+        </View>
+      ) : error ? (
+        <View className="mx-auto py-6">
+          <OreAppText className="text-[20px] text-red-500 ">
+            Fetch Error
+          </OreAppText>
         </View>
       ) : (
         <View>
@@ -84,7 +81,6 @@ export default function AboutStore({ id }: { id: number; image: string }) {
                   name={item.item_name}
                   price={`€${item.min_price} - €${item.max_price}`}
                   rating={4.5}
-                  sizes={item.variations?.length ?? 0}
                   image={{ uri: item.prod_image_url }}
                   onPress={() =>
                     router.push({
@@ -123,13 +119,10 @@ export default function AboutStore({ id }: { id: number; image: string }) {
         value={modalVisible}
         setValue={setModalVisible}
         loading={productLoading}
-        data={productDetails?.variations ?? []}
+        data={product?.variations ?? []}
         isOpen={
-          productDetails?.store
-            ? isStoreOpen(
-                productDetails.store.open_time,
-                productDetails.store.close_time
-              )
+          product?.store
+            ? isStoreOpen(product.store.open_time, product.store.close_time)
             : false
         }
       />

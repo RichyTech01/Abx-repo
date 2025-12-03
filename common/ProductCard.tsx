@@ -84,8 +84,12 @@ export default function ProductCard({
 
       {/* Info Row */}
       <View className="flex-row items-center justify-between">
-        <View>
-          <Text className="text-[14px] leading-[20px] font-urbanist-semibold text-[#4D4D4D]">
+        <View className="flex-1 pr-2">
+          <Text
+            className="text-[14px] leading-[20px] font-urbanist-semibold text-[#4D4D4D]"
+            numberOfLines={2} // Optional: limit to 2 lines
+            ellipsizeMode="tail"
+          >
             {productName}
           </Text>
           <Text className="text-[12px] leading-[16px] font-urbanist-semibold text-[#2D2220] mt-[8px]">

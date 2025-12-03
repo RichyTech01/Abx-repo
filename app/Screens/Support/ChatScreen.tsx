@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
 import SupportApi from "@/api/SupportApi";
 import ChatSendIcon from "@/assets/svgs/ChatSendIcon.svg";
 import PickImageIcon from "@/assets/svgs/PickImageIcon.svg";
@@ -288,22 +287,11 @@ export default function ChatScreen() {
   };
 
   const pickImageFromGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission needed",
-        "We need gallery permissions to show your photos."
-      );
-      return;
-    }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 0.8,
     });
-
     if (!result.canceled && result.assets[0]) {
       setShowImagePicker(false);
       await handleImageSend(result.assets[0].uri);
@@ -316,7 +304,7 @@ export default function ChatScreen() {
     if (status !== "granted") {
       Alert.alert(
         "Permission needed",
-        "We need camera permissions to take photos."
+        "We need camera permission to take photos."
       );
       return;
     }
@@ -327,7 +315,7 @@ export default function ChatScreen() {
       quality: 0.8,
     });
 
-    if (!result.canceled && result.assets[0]) {
+    if (!result.canceled && result.assets?.[0]) {
       setShowImagePicker(false);
       await handleImageSend(result.assets[0].uri);
     }

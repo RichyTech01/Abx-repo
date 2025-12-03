@@ -2,6 +2,12 @@ import { create } from "zustand";
 import { Notification } from "@/types/NotificationType";
 import NotificationApi from "@/api/NotificationApi";
 
+// Stale time for full notification list: 30 seconds
+const LIST_STALE_TIME = 30000;
+
+// Stale time for count check: 5 seconds (more frequent for badge accuracy)
+const COUNT_STALE_TIME = 5000;
+
 interface NotificationStore {
   notifications: Notification[];
   hasNewNotifications: boolean;
@@ -9,6 +15,7 @@ interface NotificationStore {
   loadingMore: boolean;
   unreadCount: number;
   lastFetchTime: number | null;
+  lastCountCheckTime: number | null;
   currentPage: number;
   hasMore: boolean;
 
@@ -23,10 +30,7 @@ interface NotificationStore {
   fetchMoreNotifications: () => Promise<void>;
   markNotificationsAsSeen: () => void;
   checkNotificationStatus: () => Promise<void>;
-
-  // Real-time handler
   handleRealtimeNotification: (notification: Notification) => void;
-
   reset: () => void;
 }
 
@@ -37,6 +41,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   unreadCount: 0,
   loadingMore: false,
   lastFetchTime: null,
+  lastCountCheckTime: null,
   currentPage: 1,
   hasMore: true,
 
@@ -50,7 +55,6 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   addRealtimeNotification: (notification) =>
     set((state) => {
-      // Check if notification already exists to avoid duplicates
       const exists = state.notifications.find((n) => n.id === notification.id);
       if (exists) return state;
 
@@ -58,7 +62,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       return {
         notifications: updated,
         hasNewNotifications: true,
-        unreadCount: state.unreadCount + 1, // Increment unread count
+        unreadCount: state.unreadCount + 1,
       };
     }),
 
@@ -89,54 +93,72 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   markNotificationsAsSeen: () => set({ hasNewNotifications: false }),
 
   checkNotificationStatus: async () => {
-    try {
-      // Fetch first page to get unread_count from API
-      const data = await NotificationApi.getNotifications(1);
+    const { lastCountCheckTime } = get();
 
-      // Use the unread_count directly from API response
+    // Check if count was checked recently
+    if (lastCountCheckTime) {
+      const timeSinceLastCheck = Date.now() - lastCountCheckTime;
+
+      if (timeSinceLastCheck < COUNT_STALE_TIME) {
+        console.log("📊 Using cached notification count (still fresh)");
+        return; // Count is still fresh
+      }
+    }
+
+    try {
+      const data = await NotificationApi.getNotifications(1);
       const unreadCount = data.unread_count || 0;
 
       set({
         hasNewNotifications: unreadCount > 0,
         unreadCount: unreadCount,
+        lastCountCheckTime: Date.now(),
       });
     } catch (err) {
       console.error("Error checking notification status:", err);
     }
   },
 
-  // Full fetch method - initial load
-fetchNotifications: async (isRefresh = false) => {
-  try {
-    // Only show loading spinner on initial load, not on refresh
-    if (!isRefresh) {
-      set({ loading: true });
+  // ✅ Modified: Check stale time before fetching full list
+  fetchNotifications: async (force = false) => {
+    const { lastFetchTime, notifications } = get();
+
+    // Check if data is still fresh (unless forced or first load)
+    if (!force && lastFetchTime && notifications.length > 0) {
+      const timeSinceLastFetch = Date.now() - lastFetchTime;
+
+      if (timeSinceLastFetch < LIST_STALE_TIME) {
+        console.log("📦 Using cached notifications (still fresh)");
+        return; // Data is still fresh, skip fetch
+      }
     }
-    
-    const data = await NotificationApi.getNotifications(1);
 
-    // Updated to match new API structure
-    const notifications = data.notifications || [];
-    const unreadCount = data.unread_count || 0;
+    try {
+      // Only show loading spinner on initial load
+      if (!lastFetchTime) {
+        set({ loading: true });
+      }
 
-    set({
-      notifications,
-      unreadCount,
-      hasNewNotifications: unreadCount > 0,
-      currentPage: 1,
-      hasMore: !!data.next,
-      lastFetchTime: Date.now(),
-    });
-  } catch (err) {
-    console.error("Error fetching notifications", err);
-  } finally {
-    if (!isRefresh) {
+      const data = await NotificationApi.getNotifications(1);
+      const notifications = data.notifications || [];
+      const unreadCount = data.unread_count || 0;
+
+      set({
+        notifications,
+        unreadCount,
+        hasNewNotifications: unreadCount > 0,
+        currentPage: 1,
+        hasMore: !!data.next,
+        lastFetchTime: Date.now(),
+        lastCountCheckTime: Date.now(), // Update count check time too
+      });
+    } catch (err) {
+      console.error("Error fetching notifications", err);
+    } finally {
       set({ loading: false });
     }
-  }
-},
+  },
 
-  // Fetch more notifications (pagination)
   fetchMoreNotifications: async () => {
     const { currentPage, hasMore, loadingMore, notifications } = get();
 
@@ -149,8 +171,6 @@ fetchNotifications: async (isRefresh = false) => {
 
       const nextPage = currentPage + 1;
       const data = await NotificationApi.getNotifications(nextPage);
-
-      // Updated to match new API structure
       const newNotifications = data.notifications || [];
 
       set({
@@ -165,7 +185,6 @@ fetchNotifications: async (isRefresh = false) => {
     }
   },
 
-  // Handle real-time notifications
   handleRealtimeNotification: (newNotification) => {
     const { addRealtimeNotification } = get();
     addRealtimeNotification(newNotification);
@@ -179,6 +198,7 @@ fetchNotifications: async (isRefresh = false) => {
       loadingMore: false,
       unreadCount: 0,
       lastFetchTime: null,
+      lastCountCheckTime: null,
       currentPage: 1,
       hasMore: true,
     }),

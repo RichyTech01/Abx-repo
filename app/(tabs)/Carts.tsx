@@ -48,15 +48,7 @@ export default function Carts() {
       }
 
       //  proceed to checkout
-      router.push({
-        pathname: "/Screens/Carts/CheckOut",
-        params: {
-          cartData: JSON.stringify({
-            items: cartItems,
-            total: total,
-          }),
-        },
-      });
+      router.push("/Screens/Carts/CheckOut");
     } catch (err) {
       console.error("Error checking token:", err);
       setShowLoginModal(true);
@@ -290,7 +282,7 @@ export default function Carts() {
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["isGuest"]);
+          await Storage.remove("isGuest");
 
           await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Carts");
 

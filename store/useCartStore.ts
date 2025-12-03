@@ -98,7 +98,6 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     try {
       const res = await OrderApi.getCart();
-
       if (res?.cart) {
         const items = res.cart.items || [];
         const cartId = res.cart.id;

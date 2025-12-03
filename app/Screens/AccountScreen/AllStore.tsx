@@ -1,6 +1,6 @@
 import { View, Platform, FlatList, RefreshControl } from "react-native";
-import { useState, useCallback, useEffect, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
@@ -12,43 +12,54 @@ import { useRouter } from "expo-router";
 import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useLocationStore } from "@/store/locationStore";
 import { SkeletonCard } from "@/common/SkeletonCard";
-
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
+import OreAppText from "@/common/OreApptext";
 
 export default function AllStore() {
   const router = useRouter();
-  const { latitude, longitude, hasPermission } = useLocationStore();
-  const shimmerAnim = useShimmerAnimation();
-  const hasFetchedRef = useRef(false);
-
   const queryClient = useQueryClient();
-  const [shops, setShops] = useState<Shop[]>([]);
+  const {
+    latitude,
+    longitude,
+    hasPermission,
+    isLoading: locationIsLoading,
+  } = useLocationStore();
+  const shimmerAnim = useShimmerAnimation();
+
   const [loginVisible, setLoginVisible] = useState(false);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [allShops, setAllShops] = useState<Shop[]>([]);
   const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchStores = async (
-    pageNum: number,
-    append = false,
-    isRefreshing = false
-  ) => {
-    if ((loading && !append && !isRefreshing) || loadingMore) return;
+  const canFetch =
+    !locationIsLoading &&
+    hasPermission === true &&
+    latitude != null &&
+    longitude != null;
 
-    if (!isRefreshing) {
-      append ? setLoadingMore(true) : setLoading(true);
-    }
+  const queryKey = ["allStores", latitude, longitude, page];
 
-    try {
-      // Send location if available, otherwise null
-      const lat = hasPermission === true && latitude != null ? latitude : null;
-      const lng =
-        hasPermission === true && longitude != null ? longitude : null;
+  // React Query for fetching stores with staleTime
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      if (!canFetch) return null;
 
-      const res = await StoreApi.getAllStores(lat as any, lng as any, pageNum);
-      const newShops: Shop[] = res.results.map((store: any) => ({
+      const res = await StoreApi.getAllStores(latitude!, longitude!, page);
+      return res;
+    },
+    enabled: canFetch && hasMore,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevents refetching
+    gcTime: 10 * 60 * 1000, // 10 minutes cache time
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  // Transform and accumulate shops data
+  useEffect(() => {
+    if (data?.results) {
+      const newShops: Shop[] = data.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
         image:
@@ -63,34 +74,53 @@ export default function AllStore() {
           : "N/A",
       }));
 
-      setShops((prev) => (append ? [...prev, ...newShops] : newShops));
+      setAllShops((prev) => {
+        if (page === 1) {
+          return newShops;
+        }
+        // Filter duplicates
+        const existingIds = new Set(prev.map((shop) => shop.id));
+        const uniqueNewShops = newShops.filter(
+          (shop) => !existingIds.has(shop.id)
+        );
+        return [...prev, ...uniqueNewShops];
+      });
 
-      if (res.pagination) {
-        setHasMore(res.pagination.hasNextPage);
+      // Check if there's more data
+      if (data.pagination) {
+        setHasMore(data.pagination.hasNextPage);
       } else {
-        if (newShops.length < 12) setHasMore(false);
-      }
-    } catch (err) {
-      console.error("Error fetching stores:", err);
-      if (!append) setShops([]);
-    } finally {
-      if (!isRefreshing) {
-        append ? setLoadingMore(false) : setLoading(false);
+        setHasMore(newShops.length >= 12);
       }
     }
-  };
+  }, [data, page]);
 
-  // Fetch immediately on mount
-  useEffect(() => {
-    if (!hasFetchedRef.current) {
-      hasFetchedRef.current = true;
-      fetchStores(1, false);
-    }
-  }, []);
-
+  // Favorite mutation with optimistic updates
   const favoriteMutation = useMutation({
     mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["allStores"] }),
+    onMutate: async (storeId: string) => {
+      // Optimistically update local state
+      setAllShops((prevShops) =>
+        prevShops.map((shop) =>
+          shop.id === storeId ? { ...shop, isFavorite: !shop.isFavorite } : shop
+        )
+      );
+    },
+    onError: (error, storeId) => {
+      // Revert on error
+      setAllShops((prevShops) =>
+        prevShops.map((shop) =>
+          shop.id === storeId ? { ...shop, isFavorite: !shop.isFavorite } : shop
+        )
+      );
+    },
+    onSettled: () => {
+      // Invalidate queries to sync
+      queryClient.invalidateQueries({ queryKey: ["topRatedStores"] });
+      queryClient.invalidateQueries({ queryKey: ["closestStores"] });
+      queryClient.invalidateQueries({ queryKey: ["favoriteStores"] });
+      queryClient.invalidateQueries({ queryKey: ["allStores"] });
+    },
   });
 
   const handleFavoritePress = async (storeId: string) => {
@@ -99,38 +129,23 @@ export default function AllStore() {
       setLoginVisible(true);
       return;
     }
-
-    // Optimistic UI update
-    const prevShops = shops;
-    setShops((prevShops) =>
-      prevShops.map((shop) =>
-        shop.id === storeId ? { ...shop, isFavorite: !shop.isFavorite } : shop
-      )
-    );
-
-    // Call API
-    favoriteMutation.mutate(storeId, {
-      onError: () => {
-        // Rollback on error
-        setShops(prevShops);
-      },
-    });
+    favoriteMutation.mutate(storeId);
   };
 
-  const HandleRefresh = async () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
     setPage(1);
-    await fetchStores(1, false, true);
+    setHasMore(true);
+    setAllShops([]);
+    await refetch();
     setRefreshing(false);
   };
 
-  const handleLoadMore = useCallback(() => {
-    if (hasMore && !loadingMore && !loading) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchStores(nextPage, true);
+  const handleLoadMore = () => {
+    if (hasMore && !isLoading && canFetch) {
+      setPage((prev) => prev + 1);
     }
-  }, [page, hasMore, loadingMore, loading]);
+  };
 
   const renderSkeletons = () => (
     <View
@@ -141,11 +156,107 @@ export default function AllStore() {
         gap: 24,
       }}
     >
-      {[1, 2, 3, 4].map((item) => (
-        <SkeletonCard key={item} shimmerAnim={shimmerAnim} />
+      {[1, 2, 3, 4].map((i) => (
+        <SkeletonCard key={i} shimmerAnim={shimmerAnim} />
       ))}
     </View>
   );
+
+  const ListEmptyComponent = () => {
+    // Show loading skeletons only on initial load
+    if (isLoading && allShops.length === 0 && canFetch) {
+      return null;
+    }
+
+    // Location is being fetched
+    if (locationIsLoading) {
+      return (
+        <View className="py-20 px-6">
+          <OreAppText
+            style={{ textAlign: "center", color: "#888", fontSize: 16 }}
+          >
+            Getting your location...
+          </OreAppText>
+        </View>
+      );
+    }
+
+    // Location permission denied
+    if (hasPermission === false) {
+      return (
+        <View className="py-20 px-6">
+          <OreAppText
+            style={{
+              textAlign: "center",
+              color: "#F04438",
+              fontSize: 16,
+              fontWeight: "600",
+            }}
+          >
+            Location Access Required
+          </OreAppText>
+          <OreAppText
+            style={{
+              textAlign: "center",
+              color: "#535353",
+              fontSize: 14,
+              marginTop: 8,
+              lineHeight: 20,
+            }}
+          >
+            Please enable location services in your device settings to see
+            stores.
+          </OreAppText>
+          <OreAppText
+            style={{
+              textAlign: "center",
+              color: "#888",
+              fontSize: 13,
+              marginTop: 12,
+              fontStyle: "italic",
+            }}
+          >
+            Settings →{" "}
+            {Platform.OS === "ios" ? "Privacy → Location Services" : "Location"}
+          </OreAppText>
+        </View>
+      );
+    }
+
+    // Location not available yet
+    if (!latitude || !longitude) {
+      return (
+        <View className="py-20 px-6">
+          <OreAppText
+            style={{ textAlign: "center", color: "#888", fontSize: 16 }}
+          >
+            Waiting for your location...
+          </OreAppText>
+          <OreAppText
+            style={{
+              textAlign: "center",
+              color: "#666",
+              fontSize: 13,
+              marginTop: 8,
+            }}
+          >
+            Make sure location services are enabled in your device settings
+          </OreAppText>
+        </View>
+      );
+    }
+
+    // No stores found after successful fetch
+    if (allShops.length === 0 && !isLoading) {
+      return (
+        <View className="py-10">
+          <NoData title="No data" subtitle="No shop available at the moment." />
+        </View>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <ScreenWrapper>
@@ -153,11 +264,11 @@ export default function AllStore() {
         <HeaderWithSearchInput label="All available stores on ABX" />
       </View>
 
-      {loading && shops.length === 0 ? (
+      {isLoading && allShops.length === 0 && canFetch ? (
         renderSkeletons()
       ) : (
         <FlatList
-          data={shops}
+          data={allShops}
           contentContainerStyle={{
             paddingBottom: Platform.OS === "ios" ? 20 : 40,
             marginHorizontal: 20,
@@ -174,26 +285,20 @@ export default function AllStore() {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            loadingMore && hasMore ? (
+            isLoading && allShops.length > 0 && hasMore ? (
               <View className="py-4 items-center">
                 <LoadingSpinner />
               </View>
             ) : null
           }
-          ListEmptyComponent={
-            <View className="py-10">
-              <NoData
-                title="No data"
-                subtitle="No shop available at the moment."
-              />
-            </View>
-          }
+          ListEmptyComponent={<ListEmptyComponent />}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={HandleRefresh}
+              onRefresh={handleRefresh}
               colors={["#0C513F"]}
+              tintColor="#0C513F"
             />
           }
         />
@@ -201,11 +306,11 @@ export default function AllStore() {
 
       <LogoutModal
         title="Login Required"
-        message="You need to go back log in to favorite a shop."
+        message="You need to log in to favorite a shop."
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["isGuest", "cartId"]);
+          await Storage.remove("isGuest");
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

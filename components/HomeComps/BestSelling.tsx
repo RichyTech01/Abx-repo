@@ -1,6 +1,5 @@
 import { View, FlatList, Text, Animated } from "react-native";
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import * as Location from "expo-location";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +10,7 @@ import { ProductVariation, ShopProductType } from "@/types/store";
 import { useRouter } from "expo-router";
 import { useLocationStore } from "@/store/locationStore";
 import { getDistanceInKm } from "@/utils/getDistanceInKm";
+import OreAppText from "@/common/OreApptext";
 
 type Props = {
   refreshTrigger: boolean;
@@ -44,7 +44,7 @@ export default function BestSelling({ refreshTrigger }: Props) {
     ).start();
   }, []);
 
-  const { data, isLoading, error, refetch } = useQuery<ShopProductType[]>({
+  const { data, isLoading, error, } = useQuery<ShopProductType[]>({
     queryKey: ["bestSellingProducts", "home"],
     queryFn: async () => {
       const res = await StoreApi.getPopularProducts();
@@ -90,11 +90,11 @@ export default function BestSelling({ refreshTrigger }: Props) {
     [latitude, longitude]
   );
 
-  useEffect(() => {
-    if (refreshTrigger) {
-      refetch();
-    }
-  }, [refreshTrigger]);
+  // useEffect(() => {
+  //   if (refreshTrigger) {
+  //     refetch();
+  //   }
+  // }, []);
 
   const SkeletonCard = () => {
     const opacity = shimmerAnim.interpolate({
@@ -210,15 +210,9 @@ export default function BestSelling({ refreshTrigger }: Props) {
   );
 
   const ErrorComponent = () => (
-    <Text
-      style={{
-        textAlign: "center",
-        maxWidth: "60%",
-      }}
-      className="font-orelega py-10 text-black text-[16px] mx-auto "
-    >
-      Failed to load products
-    </Text>
+    <View className="mx-auto py-6">
+      <OreAppText className="text-[16px] text-red-500 ">Fetch Error</OreAppText>
+    </View>
   );
 
   return (

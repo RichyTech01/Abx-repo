@@ -31,17 +31,22 @@ export default function AddtoCartModal({
   const router = useRouter();
   const { cartItems, refreshCart } = useCartStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [hasRefreshed, setHasRefreshed] = useState(false);
 
-  // useEffect(() => {
-  //   const fetchCart = async () => {
-  //     const cartId = await Storage.get("cartId");
-  //     if (value && cartId) {
-  //       refreshCart();
-  //     }
-  //   };
+  useEffect(() => {
+    const checkAndRefreshCart = async () => {
+      if (hasRefreshed) return;
 
-  //   fetchCart();
-  // }, [value]);
+      const cartId = await Storage.get("cartId");
+
+      if (value && cartItems.length > 0 && !cartId) {
+        await refreshCart();
+        setHasRefreshed(true);
+      }
+    };
+
+    checkAndRefreshCart();
+  }, [value, cartItems.length, hasRefreshed]);
 
   return (
     <Modal
@@ -124,8 +129,11 @@ export default function AddtoCartModal({
         confirmText="Go to Login"
         cancelText="Cancel"
         onConfirm={async () => {
-          await Storage.multiRemove(["isGuest"]);
-          await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Carts");
+          await Storage.remove("isGuest");
+          await AsyncStorage.setItem(
+            "redirectAfterLogin",
+            "/Screens/Carts/CheckOut"
+          );
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

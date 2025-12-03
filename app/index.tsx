@@ -28,7 +28,7 @@ export default function Index() {
         router.replace("/(auth)/OnboardingScreen");
         setTimeout(async () => {
           await SplashScreen.hideAsync();
-        }, 150);
+        }, );
       } finally {
       }
     };

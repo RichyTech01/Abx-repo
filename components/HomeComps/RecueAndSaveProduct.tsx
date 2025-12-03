@@ -16,6 +16,7 @@ import AddtoCartModal from "@/Modals/AddtoCartModal";
 import showToast from "@/utils/showToast";
 import { isStoreOpen } from "@/utils/storeStatus";
 import { useLocationStore } from "@/store/locationStore";
+import OreAppText from "@/common/OreApptext";
 import { getDistanceInKm } from "@/utils/getDistanceInKm";
 
 type Props = {
@@ -40,6 +41,7 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
         published: true,
         discounted_product: true,
       }),
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: productDetails, isLoading: isProductLoading } =
@@ -47,6 +49,7 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
       queryKey: ["productDetails", selectedProductId],
       queryFn: () => StoreApi.getProduct(selectedProductId as number),
       enabled: !!selectedProductId,
+      staleTime: 5 * 60 * 1000,
     });
 
   const calculateDistance = useCallback(
@@ -67,17 +70,17 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
     [latitude, longitude]
   );
 
-  // Handle error in useEffect instead of during render
   useEffect(() => {
     if (error) {
       showToast("error", (error as Error).message || "Failed to load product");
     }
   }, [error]);
 
-  // Refetch when refreshTrigger changes
   useEffect(() => {
-    refetch();
-  }, [refreshTrigger, refetch]);
+    if (error) {
+      refetch();
+    }
+  }, [refreshTrigger, refetch, error]);
 
   const products = (data?.results ?? []).slice(0, 4);
 
@@ -101,15 +104,11 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
       {isLoading ? (
         <ActivityIndicator size="small" style={{ marginTop: 16 }} />
       ) : error ? (
-        <Text
-          style={{
-            textAlign: "center",
-            maxWidth: "60%",
-          }}
-          className="font-orelega py-10 text-black text-[16px] mx-auto "
-        >
-          Failed to load rescue and save products
-        </Text>
+        <View className="mx-auto py-6">
+          <OreAppText className="text-[16px] text-red-500 ">
+            Fetch Error
+          </OreAppText>
+        </View>
       ) : products.length === 0 ? (
         <Text
           style={{

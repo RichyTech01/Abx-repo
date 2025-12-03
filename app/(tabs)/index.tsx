@@ -106,8 +106,7 @@ export default function Home() {
   const router = useRouter();
   const { user, loading } = useUserStore();
   const { unreadCount, checkNotificationStatus } = useNotificationStore();
-  const { cartItems, refreshCart, shouldRefetch, setShouldRefetch } =
-    useCartStore();
+  const { cartItems, refreshCart } = useCartStore();
   const { requestLocation } = useLocationStore();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -117,31 +116,111 @@ export default function Home() {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      const init = async () => {
-        try {
-          const access = await AsyncStorage.getItem("accessToken");
-          if (access) {
-            checkNotificationStatus();
-          }
+  useEffect(() => {
+    const STALE_TIME = 5 * 60 * 1000; // 5 minutes
 
-          // This will automatically throttle if called too frequently
+    const init = async () => {
+      try {
+        const token = await AsyncStorage.getItem("accessToken");
+        const now = Date.now();
+
+        // CART
+        const lastCartFetch = await AsyncStorage.getItem(
+          `cartTimestamp_${token}`
+        );
+        if (!lastCartFetch || now - Number(lastCartFetch) > STALE_TIME) {
           await refreshCart();
-        } catch (err) {
-          console.error("Init error:", err);
+          console.log("carts");
+          if (token) {
+            await AsyncStorage.setItem(
+              `cartTimestamp_${token}`,
+              now.toString()
+            );
+          }
         }
-      };
 
-      init();
-    }, [checkNotificationStatus, refreshCart])
-  );
+        // NOTIFICATIONS
+        if (token && token !== "null") {
+          const lastNotifFetch = await AsyncStorage.getItem(
+            `notifTimestamp_${token}`
+          );
+          if (!lastNotifFetch || now - Number(lastNotifFetch) > STALE_TIME) {
+            await checkNotificationStatus();
+            console.log("nots");
+
+            await AsyncStorage.setItem(
+              `notifTimestamp_${token}`,
+              now.toString()
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Init error:", err);
+      }
+    };
+
+    init();
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await requestLocation();
-    await refreshCart(); // Throttled automatically
-    setRefreshTrigger((prev) => !prev);
+
+    try {
+      const token = await AsyncStorage.getItem("accessToken");
+      const now = Date.now();
+      const STALE_TIME = 5 * 60 * 1000;
+
+      await requestLocation();
+
+      const lastCartFetch = await AsyncStorage.getItem(
+        `cartTimestamp_${token}`
+      );
+      const lastCartError = await AsyncStorage.getItem(`cartError_${token}`);
+
+      if (
+        !lastCartFetch ||
+        now - Number(lastCartFetch) > STALE_TIME ||
+        lastCartError === "true"
+      ) {
+        try {
+          await refreshCart();
+          await AsyncStorage.setItem(`cartTimestamp_${token}`, now.toString());
+          await AsyncStorage.setItem(`cartError_${token}`, "false");
+        } catch (err) {
+          await AsyncStorage.setItem(`cartError_${token}`, "true");
+        }
+      }
+
+      // NOTIFICATIONS — only fetch if stale or if previous fetch failed
+      if (token && token !== "null") {
+        const lastNotifFetch = await AsyncStorage.getItem(
+          `notifTimestamp_${token}`
+        );
+        const lastNotifError = await AsyncStorage.getItem(
+          `notifError_${token}`
+        );
+
+        if (
+          !lastNotifFetch ||
+          now - Number(lastNotifFetch) > STALE_TIME ||
+          lastNotifError === "true"
+        ) {
+          try {
+            await checkNotificationStatus();
+            await AsyncStorage.setItem(
+              `notifTimestamp_${token}`,
+              now.toString()
+            );
+            await AsyncStorage.setItem(`notifError_${token}`, "false");
+          } catch (err) {
+            await AsyncStorage.setItem(`notifError_${token}`, "true");
+          }
+        }
+      }
+    } catch (err) {
+      console.log("Refresh error:", err);
+    }
+
     setRefreshing(false);
   }, [requestLocation, refreshCart]);
 

@@ -1,5 +1,5 @@
 import { View, FlatList, Text } from "react-native";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import SectionHeader from "@/common/SectionHeader";
 import { useRouter } from "expo-router";
 import ShopCard, { Shop } from "@/common/ShopCard";
@@ -11,6 +11,8 @@ import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 import { useLocationStore } from "@/store/locationStore";
 import OreAppText from "@/common/OreApptext";
+import { useQuery } from "@tanstack/react-query";
+import React from "react";
 
 type Props = { refreshTrigger: boolean };
 
@@ -23,103 +25,59 @@ export default function ClosestShops({ refreshTrigger }: Props) {
     isLoading: locationLoading,
   } = useLocationStore();
 
-  const [shops, setShops] = useState<Shop[]>([]);
-  const [loading, setLoading] = useState(true);
   const [loginVisible, setLoginVisible] = useState(false);
   const shimmerAnim = useShimmerAnimation();
 
-  // Track if we've successfully fetched data
-  const hasFetchedRef = useRef(false);
-  // Track the last location we fetched with
-  const lastFetchedLocation = useRef<{ lat: number; lng: number } | null>(null);
+  // Only fetch if we have permission AND coordinates
+  const canFetch =
+    hasPermission === true && latitude != null && longitude != null;
 
+  // React Query for fetching closest stores
+  const {
+    data: shops = [],
+    isLoading: loading,
+    refetch,
+    error,
+  } = useQuery<Shop[]>({
+    queryKey: ["closestStores", latitude ?? null, longitude ?? null],
+    queryFn: async () => {
+      if (!latitude || !longitude) return [];
+
+      const res = await StoreApi.getNearestStores(latitude, longitude, 1);
+      return res.results.slice(0, 8).map(
+        (store: any): Shop => ({
+          id: store.id.toString(),
+          name: store.business_name,
+          image:
+            store.store_img ||
+            "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
+          store_open: store.open_time,
+          store_close: store.close_time,
+          isFavorite: store.is_favorited ?? false,
+          distance: store.distance_km
+            ? `${parseFloat(store.distance_km).toFixed(1)}`
+            : "N/A",
+        })
+      );
+    },
+    enabled: !locationLoading && canFetch,
+    staleTime: 1000 * 60 * 3,
+  });
   const { handleFavoritePress } = useFavoriteShop({
-    shops,
-    setShops,
-    queryKey: ["closestStores"],
+    queryKey: [
+      "closestStores",
+      latitude?.toString() ?? "null",
+      longitude?.toString() ?? "null",
+    ],
     onLoginRequired: () => setLoginVisible(true),
   });
 
-  const fetchStores = async () => {
-    // Need actual coordinates for closest shops
-    if (!latitude || !longitude) {
-      setLoading(false);
-      return;
+  // Handle parent refresh trigger
+  React.useEffect(() => {
+    if (refreshTrigger && canFetch && error) {
+      refetch();
     }
-
-    setLoading(true);
-    try {
-      const res = await StoreApi.getNearestStores(latitude, longitude, 1);
-      const newShops: Shop[] = res.results.slice(0, 8).map((store: any) => ({
-        id: store.id.toString(),
-        name: store.business_name,
-        image:
-          store.store_img ||
-          "https://lon1.digitaloceanspaces.com/abx-file-space/category/africanFoods.webp",
-        store_open: store.open_time,
-        store_close: store.close_time,
-        isFavorite: store.is_favorited ?? false,
-        distance: store.distance_km
-          ? `${parseFloat(store.distance_km).toFixed(1)}`
-          : "N/A",
-      }));
-      setShops(newShops);
-      hasFetchedRef.current = true;
-      lastFetchedLocation.current = { lat: latitude, lng: longitude };
-    } catch (err) {
-      console.error(err);
-      setShops([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Initial fetch - only when location is ready and hasn't been fetched
-  useEffect(() => {
-    // Skip if already fetched
-    if (hasFetchedRef.current) {
-      setLoading(false);
-      return;
-    }
-
-    // Wait for location to initialize
-    if (locationLoading) return;
-
-    // Permission denied - can't show closest shops
-    if (hasPermission === false) {
-      setLoading(false);
-      return;
-    }
-
-    // No coordinates yet
-    if (!latitude || !longitude) {
-      setLoading(false);
-      return;
-    }
-
-    // Check if location changed significantly (more than ~100m)
-    if (lastFetchedLocation.current) {
-      const { lat: lastLat, lng: lastLng } = lastFetchedLocation.current;
-      const latDiff = Math.abs(latitude - lastLat);
-      const lngDiff = Math.abs(longitude - lastLng);
-
-      // If location hasn't changed significantly, skip fetch
-      if (latDiff < 0.001 && lngDiff < 0.001) {
-        setLoading(false);
-        return;
-      }
-    }
-
-    fetchStores();
-  }, [locationLoading, hasPermission, latitude, longitude]);
-
-  // Refresh trigger - force refetch
-  useEffect(() => {
-    if (refreshTrigger && latitude && longitude) {
-      hasFetchedRef.current = false; // Reset flag to allow refetch
-      fetchStores();
-    }
-  }, [refreshTrigger, latitude, longitude]);
+  }, [refreshTrigger, canFetch, error, refetch]);
 
   const renderSkeletons = () => (
     <FlatList
@@ -201,8 +159,18 @@ export default function ClosestShops({ refreshTrigger }: Props) {
       );
     }
 
+    if (error) {
+      return (
+        <View className="mx-auto py-6">
+          <OreAppText className="text-[16px] text-red-500 ">
+            Fetch Error
+          </OreAppText>
+        </View>
+      );
+    }
+
     // No shops found
-    if (shops.length === 0) {
+    if (shops?.length === 0) {
       return (
         <Text
           style={{

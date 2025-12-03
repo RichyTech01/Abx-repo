@@ -15,13 +15,14 @@ export default function ShopDetails() {
   const [isSticky, setIsSticky] = useState(false);
   const { id, image } = useLocalSearchParams<{ id: string; image: string }>();
 
-  const BANNER_HEIGHT = 112 + 14; // Banner height + margin
+  const BANNER_HEIGHT = 112 + 14; 
 
   // Fetch store details
   const { data: store, isLoading: storeLoading } = useQuery({
     queryKey: ["storeDetails", id],
     queryFn: () => StoreApi.getStoreById(Number(id)),
     enabled: !!id,
+    staleTime: 1000 * 60 * 5,
   });
 
   // Fetch store reviews
@@ -29,6 +30,7 @@ export default function ShopDetails() {
     queryKey: ["storeReviews", id],
     queryFn: () => StoreApi.getStoreReviews(Number(id)),
     enabled: !!id,
+    staleTime: 1000 * 60 * 5,
   });
 
   const reviewsArray = reviews?.results ?? [];
@@ -69,17 +71,19 @@ export default function ShopDetails() {
             {/* Banner */}
             <Image
               source={{
-                uri:
-                  image 
-                    ? image
-                    : "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg",
+                uri: image
+                  ? image
+                  : "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg",
               }}
               alt="banner"
               className="w-full h-[112px] mt-[14px]"
             />
 
             {/* TabSwitcher Container */}
-            <View className="bg-white px-[10px] py-[24px] mt-[18px] mx-[15px] rounded-[4px]" style={{paddingTop:24}}>
+            <View
+              className="bg-white px-[10px] py-[24px] mt-[18px] mx-[15px] rounded-[4px]"
+              style={{ paddingTop: 24 }}
+            >
               <TabSwitcher
                 activeTab={activeTab}
                 onTabChange={setActiveTab}

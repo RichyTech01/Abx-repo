@@ -1,16 +1,17 @@
 import { View, FlatList, Text } from "react-native";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import StoreApi from "@/api/StoreApi";
 import React from "react";
 import SectionHeader from "@/common/SectionHeader";
 import { useRouter } from "expo-router";
 import ShopCard, { Shop } from "@/common/ShopCard";
-import OreAppText from "@/common/OreApptext";
 import Storage from "@/utils/Storage";
 import LogoutModal from "@/Modals/LogoutModal";
 import { useLocationStore } from "@/store/locationStore";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
+import { useQuery } from "@tanstack/react-query";
+import OreAppText from "@/common/OreApptext";
 import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 
 type Props = {
@@ -27,39 +28,27 @@ export default function TopratedShops({ refreshTrigger }: Props) {
   } = useLocationStore();
   const shimmerAnim = useShimmerAnimation();
 
-  const [shops, setShops] = useState<Shop[]>([]);
   const [loginVisible, setLoginVisible] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  // Track if we've successfully fetched data
-  const hasFetchedRef = useRef(false);
-  // Track the last location we fetched with
-  const lastFetchedLocation = useRef<{
-    lat: number | null;
-    lng: number | null;
-  } | null>(null);
+  // Determine coordinates to use
+  const lat = hasPermission === true && latitude != null ? latitude : null;
+  const lng = hasPermission === true && longitude != null ? longitude : null;
 
-  const { handleFavoritePress } = useFavoriteShop({
-    shops,
-    setShops,
-    queryKey: ["topRatedStores"],
-    onLoginRequired: () => setLoginVisible(true),
-  });
+  const queryKey = [
+    "topRatedStores",
+    lat?.toString() ?? "null",
+    lng?.toString() ?? "null",
+  ];
 
-  const fetchStores = async () => {
-    setLoading(true);
-
-    try {
-      let lat: number | null = null;
-      let lng: number | null = null;
-
-      // ONLY USE LOCATION IF WE HAVE PERMISSION + COORDINATES
-      if (hasPermission === true && latitude && longitude) {
-        lat = latitude;
-        lng = longitude;
-      }
-      // OTHERWISE: send null,null → backend handles it perfectly
-
+  // React Query for fetching top rated stores
+  const {
+    data: shops = [],
+    isLoading: loading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey,
+    queryFn: async () => {
       const res = await StoreApi.getTopRatedStores(
         lat as number,
         lng as number,
@@ -82,36 +71,24 @@ export default function TopratedShops({ refreshTrigger }: Props) {
             : "N/A",
         }));
 
-      setShops(newShops);
-      hasFetchedRef.current = true;
-      lastFetchedLocation.current = { lat, lng };
-    } catch (err) {
-      console.error("Top rated fetch error:", err);
-      setShops([]);
-    } finally {
-      setLoading(false);
+      return newShops;
+    },
+    enabled: !locationLoading,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10, // 10 minutes
+  });
+
+  React.useEffect(() => {
+    if (refreshTrigger && error) {
+      refetch();
     }
-  };
+  }, [refreshTrigger, error, refetch]);
 
-  useEffect(() => {
-    if (hasFetchedRef.current) return;
-
-    if (locationLoading) return;
-
-    if (hasPermission && latitude && longitude) {
-      fetchStores();
-    } else if (hasPermission === false) {
-      fetchStores(); // without location
-    }
-  }, [locationLoading, hasPermission, latitude, longitude]);
-
-  // Parent refresh (pull-to-refresh) - force refetch
-  useEffect(() => {
-    if (refreshTrigger) {
-      hasFetchedRef.current = false; // Reset the flag to allow refetch
-      fetchStores();
-    }
-  }, [refreshTrigger]);
+  // Use the shared favorite hook
+  const { handleFavoritePress } = useFavoriteShop({
+    queryKey,
+    onLoginRequired: () => setLoginVisible(true),
+  });
 
   const renderSkeletons = () => (
     <FlatList
@@ -159,14 +136,19 @@ export default function TopratedShops({ refreshTrigger }: Props) {
 
       {loading ? (
         renderSkeletons()
-      ) : shops.length === 0 ? (
-        <EmptyMessage />
+      ) : error ? (
+        <View className="mx-auto py-6">
+          <OreAppText className="text-[16px] text-red-500 ">
+            Fetch Error
+          </OreAppText>
+        </View>
       ) : (
         <FlatList
           data={shops}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
           horizontal
+          ListEmptyComponent={<EmptyMessage />}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 20,

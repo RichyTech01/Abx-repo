@@ -26,7 +26,8 @@ export default function RescueAndSave() {
 
   const { data, isLoading, refetch } = useQuery<{ results: ShopProductType[] }>(
     {
-      queryKey: ["rescueAndSaveProducts"],
+      queryKey: ["All-rescueAndSaveProducts"],
+      staleTime: 7 * 60 * 1000,
       queryFn: async () => {
         let allResults: ShopProductType[] = [];
         let page = 1;

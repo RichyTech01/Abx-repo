@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   FlatList,
@@ -14,68 +14,61 @@ import StoreApi from "@/api/StoreApi";
 import AddtoCartModal from "@/Modals/AddtoCartModal";
 import { isStoreOpen } from "@/utils/storeStatus";
 import NoData from "@/common/NoData";
+import { ShopProductType } from "@/types/store";
+import { useQuery } from "@tanstack/react-query";
 
 export default function CategoryDetails() {
   const router = useRouter();
   const { category } = useLocalSearchParams<{ category: string }>();
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // Modal & product details state
   const [modalVisible, setModalVisible] = useState(false);
-  // const [selectedProductId, setSelectedProductId] = useState<number | null>(
-  //   null
-  // );
-  const [productDetails, setProductDetails] = useState<any>(null);
-  const [productLoading, setProductLoading] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
 
-  useEffect(() => {
-    const fetchAllProducts = async () => {
-      if (!category) return;
+  const { data: products = [], isLoading: loading } = useQuery({
+    queryKey: ["categoryProducts", category],
+    queryFn: async () => {
+      if (!category) return [];
 
-      setLoading(true);
-      try {
-        let allResults: any[] = [];
-        let page = 1;
-        let hasNext = true;
+      let allResults: any[] = [];
+      let page = 1;
+      let hasNext = true;
 
-        while (hasNext) {
-          const data = await StoreApi.getAllProducts({ category, page });
-          allResults = [...allResults, ...(data.results || [])];
+      while (hasNext) {
+        const data = await StoreApi.getAllProducts({ category, page });
+        allResults = [...allResults, ...(data.results || [])];
 
-          // Check if there's another page
-          if (data.next) {
-            page += 1;
-          } else {
-            hasNext = false;
-          }
+        // Check if there's another page
+        if (data.next) {
+          page += 1;
+        } else {
+          hasNext = false;
         }
-
-        setProducts(allResults);
-      } catch (err) {
-        console.error("Failed to fetch all products", err);
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchAllProducts();
-  }, [category]);
+      return allResults;
+    },
+    enabled: !!category, 
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000, 
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 
-  // Handle add to cart modal
-  const handleAddToCart = async (id: number) => {
+  const handleAddToCart = (id: number) => {
+    setSelectedProductId(id);
     setModalVisible(true);
-    setProductLoading(true);
-
-    try {
-      const product = await StoreApi.getProduct(id);
-      setProductDetails(product);
-    } catch (err) {
-      console.error("Failed to fetch product details", err);
-    } finally {
-      setProductLoading(false);
-    }
   };
+
+  const { data: product, isLoading: productLoading } =
+    useQuery<ShopProductType>({
+      queryKey: ["productDetails", selectedProductId],
+      queryFn: () => StoreApi.getProduct(selectedProductId as number),
+      enabled: !!selectedProductId && modalVisible,
+      staleTime: 5 * 60 * 1000,
+    });
 
   const SCREEN_PADDING = 20;
   const GAP = 16;
@@ -93,12 +86,12 @@ export default function CategoryDetails() {
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#000" />
+          <ActivityIndicator size="large" color="#0C513F" />
         </View>
       ) : (
         <FlatList
           data={products}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
           numColumns={2}
           contentContainerStyle={{
             paddingHorizontal: SCREEN_PADDING,
@@ -131,17 +124,19 @@ export default function CategoryDetails() {
                     ? isStoreOpen(item.store.open_time, item.store.close_time)
                     : false
                 }
+                discountPercent={item.variations?.[0]?.discount_per}
               />
             </View>
           )}
           ListEmptyComponent={
-            <View className="py-10 mx-auto text-[16px] ">
+            <View className="py-10 mx-auto text-[16px]">
               <NoData
                 title="No product available"
                 subtitle="No product available now, come back later"
               />
             </View>
           }
+          showsVerticalScrollIndicator={false}
         />
       )}
 
@@ -150,13 +145,10 @@ export default function CategoryDetails() {
         value={modalVisible}
         setValue={setModalVisible}
         loading={productLoading}
-        data={productDetails?.variations ?? []}
+        data={product?.variations ?? []}
         isOpen={
-          productDetails?.store
-            ? isStoreOpen(
-                productDetails.store.open_time,
-                productDetails.store.close_time
-              )
+          product?.store
+            ? isStoreOpen(product.store.open_time, product.store.close_time)
             : false
         }
       />

@@ -1,6 +1,15 @@
 import ScreenWrapper from "@/common/ScreenWrapper";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
-import { View, Text, ScrollView, Image, Animated } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  Animated,
+  Linking,
+  TouchableOpacity,
+} from "react-native";
 import UrbanistText from "@/common/UrbanistText";
 import DeliveredIcon from "@/assets/svgs/OrderDeliveredIcon.svg";
 import Button from "@/common/Button";
@@ -21,12 +30,10 @@ import { OrderSkeleton } from "@/common/OrderSkeleton";
 
 export default function OrderDetailsScrenn() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const { user } = useUserStore();
-
-  const [order, setOrder] = useState<any | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [ConfirmLoading, setConfirmLoading] = useState<boolean>(false);
 
@@ -47,87 +54,62 @@ export default function OrderDetailsScrenn() {
     ).start();
   }, []);
 
-  useEffect(() => {
-    setLoading(true);
-    const fetchOrder = async () => {
-      try {
-        const res = await OrderApi.getCustomerOrderById(id);
-        setOrder(res);
-        setLoading(false);
-      } catch (err) {
-        console.error("Failed to fetch order details:", err);
-      }
-    };
-    fetchOrder();
-  }, [id]);
+  const { data: order, isLoading: loading } = useQuery({
+    queryKey: ["order", id],
+    queryFn: async () => {
+      const res = await OrderApi.getCustomerOrderById(id);
+      // console.log(res);
+      return res;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    enabled: !!id,
+  });
 
   useEffect(() => {
     if (!user?.id || !id || !MQTTClient.isClientConnected()) return;
 
-    // Get the original callback from global MQTT handler
-    const originalCallback = MQTTClient.getMessageCallback();
+    const orderSpecificCallback = (notification: Notification) => {
 
-    const combinedCallback = (notification: Notification) => {
-      // Check if this notification is for the current order
       const notificationOrderId = notification.data?.order_id?.toString();
       const currentOrderId = id?.toString();
 
       if (notificationOrderId === currentOrderId) {
-        // Update order status immediately based on notification
+        // console.log("✅ Notification matches current order, updating...");
+
         if (notification.data?.status) {
-          setOrder((prevOrder: any) => ({
-            ...prevOrder,
+          queryClient.setQueryData(["order", id], (oldData: any) => ({
+            ...oldData,
             status: notification.data.status,
           }));
         }
 
-        // Optionally fetch fresh data in background (but don't block UI)
-        OrderApi.getCustomerOrderById(id)
-          .then((refreshedOrder) => {
-            setOrder(refreshedOrder);
-          })
-          .catch((err) => {
-            console.error("Failed to refresh order data:", err);
-          });
-      }
-
-      if (originalCallback) {
-        originalCallback(notification);
+        queryClient.invalidateQueries({ queryKey: ["order", id] });
       }
     };
 
-    // Update MQTT callback to our combined one
-    MQTTClient.updateCallback(combinedCallback);
+    MQTTClient.addCallback(orderSpecificCallback);
 
-    // Cleanup: restore original callback when leaving screen
     return () => {
-      if (originalCallback) {
-        MQTTClient.updateCallback(originalCallback);
-      }
+      MQTTClient.removeCallback(orderSpecificCallback);
     };
-  }, [user?.id, id]);
+  }, [user?.id, id, queryClient]);
 
   const handleConfirmDelivery = async () => {
     setConfirmLoading(true);
     try {
       await OrderApi.completeCustomerOrder(id);
 
-      // Optimistically update the order status immediately
-      setOrder((prevOrder: any) => ({
-        ...prevOrder,
+      // Optimistic update
+      queryClient.setQueryData(["order", id], (oldData: any) => ({
+        ...oldData,
         status: "completed",
       }));
 
-      setShowModal((prev) => !prev);
+      setShowModal(true);
 
-      // Optionally fetch fresh data in the background
-      OrderApi.getCustomerOrderById(id)
-        .then((refreshedOrder) => {
-          setOrder(refreshedOrder);
-        })
-        .catch((err) => {
-          console.error("Failed to refresh order data:", err);
-        });
+      // Invalidate to refetch in background
+      queryClient.invalidateQueries({ queryKey: ["order", id] });
     } catch (err) {
       console.error("Failed to complete order:", err);
       showToast("error", "Failed to confirm delivery. Please try again.");
@@ -201,6 +183,7 @@ export default function OrderDetailsScrenn() {
   // Determine which buttons to show
   const showConfirmButton = order?.status === "pickedup";
   const showReviewButton = order?.status === "completed";
+  const showText = order?.status === "assigned";
   const showButtons = showConfirmButton || showReviewButton;
 
   return (
@@ -242,7 +225,7 @@ export default function OrderDetailsScrenn() {
                   </View>
 
                   {/* Second Row */}
-                  <View className="flex-row items-center justify-between gap-4">
+                  <View className="flex-row items-center justify-between gap-4 mb-[16px] ">
                     <View className="flex-1">
                       <Text className="text-[14px] font-urbanist-medium text-[#111827]">
                         Date placed
@@ -260,6 +243,47 @@ export default function OrderDetailsScrenn() {
                       </Text>
                     </View>
                   </View>
+
+                  {order?.rider && (
+                    <View className="flex-row items-center justify-between gap-4 mb-[16px]">
+                      <View className="flex-1">
+                        <Text className="text-[14px] font-urbanist-medium text-[#111827]">
+                          Rider name
+                        </Text>
+                        <UrbanistText className="text-[14px] leading-[20px] text-[#6B7280] mt-[4px]">
+                          {order?.rider?.first_name} {order?.rider?.last_name}
+                        </UrbanistText>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-[14px] leading-[20px] font-urbanist-medium text-[#111827] mb-[4px]">
+                          Call rider
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => {
+                            const phoneNumber = order?.rider?.phone_number;
+                            if (phoneNumber) {
+                              Linking.openURL(`tel:${phoneNumber}`).catch(
+                                (err) => {
+                                  console.error("Failed to open dialer:", err);
+                                  showToast(
+                                    "error",
+                                    "Failed to open phone dialer"
+                                  );
+                                }
+                              );
+                            }
+                          }}
+                          className="flex-row items-center bg-[#FDF0DC] rounded-[8px] px-[12px] py-[8px] self-start"
+                          activeOpacity={0.7}
+                        >
+                          <Text className="text-[14px]">📞</Text>
+                          <Text className="text-[14px] leading-[20px] text-[#DC6C3C] font-urbanist-semibold ml-[6px]">
+                            {order?.rider?.phone_number}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
                 </View>
 
                 {/* Items */}
@@ -332,6 +356,12 @@ export default function OrderDetailsScrenn() {
                   </View>
                 ) : null}
               </View>
+
+              {showText && (
+                <Text className="text-[13px] font-orelega mt-2  ">
+                  Share your order code with the rider to comfirm ownership
+                </Text>
+              )}
             </ScrollView>
 
             {showButtons && (

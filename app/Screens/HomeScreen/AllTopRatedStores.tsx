@@ -1,5 +1,6 @@
 import { View, Platform, FlatList, RefreshControl } from "react-native";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
+import React from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
 import StoreApi from "@/api/StoreApi";
@@ -12,11 +13,13 @@ import { useLocationStore } from "@/store/locationStore";
 import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
-import OreAppText from "@/common/OreApptext";
 import NoData from "@/common/NoData";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import OreAppText from "@/common/OreApptext";
 
 export default function AllTopRatedStores() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const {
     latitude,
     longitude,
@@ -24,39 +27,42 @@ export default function AllTopRatedStores() {
     isLoading: locationLoading,
   } = useLocationStore();
   const shimmerAnim = useShimmerAnimation();
-  const hasFetchedRef = useRef(false);
 
-  const [shops, setShops] = useState<Shop[]>([]);
   const [loginVisible, setLoginVisible] = useState(false);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { handleFavoritePress } = useFavoriteShop({
-    shops,
-    setShops,
-    queryKey: ["AlltopRatedStores"],
-    onLoginRequired: () => setLoginVisible(true),
-  });
+  // Track last refresh time
+  const lastRefreshTime = useRef<number>(0);
+  const REFRESH_COOLDOWN = 30000;
 
-  const fetchStores = async (pageNum: number = 1, append = false) => {
-    if (!append) setLoading(true);
-    if (append) setLoadingMore(true);
+  // Determine coordinates to use
+  const lat = hasPermission === true && latitude != null ? latitude : null;
+  const lng = hasPermission === true && longitude != null ? longitude : null;
 
-    try {
-      // Only send coordinates if we have explicit permission AND valid coordinates
-      const lat = hasPermission === true && latitude != null ? latitude : null;
-      const lng =
-        hasPermission === true && longitude != null ? longitude : null;
+  // Fetch data for each page
+  const {
+    data,
+    isLoading: loading,
+    isFetching,
+    error,
+    dataUpdatedAt,
+  } = useQuery({
+    queryKey: [
+      "ALl-topRatedStores",
+      lat?.toString() ?? "null",
+      lng?.toString() ?? "null",
+      page,
+    ],
+    queryFn: async () => {
       const res = await StoreApi.getTopRatedStores(
         lat as number,
         lng as number,
-        pageNum
+        page
       );
 
-      const newShops: Shop[] = (res.results || []).map((store: any) => ({
+      const shops: Shop[] = (res.results || []).map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
         image:
@@ -71,38 +77,93 @@ export default function AllTopRatedStores() {
           : "N/A",
       }));
 
-      setShops((prev) => (append ? [...prev, ...newShops] : newShops));
-      setHasMore(res.next !== null);
-      setPage(pageNum);
-    } catch (err: any) {
-      console.error("FETCH FAILED:", err);
-      console.error("Response:", err.response?.data);
-      if (!append) setShops([]);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  };
+      return {
+        shops,
+        hasNext: res.next !== null,
+      };
+    },
+    enabled: !locationLoading && hasMore,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnMount: false,
+  });
 
-  // Fetch immediately on mount - don't wait for anything
-  useEffect(() => {
-    if (!hasFetchedRef.current) {
-      hasFetchedRef.current = true;
-      fetchStores(1);
-    }
-  }, []);
+  // Aggregate all pages from cache
+  const allShops = useMemo(() => {
+    const shops: Shop[] = [];
+    let currentPage = 1;
 
-  // REFRESH
+    while (currentPage <= page) {
+      const pageData = queryClient.getQueryData([
+        "ALl-topRatedStores",
+        lat?.toString() ?? "null",
+        lng?.toString() ?? "null",
+        currentPage,
+      ]) as { shops: Shop[]; hasNext: boolean } | undefined;
+
+      if (pageData?.shops) {
+        shops.push(...pageData.shops);
+      }
+      currentPage++;
+    }
+
+    return shops;
+  }, [page, lat, lng, queryClient, data]); // Re-compute when data changes
+
+  // Update hasMore when data changes
+  React.useEffect(() => {
+    if (data) {
+      setHasMore(data.hasNext);
+    }
+  }, [data]);
+
+  React.useEffect(() => {
+    if (!isFetching) {
+      setIsRefreshing(false);
+    }
+  }, [isFetching]);
+
+  const { handleFavoritePress } = useFavoriteShop({
+    queryKey: [
+      "ALl-topRatedStores",
+      lat?.toString() ?? "null",
+      lng?.toString() ?? "null",
+    ],
+    onLoginRequired: () => setLoginVisible(true),
+  });
+
   const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchStores(1);
-    setRefreshing(false);
+    const now = Date.now();
+    const timeSinceLastRefresh = now - lastRefreshTime.current;
+
+    const dataAge = now - dataUpdatedAt;
+    const isFresh = dataAge < 1000 * 60 * 5;
+
+    if (timeSinceLastRefresh < REFRESH_COOLDOWN || isFresh) {
+      setIsRefreshing(true);
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, 500);
+      return;
+    }
+
+    setIsRefreshing(true);
+    lastRefreshTime.current = now;
+    setPage(1);
+    setHasMore(true);
+
+    await queryClient.invalidateQueries({
+      queryKey: [
+        "ALl-topRatedStores",
+        lat?.toString() ?? "null",
+        lng?.toString() ?? "null",
+      ],
+    });
   };
 
   // LOAD MORE
   const handleLoadMore = () => {
-    if (hasMore && !loadingMore && !loading) {
-      fetchStores(page + 1, true);
+    if (hasMore && !isFetching && !isRefreshing) {
+      setPage((prev) => prev + 1);
     }
   };
 
@@ -115,11 +176,11 @@ export default function AllTopRatedStores() {
   );
 
   const EmptyState = () => (
-    <View className="py-20 items-center px-6">
-       <NoData 
-         title="Empty data"
-         subtitle="No top rated product at the moment"
-       />
+    <View className="py-20 items-center ">
+      <NoData
+        title="Empty data"
+        subtitle="No top rated product at the moment"
+      />
     </View>
   );
 
@@ -129,11 +190,17 @@ export default function AllTopRatedStores() {
         <HeaderWithSearchInput label="Top rated stores" />
       </View>
 
-      {loading && shops.length === 0 ? (
+      {loading ? (
         renderSkeletons()
+      ) : error ? (
+        <View className="mx-auto py-6">
+          <OreAppText className="text-[20px] text-red-500 ">
+            Fetch Error
+          </OreAppText>
+        </View>
       ) : (
         <FlatList
-          data={shops}
+          data={allShops}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <ShopCard
@@ -150,7 +217,7 @@ export default function AllTopRatedStores() {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            loadingMore ? (
+            isFetching && page > 1 && !isRefreshing ? (
               <View className="py-6 items-center">
                 <LoadingSpinner />
               </View>
@@ -160,7 +227,7 @@ export default function AllTopRatedStores() {
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
+              refreshing={isRefreshing}
               onRefresh={handleRefresh}
               colors={["#0C513F"]}
             />

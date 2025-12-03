@@ -5,7 +5,7 @@ import {
   RefreshControl,
   Animated,
 } from "react-native";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useRouter } from "expo-router";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
@@ -17,57 +17,44 @@ import { LoadingSpinner } from "@/common/LoadingSpinner";
 import { useLocationStore } from "@/store/locationStore";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 import { useFavoriteShop } from "@/hooks/useFavoriteShop";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function FavouriteStore() {
-  const { latitude, longitude, hasPermission } = useLocationStore();
-
+  const { latitude, longitude, hasPermission, isLoading: locationLoading } = useLocationStore();
   const router = useRouter();
   const navigation = useNavigation();
   const shimmerAnim = useShimmerAnimation();
-  const hasFetchedRef = useRef(false);
+  const queryClient = useQueryClient();
 
-  const [shops, setShops] = useState<Shop[]>([]);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { handleFavoritePress: hookHandleFavoritePress } = useFavoriteShop({
-    shops,
-    setShops,
-    queryKey: ["favoriteStores"],
-  });
+  // Determine coordinates to use
+  const lat = hasPermission === true && latitude != null ? latitude : null;
+  const lng = hasPermission === true && longitude != null ? longitude : null;
 
-  const handleFavoritePress = async (storeId: string) => {
-    const prevShops = shops;
-    setShops((prev) => prev.filter((shop) => shop.id !== storeId));
-
-    await hookHandleFavoritePress(storeId);
-  };
-
-  const fetchStores = async (
-    pageNum: number,
-    append = false,
-    isRefreshing = false
-  ) => {
-    if ((loading && !append && !isRefreshing) || loadingMore) return;
-
-    if (!isRefreshing) {
-      append ? setLoadingMore(true) : setLoading(true);
-    }
-
-    try {
-      // Send location if available, otherwise null
-      const lat = hasPermission === true && latitude != null ? latitude : null;
-      const lng = hasPermission === true && longitude != null ? longitude : null;
-
+  // Fetch favorite stores with React Query
+  const {
+    data,
+    isLoading: loading,
+    isFetching,
+    error,
+  } = useQuery({
+    queryKey: [
+      "favoriteStores",
+      lat?.toString() ?? "null",
+      lng?.toString() ?? "null",
+      page,
+    ],
+    queryFn: async () => {
       const res = await StoreApi.getFavoriteStores(
-        lat as any,
-        lng as any,
-        pageNum
+        lat as number,
+        lng as number,
+        page
       );
-      const newShops: Shop[] = res.results.map((store: any) => ({
+
+      const shops: Shop[] = res.results.map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
         image:
@@ -82,45 +69,100 @@ export default function FavouriteStore() {
           : "N/A",
       }));
 
-      setShops((prev) => (append ? [...prev, ...newShops] : newShops));
+      return {
+        shops,
+        hasNext: res.pagination?.hasNextPage ?? shops.length >= 12,
+      };
+    },
+    enabled: !locationLoading && hasMore,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnMount: true,
+  });
 
-      if (res.pagination) {
-        setHasMore(res.pagination.hasNextPage);
-      } else {
-        if (newShops.length < 12) setHasMore(false);
+  // Aggregate all pages from cache
+  const allShops = useMemo(() => {
+    const shops: Shop[] = [];
+    let currentPage = 1;
+
+    while (currentPage <= page) {
+      const pageData = queryClient.getQueryData([
+        "favoriteStores",
+        lat?.toString() ?? "null",
+        lng?.toString() ?? "null",
+        currentPage,
+      ]) as { shops: Shop[]; hasNext: boolean } | undefined;
+
+      if (pageData?.shops) {
+        shops.push(...pageData.shops);
       }
-    } catch (err) {
-      console.error("Error fetching stores:", err);
-      if (!append) setShops([]);
-    } finally {
-      if (!isRefreshing) {
-        append ? setLoadingMore(false) : setLoading(false);
-      }
+      currentPage++;
     }
+
+    return shops;
+  }, [page, lat, lng, queryClient, data]);
+
+  // Update hasMore when data changes
+  useEffect(() => {
+    if (data) {
+      setHasMore(data.hasNext);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (!isFetching) {
+      setIsRefreshing(false);
+    }
+  }, [isFetching]);
+
+  const { handleFavoritePress: hookHandleFavoritePress } = useFavoriteShop({
+    queryKey: [
+      "favoriteStores",
+      lat?.toString() ?? "null",
+      lng?.toString() ?? "null",
+    ],
+    onLoginRequired: () => {}, // Already logged in on this screen
+  });
+
+  const handleFavoritePress = async (storeId: string) => {
+    // Optimistically remove from list (it's being unfavorited)
+    queryClient.setQueriesData(
+      { queryKey: ["favoriteStores"], exact: false },
+      (oldData: any) => {
+        if (!oldData) return oldData;
+
+        if (oldData.shops && Array.isArray(oldData.shops)) {
+          return {
+            ...oldData,
+            shops: oldData.shops.filter((shop: Shop) => shop.id !== storeId),
+          };
+        }
+
+        return oldData;
+      }
+    );
+
+    await hookHandleFavoritePress(storeId);
   };
 
-  // Fetch immediately on mount
-  useEffect(() => {
-    if (!hasFetchedRef.current) {
-      hasFetchedRef.current = true;
-      fetchStores(1, false);
-    }
-  }, []);
-
   const handleRefresh = async () => {
-    setRefreshing(true);
+    setIsRefreshing(true);
     setPage(1);
-    await fetchStores(1, false, true);
-    setRefreshing(false);
+    setHasMore(true);
+
+    await queryClient.invalidateQueries({
+      queryKey: [
+        "favoriteStores",
+        lat?.toString() ?? "null",
+        lng?.toString() ?? "null",
+      ],
+    });
   };
 
   const handleLoadMore = useCallback(() => {
-    if (hasMore && !loadingMore && !loading) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchStores(nextPage, true);
+    if (hasMore && !isFetching && !isRefreshing) {
+      setPage((prev) => prev + 1);
     }
-  }, [page, hasMore, loadingMore, loading]);
+  }, [hasMore, isFetching, isRefreshing]);
 
   const SkeletonCard = () => {
     const opacity = shimmerAnim.interpolate({
@@ -193,11 +235,11 @@ export default function FavouriteStore() {
         <HeaderWithSearchInput label="Your favorite stores" />
       </View>
 
-      {loading && shops.length === 0 ? (
+      {loading ? (
         renderSkeletons()
       ) : (
         <FlatList
-          data={shops}
+          data={allShops}
           contentContainerStyle={{
             paddingBottom: Platform.OS === "ios" ? 20 : 40,
             marginHorizontal: 20,
@@ -215,7 +257,7 @@ export default function FavouriteStore() {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            loadingMore && hasMore ? (
+            isFetching && page > 1 && !isRefreshing ? (
               <View className="py-4 items-center">
                 <LoadingSpinner />
               </View>
@@ -234,8 +276,8 @@ export default function FavouriteStore() {
           }
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
+            <RefreshControl
+              refreshing={isRefreshing}
               onRefresh={handleRefresh}
               colors={["#0C513F"]}
             />

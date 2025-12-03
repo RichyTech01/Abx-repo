@@ -6,7 +6,7 @@ import {
   RefreshControl,
 } from "react-native";
 import OrderCard from "@/common/OrderCard";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import OreAppText from "@/common/OreApptext";
 import OrderApi from "@/api/OrderApi";
 import dayjs from "dayjs";

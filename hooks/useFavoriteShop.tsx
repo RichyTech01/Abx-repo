@@ -4,16 +4,12 @@ import Storage from "@/utils/Storage";
 import { Shop } from "@/common/ShopCard";
 
 interface UseFavoriteShopProps {
-  shops: Shop[];
-  setShops: React.Dispatch<React.SetStateAction<Shop[]>>;
-  queryKey?: string[];
+  queryKey: (string | number)[];
   onLoginRequired?: () => void;
 }
 
 export const useFavoriteShop = ({
-  shops,
-  setShops,
-  queryKey = ["stores"],
+  queryKey,
   onLoginRequired,
 }: UseFavoriteShopProps) => {
   const queryClient = useQueryClient();
@@ -21,36 +17,61 @@ export const useFavoriteShop = ({
   const favoriteMutation = useMutation({
     mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
     onMutate: async (storeId: string) => {
-      // Cancel any outgoing refetches to avoid overwriting optimistic update
+      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey });
 
-      // Snapshot the previous value
-      const previousShops = shops;
+      // Update ALL queries that match the base key (all pages)
+      const baseKey = queryKey.slice(0, 3); // Get base key without page number
+      const previousData: any[] = [];
 
-      // Optimistically update local state
-      setShops((prevShops) =>
-        prevShops.map((shop) =>
-          shop.id === storeId ? { ...shop, isFavorite: !shop.isFavorite } : shop
-        )
+      // Update all matching queries in cache
+      queryClient.setQueriesData(
+        { queryKey: baseKey, exact: false },
+        (oldData: any) => {
+          if (!oldData) return oldData;
+
+          previousData.push({ key: queryKey, data: oldData });
+
+          // Handle { shops: Shop[], hasNext: boolean } structure
+          if (oldData.shops && Array.isArray(oldData.shops)) {
+            return {
+              ...oldData,
+              shops: oldData.shops.map((shop: Shop) =>
+                shop.id === storeId
+                  ? { ...shop, isFavorite: !shop.isFavorite }
+                  : shop
+              ),
+            };
+          }
+
+          // Handle Shop[] structure
+          if (Array.isArray(oldData)) {
+            return oldData.map((shop: Shop) =>
+              shop.id === storeId
+                ? { ...shop, isFavorite: !shop.isFavorite }
+                : shop
+            );
+          }
+
+          return oldData;
+        }
       );
 
-      // Return context with previous value for rollback
-      return { previousShops };
+      return { previousData };
     },
     onError: (error, storeId, context) => {
-      // Rollback to previous state on error
-      if (context?.previousShops) {
-        setShops(context.previousShops);
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData);
       }
     },
     onSettled: () => {
-      // Invalidate all store-related queries to sync across all screens
+      // Invalidate related queries to sync across screens
       queryClient.invalidateQueries({ queryKey: ["topRatedStores"] });
+      queryClient.invalidateQueries({ queryKey: ["ALl-topRatedStores"] });
       queryClient.invalidateQueries({ queryKey: ["closestStores"] });
-      queryClient.invalidateQueries({ queryKey: ["favoriteStores"] });
-      queryClient.invalidateQueries({ queryKey: ["AlltopRatedStores"] });
       queryClient.invalidateQueries({ queryKey: ["AllclosestStores"] });
-      queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ["favoriteStores"] });
     },
   });
 
@@ -61,7 +82,6 @@ export const useFavoriteShop = ({
       return;
     }
 
-    // Call mutation
     favoriteMutation.mutate(storeId);
   };
 

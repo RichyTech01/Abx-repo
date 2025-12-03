@@ -18,6 +18,7 @@ import ScreenWrapper from "@/common/ScreenWrapper";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUserStore } from "@/store/useUserStore";
+import { initializePushNotifications } from "../_layout";
 
 export default function VerifyAccountScreen() {
   const { fetchUser } = useUserStore();
@@ -81,6 +82,7 @@ export default function VerifyAccountScreen() {
       if (!accessToken) {
         console.log("⚠️ No tokens found, user may not be fully logged in yet.");
       }
+      await initializePushNotifications();
       await AsyncStorage.setItem("isLoggedIn", "true");
       fetchUser();
       const redirect = await AsyncStorage.getItem("redirectAfterLogin");

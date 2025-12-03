@@ -1,8 +1,6 @@
 import { MessageCallback, Notification } from "@/types/NotificationType";
 import mqtt, { IClientOptions, MqttClient } from "mqtt";
 
-
-
 const MQTT_USERNAME = process.env.EXPO_PUBLIC_MQTT_USERNAME;
 const MQTT_PASSWORD = process.env.EXPO_PUBLIC_MQTT_PASSWORD;
 const MQTT_BROKER = process.env.EXPO_PUBLIC_MQTT_BROKER;
@@ -10,7 +8,7 @@ const MQTT_BROKER = process.env.EXPO_PUBLIC_MQTT_BROKER;
 class MQTTClient {
   private client: MqttClient | null = null;
   private isConnected: boolean = false;
-  public messageCallback: MessageCallback | null = null; // Made public
+  private messageCallbacks: MessageCallback[] = [];
   private currentUserId: string | null = null;
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
@@ -18,21 +16,25 @@ class MQTTClient {
   constructor() {
     this.client = null;
     this.isConnected = false;
-    this.messageCallback = null;
+    this.messageCallbacks = [];
     this.currentUserId = null;
     this.reconnectAttempts = 0;
   }
 
   public connect(userId: string, onMessageCallback: MessageCallback): void {
     if (!userId) {
-      // console.error("❌ User ID is required for MQTT connection");
+      console.error("❌ User ID is required for MQTT connection");
       return;
     }
 
-    // If already connected to the same user, just update callback
+    // Add the callback to the list if not already present
+    if (!this.messageCallbacks.includes(onMessageCallback)) {
+      this.messageCallbacks.push(onMessageCallback);
+    }
+
+    // If already connected to the same user, return
     if (this.isConnected && this.currentUserId === userId) {
-      // console.log("🔄 Already connected to MQTT for user:", userId);
-      this.messageCallback = onMessageCallback; // Update callback
+      console.log("🔄 Already connected to MQTT for user:", userId);
       return;
     }
 
@@ -54,21 +56,20 @@ class MQTTClient {
     };
 
     try {
-      // console.log("🔌 Connecting to MQTT broker...", brokerUrl);
+      console.log("🔌 Connecting to MQTT broker...", brokerUrl);
       this.client = mqtt.connect(String(brokerUrl), options);
-      this.messageCallback = onMessageCallback;
 
       this.client.on("connect", () => {
-        // console.log("✅ MQTT Connected successfully");
+        console.log("✅ MQTT Connected successfully");
         this.isConnected = true;
         this.reconnectAttempts = 0;
 
         const topic = `notifications/user/${userId}`;
         this.client?.subscribe(topic, { qos: 1 }, (err) => {
           if (err) {
-            console.error("❌ MQTT Subscription error:", err);
+            // console.error("❌ MQTT Subscription error:", err);
           } else {
-            // console.log(`📡 Successfully subscribed to topic: ${topic}`);
+            console.log(`📡 Successfully subscribed to topic: ${topic}`);
           }
         });
       });
@@ -76,31 +77,37 @@ class MQTTClient {
       this.client.on("message", (topic: string, message: Buffer) => {
         try {
           const notificationData = message.toString();
-          // console.log("📨 Raw message received:", notificationData);
+          console.log("📨 Raw MQTT message received:", notificationData);
 
           const notification: Notification = JSON.parse(notificationData);
-          // console.log("📬 Parsed notification:", notification);
+          console.log("📬 Parsed notification:", notification);
 
-          // Call the callback with the new notification
-          this.messageCallback?.(notification);
+          // Call ALL registered callbacks
+          this.messageCallbacks.forEach((callback) => {
+            try {
+              callback(notification);
+            } catch (error) {
+              console.error("❌ Error in callback:", error);
+            }
+          });
         } catch (error) {
           console.error("❌ Error parsing notification:", error);
-          // console.error("❌ Raw message was:", message.toString());
+          console.error("❌ Raw message was:", message.toString());
         }
       });
 
       this.client.on("error", (error: Error) => {
-        // console.error("❌ MQTT Error:", error);
+        console.error("❌ MQTT Error:", error);
         this.isConnected = false;
       });
 
       this.client.on("close", () => {
-        // console.log("🔌 MQTT Connection closed");
+        console.log("🔌 MQTT Connection closed");
         this.isConnected = false;
       });
 
       this.client.on("offline", () => {
-        // console.log("📴 MQTT Client offline");
+        console.log("📴 MQTT Client offline");
         this.isConnected = false;
       });
 
@@ -125,9 +132,9 @@ class MQTTClient {
 
   public disconnect(): void {
     if (this.client) {
-      this.client.end(true); // Force close
+      this.client.end(true);
       this.isConnected = false;
-      this.messageCallback = null;
+      this.messageCallbacks = [];
       this.currentUserId = null;
       this.reconnectAttempts = 0;
       console.log("✅ MQTT Disconnected");
@@ -142,23 +149,35 @@ class MQTTClient {
     return this.currentUserId;
   }
 
-  // Public getter for messageCallback
-  public getMessageCallback(): MessageCallback | null {
-    return this.messageCallback;
+  // Add a callback to the list
+  public addCallback(callback: MessageCallback): void {
+    if (!this.messageCallbacks.includes(callback)) {
+      this.messageCallbacks.push(callback);
+    }
   }
 
-  // Method to update callback without reconnecting
-  public updateCallback(callback: MessageCallback): void {
-    this.messageCallback = callback;
+  // Remove a specific callback
+  public removeCallback(callback: MessageCallback): void {
+    this.messageCallbacks = this.messageCallbacks.filter(
+      (cb) => cb !== callback
+    );
+  }
+
+  // Get all callbacks
+  public getCallbacks(): MessageCallback[] {
+    return this.messageCallbacks;
   }
 
   // Method to manually reconnect
   public reconnect(): void {
-    if (this.currentUserId && this.messageCallback) {
+    if (this.currentUserId && this.messageCallbacks.length > 0) {
       console.log("🔄 Manual reconnect requested");
       this.disconnect();
       setTimeout(() => {
-        this.connect(this.currentUserId!, this.messageCallback!);
+        // Re-add all callbacks after reconnect
+        const callbacks = [...this.messageCallbacks];
+        this.connect(this.currentUserId!, callbacks[0]);
+        callbacks.slice(1).forEach((cb) => this.addCallback(cb));
       }, 1000);
     }
   }

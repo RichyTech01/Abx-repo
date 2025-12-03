@@ -77,7 +77,7 @@ export default function AllProductScreen() {
       (!latitude && longitude) ||
       !product.store?.store_address?.location?.coordinates
     ) {
-      return 0; // Return 0 if location data is unavailable
+      return 0; 
     }
 
     const storeLon = product.store.store_address.location.coordinates[0];

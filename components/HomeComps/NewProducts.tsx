@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useCallback, memo, useState } from "react";
 import { View, FlatList, Text, Animated } from "react-native";
-import * as Location from "expo-location";
 import SectionHeader from "@/common/SectionHeader";
 import ProductCard from "@/common/ProductCard";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +10,7 @@ import { ProductVariation, ShopProductType } from "@/types/store";
 import { useRouter } from "expo-router";
 import { useLocationStore } from "@/store/locationStore";
 import { getDistanceInKm } from "@/utils/getDistanceInKm";
+import OreAppText from "@/common/OreApptext";
 
 type Props = {
   refreshTrigger: boolean;
@@ -45,8 +45,8 @@ const NewProducts = ({ refreshTrigger }: Props) => {
   }, [shimmerAnim]);
 
   // Fetch products
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["NewProduct"],
+  const { data, isLoading, error, } = useQuery({
+    queryKey: ["newProducts"],
     queryFn: async () => {
       const res = await StoreApi.getAllProducts({ page: 1 });
       return res;
@@ -59,6 +59,7 @@ const NewProducts = ({ refreshTrigger }: Props) => {
       queryKey: ["productDetails", selectedProductId],
       queryFn: () => StoreApi.getProduct(selectedProductId as number),
       enabled: !!selectedProductId && modalVisible,
+      staleTime: 5 * 60 * 1000,
     });
 
   // Calculate distance for a product
@@ -92,10 +93,9 @@ const NewProducts = ({ refreshTrigger }: Props) => {
     setModalVisible(true);
   }, []);
 
-  // Refetch on refreshTrigger change
-  useEffect(() => {
-    if (refreshTrigger) refetch();
-  }, [refreshTrigger, refetch]);
+  // useEffect(() => {
+  //   if (refreshTrigger) refetch();
+  // }, [refreshTrigger, refetch]);
 
   // Memoized shimmer skeleton
   const SkeletonCard = memo(() => {
@@ -201,21 +201,8 @@ const NewProducts = ({ refreshTrigger }: Props) => {
   ));
 
   const ErrorComponent = memo(() => (
-    <View
-      style={{
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text
-        style={{
-          textAlign: "center",
-          maxWidth: "60%",
-        }}
-        className="font-orelega py-10 text-black text-[16px] mx-auto "
-      >
-        Failed to load products
-      </Text>
+    <View className="mx-auto py-6">
+      <OreAppText className="text-[16px] text-red-500 ">Fetch Error</OreAppText>
     </View>
   ));
 

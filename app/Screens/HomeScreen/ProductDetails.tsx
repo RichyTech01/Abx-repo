@@ -40,6 +40,7 @@ export default function ProductDetails() {
       return await StoreApi.getProduct(Number(id));
     },
     enabled: !!id,
+    staleTime: 1000 * 60 * 5,
   });
 
   if (error) {

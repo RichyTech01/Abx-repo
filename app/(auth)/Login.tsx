@@ -16,6 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import { useUserStore } from "@/store/useUserStore";
 import showToast from "@/utils/showToast";
+import { initializePushNotifications } from "../_layout";
 
 interface SignInResponse {
   access: string;
@@ -63,8 +64,11 @@ export default function Login() {
 
       await AsyncStorage.multiSet([
         ["accessToken", res.access],
+        ["refreshToken", res.refresh],
         ["isLoggedIn", "true"],
       ]);
+
+      await initializePushNotifications();
 
       fetchUser();
       setErrors({});
