@@ -33,7 +33,7 @@ export default function VerifyAccountScreen() {
     setLoading(true);
     try {
       const res = await AuthApi.verifyEmail({ otp });
-      console.log("Verification success:", res);
+      // console.log("Verification success:", res);
 
       // Only proceed if tokens (or success response) exist
       if (res?.access && res?.refresh) {

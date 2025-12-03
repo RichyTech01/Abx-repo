@@ -50,7 +50,7 @@ const GoogleAuth: React.FC<Props> = ({
       const res = await AuthApi.googleSignIn({ token: idToken });
 
       await AsyncStorage.setItem("accessToken", res.access);
-      // await AsyncStorage.setItem("refreshToken", res.refresh);
+      await AsyncStorage.setItem("refreshToken", res.refresh);
 
       if (res.is_first_login === true) {
         router.push("/AdditionalInfo/AdditionalInfo");
