@@ -104,7 +104,7 @@ function BannerSlider() {
 
 export default function Home() {
   const router = useRouter();
-  const { user, loading } = useUserStore();
+  const { user, loading, fetchUser } = useUserStore();
   const { unreadCount, checkNotificationStatus } = useNotificationStore();
   const { cartItems, refreshCart } = useCartStore();
   const { requestLocation } = useLocationStore();
@@ -115,6 +115,11 @@ export default function Home() {
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
+
+   useEffect(() => {
+    if (!user) fetchUser();
+    console.log("user")
+  }, [user, fetchUser]);
 
   useEffect(() => {
     const STALE_TIME = 5 * 60 * 1000; // 5 minutes

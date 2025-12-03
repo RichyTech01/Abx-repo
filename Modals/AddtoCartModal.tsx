@@ -130,10 +130,7 @@ export default function AddtoCartModal({
         cancelText="Cancel"
         onConfirm={async () => {
           await Storage.remove("isGuest");
-          await AsyncStorage.setItem(
-            "redirectAfterLogin",
-            "/Screens/Carts/CheckOut"
-          );
+          await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Carts");
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

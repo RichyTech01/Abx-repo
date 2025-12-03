@@ -100,7 +100,7 @@ export default function AllOrders() {
       case "ready":
         return {
           text: "Ready for Delivery",
-          color: "#2563EB",
+          color: "#DC6C3C",
           isDelivered: false,
         };
       case "pickedup":

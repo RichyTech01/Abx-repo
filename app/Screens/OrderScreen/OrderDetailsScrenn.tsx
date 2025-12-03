@@ -58,7 +58,6 @@ export default function OrderDetailsScrenn() {
     queryKey: ["order", id],
     queryFn: async () => {
       const res = await OrderApi.getCustomerOrderById(id);
-      // console.log(res);
       return res;
     },
     staleTime: 5 * 60 * 1000,
@@ -70,13 +69,10 @@ export default function OrderDetailsScrenn() {
     if (!user?.id || !id || !MQTTClient.isClientConnected()) return;
 
     const orderSpecificCallback = (notification: Notification) => {
-
       const notificationOrderId = notification.data?.order_id?.toString();
       const currentOrderId = id?.toString();
 
       if (notificationOrderId === currentOrderId) {
-        // console.log("✅ Notification matches current order, updating...");
-
         if (notification.data?.status) {
           queryClient.setQueryData(["order", id], (oldData: any) => ({
             ...oldData,
@@ -100,7 +96,6 @@ export default function OrderDetailsScrenn() {
     try {
       await OrderApi.completeCustomerOrder(id);
 
-      // Optimistic update
       queryClient.setQueryData(["order", id], (oldData: any) => ({
         ...oldData,
         status: "completed",
@@ -108,7 +103,6 @@ export default function OrderDetailsScrenn() {
 
       setShowModal(true);
 
-      // Invalidate to refetch in background
       queryClient.invalidateQueries({ queryKey: ["order", id] });
     } catch (err) {
       console.error("Failed to complete order:", err);
@@ -118,10 +112,23 @@ export default function OrderDetailsScrenn() {
     }
   };
 
-  const handleWriteReview = () => {
+  const handleReviewProduct = (product: any) => {
     router.push({
-      pathname: "/Screens/OrderScreen/OdersProductscreen",
-      params: { orderId: id },
+      pathname: "/Screens/OrderScreen/WriteOrderProductReview",
+      params: {
+        productId: product.productId,
+        productName: product.item_name,
+        productImage: product.item_img,
+        productPrice: product.price,
+        orderId: id,
+      },
+    });
+  };
+
+  const handleReviewStore = () => {
+    router.push({
+      pathname: "/Screens/OrderScreen/WriteReviewScreen",
+      params: { storeId: order?.store_id },
     });
   };
 
@@ -180,11 +187,8 @@ export default function OrderDetailsScrenn() {
     Icon: StatusIcon,
   } = getStatus(order?.status || "");
 
-  // Determine which buttons to show
   const showConfirmButton = order?.status === "pickedup";
-  const showReviewButton = order?.status === "completed";
-  const showText = order?.status === "assigned";
-  const showButtons = showConfirmButton || showReviewButton;
+  const showButtons = order?.status === "assigned" || showConfirmButton;
 
   return (
     <ScreenWrapper>
@@ -196,7 +200,7 @@ export default function OrderDetailsScrenn() {
           <>
             <ScrollView
               contentContainerStyle={{
-                paddingBottom: showButtons ? 100 : 50,
+                paddingBottom: showButtons ? 130 : 50,
                 paddingHorizontal: 20,
               }}
               showsVerticalScrollIndicator={false}
@@ -208,7 +212,7 @@ export default function OrderDetailsScrenn() {
                   <View className="flex-row items-center justify-between gap-4 mb-[16px]">
                     <View className="flex-1">
                       <Text className="text-[14px] font-urbanist-medium text-[#111827]">
-                        Order number
+                        Order code
                       </Text>
                       <UrbanistText className="text-[14px] leading-[20px] text-[#6B7280] mt-[4px]">
                         {order?.order_code}
@@ -216,10 +220,10 @@ export default function OrderDetailsScrenn() {
                     </View>
                     <View className="flex-1">
                       <Text className="text-[14px] font-urbanist-medium text-[#111827]">
-                        Store ID
+                        Store code
                       </Text>
                       <UrbanistText className="text-[14px] leading-[20px] text-[#6B7280] mt-[4px]">
-                        {order?.store_id}
+                        {order?.store_code}
                       </UrbanistText>
                     </View>
                   </View>
@@ -264,7 +268,7 @@ export default function OrderDetailsScrenn() {
                             if (phoneNumber) {
                               Linking.openURL(`tel:${phoneNumber}`).catch(
                                 (err) => {
-                                  console.error("Failed to open dialer:", err);
+                                  // console.error("Failed to open dialer:", err);
                                   showToast(
                                     "error",
                                     "Failed to open phone dialer"
@@ -291,7 +295,7 @@ export default function OrderDetailsScrenn() {
                   {order?.orderitems.map((item: any) => (
                     <View
                       key={item.id}
-                      className="flex-row items-center py-[16px]"
+                      className="flex-row items-center py-[16px] border-b border-[#F1EAE7]"
                     >
                       <View className="h-[107px] w-[146px] ">
                         <Image
@@ -316,6 +320,20 @@ export default function OrderDetailsScrenn() {
                             {item.quantity} x {item.item_weight}kg
                           </UrbanistText>
                         </View>
+
+                        {order?.status === "completed" && (
+                          <View className="mt-[8px]">
+                            <Button
+                              title="Rate Product"
+                              onPress={() => handleReviewProduct(item)}
+                              style={{
+                                paddingVertical: 6,
+                                minHeight: 36,
+                              }}
+                              textStyle={{ fontSize: 12 }}
+                            />
+                          </View>
+                        )}
                       </View>
                     </View>
                   ))}
@@ -336,13 +354,13 @@ export default function OrderDetailsScrenn() {
                 </View>
 
                 {order?.status === "completed" ? null : (
-                  <View>
+                  <View className="mb-7 ">
                     <View className="border-t border-[#F1EAE7] bg-white pt-[16px]">
                       <Text className="text-[12px] text-[#7D7D7D] font-urbanist-medium px-[8px]">
                         Delivery timeline
                       </Text>
                     </View>
-                    <View className="mt-[12px]">
+                    <View className="mt-[12px]  ">
                       <TrackingTimeline status={order?.status} />
                     </View>
                   </View>
@@ -356,12 +374,6 @@ export default function OrderDetailsScrenn() {
                   </View>
                 ) : null}
               </View>
-
-              {showText && (
-                <Text className="text-[13px] font-orelega mt-2  ">
-                  Share your order code with the rider to comfirm ownership
-                </Text>
-              )}
             </ScrollView>
 
             {showButtons && (
@@ -374,19 +386,26 @@ export default function OrderDetailsScrenn() {
                   paddingHorizontal: 20,
                   paddingTop: 12,
                   paddingBottom: 20,
+                  backgroundColor: "white",
                 }}
               >
+                {order?.status !== "completed" && (
+                  <View className="p-2 bg-white rounded-lg border border-[#F1EAE7] mb-3">
+                    <Text className="text-[14px] font-orelega my-2">
+                      Share your order code with the rider to confirm ownership,
+                      and on receiving the package click the button below to
+                      confirm the delivery.
+                    </Text>
+                  </View>
+                )}
+
                 {showConfirmButton && (
                   <Button
-                    title="Click to confirm item delivery"
+                    title="Click when you receive your order"
                     onPress={handleConfirmDelivery}
                     loading={ConfirmLoading}
                     disabled={ConfirmLoading}
                   />
-                )}
-
-                {showReviewButton && (
-                  <Button title="Write a Review" onPress={handleWriteReview} />
                 )}
               </View>
             )}
@@ -397,14 +416,10 @@ export default function OrderDetailsScrenn() {
         visible={showModal}
         content="Order Confirmed"
         secondButtonTitle="Cancel"
-        onPress={() =>
-          router.push({
-            pathname: "/Screens/OrderScreen/WriteReviewScreen",
-            params: { storeId: order?.store_id },
-          })
-        }
-        tittle="Write a Review"
-        onClose={() => setShowModal((prev) => !prev)}
+        onPress={handleReviewStore}
+        tittle="Rate Store"
+        onClose={() => setShowModal(false)}
+        onSecondPress={() => setShowModal(false)}
       />
     </ScreenWrapper>
   );

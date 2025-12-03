@@ -18,19 +18,17 @@ import ScreenWrapper from "@/common/ScreenWrapper";
 export default function Carts() {
   const router = useRouter();
 
-  const { cartItems, setCartItems } = useCartStore();
+  const { cartItems, setCartItems, refreshCart } = useCartStore(); // ✅ Use refreshCart from store
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  // ✅ Remove local fetchCart - use store's refreshCart instead
   const fetchCart = async () => {
     try {
       setLoading(true);
-      const res = await OrderApi.getCart();
-
-      const items = res.cart?.items || [];
-      setCartItems(items);
+      await refreshCart(); // Use the store's method
     } catch (err) {
       console.error("Failed to fetch cart:", err);
       setCartItems([]);
@@ -47,13 +45,13 @@ export default function Carts() {
         return;
       }
 
-      //  proceed to checkout
       router.push("/Screens/Carts/CheckOut");
     } catch (err) {
       console.error("Error checking token:", err);
       setShowLoginModal(true);
     }
   };
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchCart();
@@ -63,12 +61,12 @@ export default function Carts() {
   useEffect(() => {
     const checkLoginAndFetch = async () => {
       try {
-        const wasLoggedIn = await AsyncStorage.getItem("accessToken");
-        const cartId = await AsyncStorage.getItem("cartId");
+        const token = await AsyncStorage.getItem("accessToken");
         const guest = await AsyncStorage.getItem("isGuest");
 
-        if ((wasLoggedIn && cartId) || (guest && cartId)) {
-          fetchCart();
+        // ✅ Simplified logic - if user is logged in or is a guest, fetch cart
+        if (token || guest) {
+          await fetchCart();
         } else {
           setCartItems([]);
           setLoading(false);
@@ -92,7 +90,6 @@ export default function Carts() {
     const item = cartItems.find((i) => i.id === cartItemId);
     if (!item) return;
 
-    // ✅ Check stock before increasing
     if (action === "increase" && item.quantity >= item.item.stock) {
       showToast("info", "Out of stock. You cannot add more of this item.");
       return;
@@ -106,28 +103,23 @@ export default function Carts() {
     const newQty =
       action === "increase" ? item.quantity + 1 : item.quantity - 1;
 
-    // ✅ Calculate unit price from current total to ensure accuracy
     const unitPrice = item.total_item_price / item.quantity;
 
-    // Optimistic update with correct calculation
     const optimisticItems = cartItems.map((cartItem) => {
       if (cartItem.id === cartItemId) {
         return {
           ...cartItem,
           quantity: newQty,
-          total_item_price: newQty * unitPrice, // ✅ Correct calculation
+          total_item_price: newQty * unitPrice,
         };
       }
       return cartItem;
     });
 
     setCartItems(optimisticItems);
-
-    // Mark as updating (prevents multiple clicks)
     setUpdatingItems((prev) => new Set(prev).add(cartItemId));
 
     try {
-      // ✅ API call happens in background
       const response = await OrderApi.updateCart(cartItemId, { action });
 
       if (response?.cart?.items) {
@@ -135,7 +127,6 @@ export default function Carts() {
       }
     } catch (err) {
       console.error(`Failed to ${action} quantity:`, err);
-
       setCartItems(cartItems);
       showToast("error", "Failed to update cart. Please try again.");
     } finally {
@@ -155,7 +146,6 @@ export default function Carts() {
     try {
       await OrderApi.removeFromCart(cartItemId);
 
-      // Update store
       const updatedItems = cartItems.filter((item) => item.id !== cartItemId);
       setCartItems(updatedItems);
 
@@ -283,10 +273,7 @@ export default function Carts() {
         cancelText="Cancel"
         onConfirm={async () => {
           await Storage.remove("isGuest");
-
           await AsyncStorage.setItem("redirectAfterLogin", "/(tabs)/Carts");
-
-          // Now go to login
           router.replace("/Login");
         }}
         confirmButtonColor="#0C513F"

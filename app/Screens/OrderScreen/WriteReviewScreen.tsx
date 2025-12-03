@@ -1,4 +1,12 @@
-import { View, Text, TextInput, ScrollView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  Alert,
+  Platform,
+  KeyboardAvoidingView,
+} from "react-native";
 import { useState } from "react";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import Header from "@/common/Header";
@@ -16,7 +24,6 @@ export default function WriteReviewScreen() {
   const [text, setText] = useState<string>("");
   const [isFocused, setIsFocused] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleWriteReview = async () => {
     if (!storeId || isNaN(Number(storeId))) {
@@ -75,63 +82,71 @@ export default function WriteReviewScreen() {
     }
   };
 
-  console.log(storeId, currentRating, text);
+  // console.log(storeId, currentRating, text);
   return (
     <ScreenWrapper>
       <Header title="Rate your shopping experience" />
-      <ScrollView>
-        <View className="mx-[20px] bg-white rounded-[8px] py-[20px] px-[16px] mt-8">
-          <Text className="font-urbanist-bold text-[16px] leading-[22px] text-[#2D2220] mx-auto mb-4">
-            Star Rating
-          </Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 30 : 0}
+      >
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 50 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="mx-[20px] bg-white rounded-[8px] py-[20px] px-[16px] mt-8">
+            <Text className="font-urbanist-bold text-[16px] leading-[22px] text-[#2D2220] mx-auto mb-4">
+              Star Rating
+            </Text>
 
-          <View className="items-center">
-            <StarRating
-              rating={currentRating}
-              size={26.67}
-              gap={16}
-              color="#FF8A00"
-              unfilledColor="#929292"
-              onRatingChange={(rating) => setUserRating(rating)}
+            <View className="items-center">
+              <StarRating
+                rating={currentRating}
+                size={26.67}
+                gap={16}
+                color="#FF8A00"
+                unfilledColor="#929292"
+                onRatingChange={(rating) => setUserRating(rating)}
+              />
+            </View>
+          </View>
+
+          <View className="mx-[20px] bg-white rounded-[8px] py-[20px] px-[16px] mt-8">
+            <Text className="font-urbanist-bold text-[16px] leading-[22px] text-[#2D2220] mx-auto pb-4">
+              Write your review
+            </Text>
+
+            <View>
+              <TextInput
+                value={text}
+                onChangeText={setText}
+                placeholder="Enter Description"
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                selectionColor="#0C513F"
+                className="border border-[#F1EAE7] rounded-[8px] py-[10px] px-[14px] font-urbanist text-[14px] h-[161px]"
+                placeholderTextColor={"#929292"}
+                style={{
+                  textAlignVertical: "top",
+                  borderColor: isFocused ? "#0C513F" : "#F1EAE7",
+                }}
+              />
+            </View>
+          </View>
+
+          <View className="mx-[20px] mt-[24px]">
+            <Button
+              title={loading ? "Posting..." : "Post your review"}
+              onPress={handleWriteReview}
+              disabled={loading}
+              loading={loading}
             />
           </View>
-        </View>
-
-        <View className="mx-[20px] bg-white rounded-[8px] py-[20px] px-[16px] mt-8">
-          <Text className="font-urbanist-bold text-[16px] leading-[22px] text-[#2D2220] mx-auto pb-4">
-            Write your review
-          </Text>
-
-          <View>
-            <TextInput
-              value={text}
-              onChangeText={setText}
-              placeholder="Enter Description"
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              selectionColor="#0C513F"
-              className="border border-[#F1EAE7] rounded-[8px] py-[10px] px-[14px] font-urbanist text-[14px] h-[161px]"
-              placeholderTextColor={"#929292"}
-              style={{
-                textAlignVertical: "top",
-                borderColor: isFocused ? "#0C513F" : "#F1EAE7",
-              }}
-            />
-          </View>
-        </View>
-
-        <View className="mx-[20px] mt-[24px]">
-          <Button
-            title={loading ? "Posting..." : "Post your review"}
-            onPress={handleWriteReview}
-            disabled={loading}
-            loading={loading}
-          />
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ScreenWrapper>
   );
 }

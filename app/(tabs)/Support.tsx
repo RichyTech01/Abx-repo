@@ -56,8 +56,6 @@ export default function Support() {
             throw new Error("Session expired");
           }
         } catch (err) {
-          // if we hit "Active chat session not found or have ended."
-          // console.warn("Session not active, starting new...");
           await AsyncStorage.removeItem("ChatSessionId");
         }
       }
@@ -83,15 +81,15 @@ export default function Support() {
   };
 
   const handleEmailPress = () => {
-    Linking.openURL("mailto:support@abx.com");
+    Linking.openURL("mailto:info@abxtechnologies.co.uk");
   };
 
   const handleCallPress = () => {
-    Linking.openURL("tel:+442012345678");
+    Linking.openURL("tel:+447377532389");
   };
 
   const handleCopyNumber = async () => {
-    await Clipboard.setStringAsync("+442012345678");
+    await Clipboard.setStringAsync("+447377532389");
     showToast("success", "Phone Number Copied ");
   };
 
@@ -138,7 +136,7 @@ export default function Support() {
             <SupportCard
               icon={<CallIcon />}
               title="Call us"
-              description="Need to talk? Give us a call on +442012345678 and we'll be happy to assist."
+              description="Need to talk? Give us a call on +447377532389 and we'll be happy to assist."
               buttonText="Click to start a conversation"
               backgroundColor="#FDE2F6"
               buttonColor="#FF97E4"
