@@ -18,17 +18,17 @@ import ScreenWrapper from "@/common/ScreenWrapper";
 export default function Carts() {
   const router = useRouter();
 
-  const { cartItems, setCartItems, refreshCart } = useCartStore(); // ✅ Use refreshCart from store
+  const {cartItems, setCartItems, refreshCart } = useCartStore();
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // ✅ Remove local fetchCart - use store's refreshCart instead
   const fetchCart = async () => {
     try {
       setLoading(true);
-      await refreshCart(); // Use the store's method
+      await refreshCart(); 
+      console.log("carts page")
     } catch (err) {
       console.error("Failed to fetch cart:", err);
       setCartItems([]);
@@ -64,7 +64,6 @@ export default function Carts() {
         const token = await AsyncStorage.getItem("accessToken");
         const guest = await AsyncStorage.getItem("isGuest");
 
-        // ✅ Simplified logic - if user is logged in or is a guest, fetch cart
         if (token || guest) {
           await fetchCart();
         } else {

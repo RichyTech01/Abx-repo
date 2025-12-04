@@ -4,6 +4,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useCartStore } from "@/store/useCartStore";
 import AuthApi from "@/api/AuthApi";
+import showToast from "./showToast";
 
 export const logoutUser = async (router: ReturnType<typeof useRouter>) => {
   try {
@@ -17,9 +18,12 @@ export const logoutUser = async (router: ReturnType<typeof useRouter>) => {
       });
     }
 
-    await AsyncStorage.removeItem("accessToken");
-    await AsyncStorage.removeItem("refreshToken");
-    await AsyncStorage.removeItem("PushNotificationToken");
+    await AsyncStorage.multiRemove([
+      "accessToken",
+      "refreshToken",
+      "cartId",
+      "PushNotificationToken",
+    ]);
 
     // Reset all Zustand stores
     useUserStore.getState().clearUser();
@@ -28,7 +32,8 @@ export const logoutUser = async (router: ReturnType<typeof useRouter>) => {
 
     // Navigate to onboarding
     router.replace("/OnboardingScreen");
-  } catch (err) {
+  } catch (err: any) {
     console.error("Failed to log out:", err);
+    showToast("error", err);
   }
 };

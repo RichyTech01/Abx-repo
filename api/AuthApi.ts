@@ -40,9 +40,9 @@ class AuthApi {
   }
 
   public async logout(data: { refresh: string; device_token: string }) {
-  const res = await this.client.post("/auth/logout", data);
-  return res.data;
-}
+    const res = await this.client.post("/auth/logout", data);
+    return res.data;
+  }
 
   // Sign in
   public async signIn(data: { email: string; password: string }) {

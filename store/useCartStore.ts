@@ -75,26 +75,26 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   // Refresh cart from API with throttling
   refreshCart: async () => {
-    const state = get();
+    // const state = get();
 
     // Prevent concurrent requests
-    if (state.isFetching) {
-      // console.log("Cart fetch already in progress, skipping...");
-      return;
-    }
+    // if (state.isFetching) {
+    //   // console.log("Cart fetch already in progress, skipping...");
+    //   return;
+    // }
 
     // Check cooldown (skip if recently fetched)
-    const now = Date.now();
-    if (now - state.lastFetchTime < FETCH_COOLDOWN) {
-      // console.log(
-      //   `Cart fetch on cooldown (${Math.round(
-      //     (FETCH_COOLDOWN - (now - state.lastFetchTime)) / 1000
-      //   )}s remaining), skipping...`
-      // );
-      return;
-    }
+    // const now = Date.now();
+    // if (now - state.lastFetchTime < FETCH_COOLDOWN) {
+    //   // console.log(
+    //   //   `Cart fetch on cooldown (${Math.round(
+    //   //     (FETCH_COOLDOWN - (now - state.lastFetchTime)) / 1000
+    //   //   )}s remaining), skipping...`
+    //   // );
+    //   return;
+    // }
 
-    set({ isFetching: true, lastFetchTime: now });
+    // set({ isFetching: true, lastFetchTime: now });
 
     try {
       const res = await OrderApi.getCart();
@@ -119,13 +119,13 @@ export const useCartStore = create<CartState>((set, get) => ({
       if (status === 429) {
         console.log("Rate limited! Come back later...");
         // Extend the cooldown temporarily
-        set({ lastFetchTime: now + FETCH_COOLDOWN * 2 });
+        // set({ lastFetchTime: now + FETCH_COOLDOWN * 2 });
         return;
       }
 
       if (status === 404 || status === 500) {
-        set({ cartItems: [] });
-        await AsyncStorage.removeItem("cartId");
+        // set({ cartItems: [] });
+        // await AsyncStorage.removeItem("cartId");
       } else {
         console.error("Failed to refresh cart:", err);
       }

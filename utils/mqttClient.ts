@@ -69,7 +69,7 @@ class MQTTClient {
           if (err) {
             // console.error("❌ MQTT Subscription error:", err);
           } else {
-            console.log(`📡 Successfully subscribed to topic: ${topic}`);
+            // console.log(`📡 Successfully subscribed to topic: ${topic}`);
           }
         });
       });
@@ -77,10 +77,10 @@ class MQTTClient {
       this.client.on("message", (topic: string, message: Buffer) => {
         try {
           const notificationData = message.toString();
-          console.log("📨 Raw MQTT message received:", notificationData);
+          // console.log("📨 Raw MQTT message received:", notificationData);
 
           const notification: Notification = JSON.parse(notificationData);
-          console.log("📬 Parsed notification:", notification);
+          // console.log("📬 Parsed notification:", notification);
 
           // Call ALL registered callbacks
           this.messageCallbacks.forEach((callback) => {

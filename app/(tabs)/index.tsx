@@ -135,7 +135,7 @@ export default function Home() {
         );
         if (!lastCartFetch || now - Number(lastCartFetch) > STALE_TIME) {
           await refreshCart();
-          console.log("carts");
+          console.log("carts home");
           if (token) {
             await AsyncStorage.setItem(
               `cartTimestamp_${token}`,
