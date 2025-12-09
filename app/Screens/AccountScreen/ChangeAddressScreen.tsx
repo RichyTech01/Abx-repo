@@ -15,7 +15,6 @@ export default function ChangeAddressScreen() {
   const router = useRouter();
   const { user, fetchUser } = useUserStore();
   const [showAddressModal, setShowAddressModal] = useState(false);
-  const [loadingAddressId, setLoadingAddressId] = useState<string | null>(null);
   const [editAddressId, setEditAddressId] = useState<string | undefined>(
     undefined
   );
@@ -108,7 +107,7 @@ export default function ChangeAddressScreen() {
           fetchUser();
           setShowAddressModal(false);
         }}
-        addressId={editAddressId} 
+        addressId={editAddressId}
       />
     </ScreenWrapper>
   );

@@ -1,4 +1,4 @@
-import { Pressable, Text } from "react-native";
+import { Pressable, Text, Platform } from "react-native";
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -34,9 +34,11 @@ const GoogleAuth: React.FC<Props> = ({
 
   const handleGoogleSignIn = async () => {
     try {
-      await GoogleSignin.hasPlayServices({
-        showPlayServicesUpdateDialog: true,
-      });
+      if (Platform.OS === "android") {
+        await GoogleSignin.hasPlayServices({
+          showPlayServicesUpdateDialog: true,
+        });
+      }
 
       const userInfo = await GoogleSignin.signIn();
 

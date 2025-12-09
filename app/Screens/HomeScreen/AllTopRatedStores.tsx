@@ -1,5 +1,5 @@
 import { View, Platform, FlatList, RefreshControl } from "react-native";
-import { useState, useRef, useMemo } from "react";
+import { useState } from "react";
 import React from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
@@ -14,12 +14,11 @@ import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 import NoData from "@/common/NoData";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import OreAppText from "@/common/OreApptext";
 
 export default function AllTopRatedStores() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const {
     latitude,
     longitude,
@@ -29,37 +28,33 @@ export default function AllTopRatedStores() {
   const shimmerAnim = useShimmerAnimation();
 
   const [loginVisible, setLoginVisible] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Track last refresh time
-  const lastRefreshTime = useRef<number>(0);
-  const REFRESH_COOLDOWN = 30000;
 
   // Determine coordinates to use
   const lat = hasPermission === true && latitude != null ? latitude : null;
   const lng = hasPermission === true && longitude != null ? longitude : null;
 
-  // Fetch data for each page
+  // Fetch data with infinite query
   const {
     data,
     isLoading: loading,
     isFetching,
     error,
-    dataUpdatedAt,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+    isRefetching,
+  } = useInfiniteQuery({
     queryKey: [
       "ALl-topRatedStores",
       lat?.toString() ?? "null",
       lng?.toString() ?? "null",
-      page,
     ],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       const res = await StoreApi.getTopRatedStores(
         lat as number,
         lng as number,
-        page
+        pageParam
       );
 
       const shops: Shop[] = (res.results || []).map((store: any) => ({
@@ -82,45 +77,19 @@ export default function AllTopRatedStores() {
         hasNext: res.next !== null,
       };
     },
-    enabled: !locationLoading && hasMore,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.hasNext) {
+        return allPages.length + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
+    enabled: !locationLoading,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnMount: false,
   });
 
-  // Aggregate all pages from cache
-  const allShops = useMemo(() => {
-    const shops: Shop[] = [];
-    let currentPage = 1;
-
-    while (currentPage <= page) {
-      const pageData = queryClient.getQueryData([
-        "ALl-topRatedStores",
-        lat?.toString() ?? "null",
-        lng?.toString() ?? "null",
-        currentPage,
-      ]) as { shops: Shop[]; hasNext: boolean } | undefined;
-
-      if (pageData?.shops) {
-        shops.push(...pageData.shops);
-      }
-      currentPage++;
-    }
-
-    return shops;
-  }, [page, lat, lng, queryClient, data]); // Re-compute when data changes
-
-  // Update hasMore when data changes
-  React.useEffect(() => {
-    if (data) {
-      setHasMore(data.hasNext);
-    }
-  }, [data]);
-
-  React.useEffect(() => {
-    if (!isFetching) {
-      setIsRefreshing(false);
-    }
-  }, [isFetching]);
+  // Flatten all pages into a single array
+  const allShops = data?.pages.flatMap((page) => page.shops) || [];
 
   const { handleFavoritePress } = useFavoriteShop({
     queryKey: [
@@ -132,38 +101,13 @@ export default function AllTopRatedStores() {
   });
 
   const handleRefresh = async () => {
-    const now = Date.now();
-    const timeSinceLastRefresh = now - lastRefreshTime.current;
-
-    const dataAge = now - dataUpdatedAt;
-    const isFresh = dataAge < 1000 * 60 * 5;
-
-    if (timeSinceLastRefresh < REFRESH_COOLDOWN || isFresh) {
-      setIsRefreshing(true);
-      setTimeout(() => {
-        setIsRefreshing(false);
-      }, 500);
-      return;
-    }
-
-    setIsRefreshing(true);
-    lastRefreshTime.current = now;
-    setPage(1);
-    setHasMore(true);
-
-    await queryClient.invalidateQueries({
-      queryKey: [
-        "ALl-topRatedStores",
-        lat?.toString() ?? "null",
-        lng?.toString() ?? "null",
-      ],
-    });
+    await refetch();
   };
 
   // LOAD MORE
   const handleLoadMore = () => {
-    if (hasMore && !isFetching && !isRefreshing) {
-      setPage((prev) => prev + 1);
+    if (hasNextPage && !isFetchingNextPage && !isRefetching) {
+      fetchNextPage();
     }
   };
 
@@ -217,8 +161,8 @@ export default function AllTopRatedStores() {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            isFetching && page > 1 && !isRefreshing ? (
-              <View className="py-6 items-center">
+            isFetchingNextPage ? (
+              <View className="py-3 items-center">
                 <LoadingSpinner />
               </View>
             ) : null
@@ -227,7 +171,7 @@ export default function AllTopRatedStores() {
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
-              refreshing={isRefreshing}
+              refreshing={isRefetching}
               onRefresh={handleRefresh}
               colors={["#0C513F"]}
             />

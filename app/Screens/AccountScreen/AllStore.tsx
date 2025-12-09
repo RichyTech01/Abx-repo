@@ -1,6 +1,10 @@
 import { View, Platform, FlatList, RefreshControl } from "react-native";
-import { useState, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import {
+  useMutation,
+  useInfiniteQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
@@ -27,10 +31,6 @@ export default function AllStore() {
   const shimmerAnim = useShimmerAnimation();
 
   const [loginVisible, setLoginVisible] = useState(false);
-  const [page, setPage] = useState(1);
-  const [allShops, setAllShops] = useState<Shop[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   const canFetch =
     !locationIsLoading &&
@@ -38,28 +38,22 @@ export default function AllStore() {
     latitude != null &&
     longitude != null;
 
-  const queryKey = ["allStores", latitude, longitude, page];
+  // Use InfiniteQuery for pagination
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+    isRefetching,
+  } = useInfiniteQuery({
+    queryKey: ["allStores", latitude, longitude],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await StoreApi.getAllStores(latitude!, longitude!, pageParam);
 
-  // React Query for fetching stores with staleTime
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey,
-    queryFn: async () => {
-      if (!canFetch) return null;
-
-      const res = await StoreApi.getAllStores(latitude!, longitude!, page);
-      return res;
-    },
-    enabled: canFetch && hasMore,
-    staleTime: 5 * 60 * 1000, // 5 minutes - prevents refetching
-    gcTime: 10 * 60 * 1000, // 10 minutes cache time
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-  });
-
-  // Transform and accumulate shops data
-  useEffect(() => {
-    if (data?.results) {
-      const newShops: Shop[] = data.results.map((store: any) => ({
+      const shops: Shop[] = (res.results || []).map((store: any) => ({
         id: store.id.toString(),
         name: store.business_name,
         image:
@@ -74,52 +68,96 @@ export default function AllStore() {
           : "N/A",
       }));
 
-      setAllShops((prev) => {
-        if (page === 1) {
-          return newShops;
-        }
-        // Filter duplicates
-        const existingIds = new Set(prev.map((shop) => shop.id));
-        const uniqueNewShops = newShops.filter(
-          (shop) => !existingIds.has(shop.id)
-        );
-        return [...prev, ...uniqueNewShops];
-      });
-
-      // Check if there's more data
-      if (data.pagination) {
-        setHasMore(data.pagination.hasNextPage);
+      // Determine if there's a next page
+      let hasNext = false;
+      if (res.pagination) {
+        hasNext = res.pagination.hasNextPage;
+      } else if (
+        res.next !== null &&
+        res.next !== "" &&
+        res.next !== undefined
+      ) {
+        hasNext = true;
       } else {
-        setHasMore(newShops.length >= 12);
+        // Fallback: assume more data if we got a full page
+        hasNext = shops.length >= 12;
       }
-    }
-  }, [data, page]);
+
+      return {
+        shops,
+        hasNext,
+      };
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.hasNext) {
+        return allPages.length + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
+    enabled: canFetch,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  // Flatten all pages into a single array
+  const allShops = data?.pages.flatMap((page) => page.shops) || [];
 
   // Favorite mutation with optimistic updates
   const favoriteMutation = useMutation({
     mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
     onMutate: async (storeId: string) => {
-      // Optimistically update local state
-      setAllShops((prevShops) =>
-        prevShops.map((shop) =>
-          shop.id === storeId ? { ...shop, isFavorite: !shop.isFavorite } : shop
-        )
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: ["allStores", latitude, longitude],
+      });
+
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData([
+        "allStores",
+        latitude,
+        longitude,
+      ]);
+
+      // Optimistically update
+      queryClient.setQueryData(
+        ["allStores", latitude, longitude],
+        (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => ({
+              ...page,
+              shops: page.shops.map((shop: Shop) =>
+                shop.id === storeId
+                  ? { ...shop, isFavorite: !shop.isFavorite }
+                  : shop
+              ),
+            })),
+          };
+        }
       );
+
+      return { previousData };
     },
-    onError: (error, storeId) => {
+    onError: (error, storeId, context) => {
       // Revert on error
-      setAllShops((prevShops) =>
-        prevShops.map((shop) =>
-          shop.id === storeId ? { ...shop, isFavorite: !shop.isFavorite } : shop
-        )
-      );
+      if (context?.previousData) {
+        queryClient.setQueryData(
+          ["allStores", latitude, longitude],
+          context.previousData
+        );
+      }
     },
     onSettled: () => {
-      // Invalidate queries to sync
+      // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ["topRatedStores"] });
       queryClient.invalidateQueries({ queryKey: ["closestStores"] });
       queryClient.invalidateQueries({ queryKey: ["favoriteStores"] });
-      queryClient.invalidateQueries({ queryKey: ["allStores"] });
+      queryClient.invalidateQueries({ queryKey: ["ALl-topRatedStores"] });
+      queryClient.invalidateQueries({ queryKey: ["AllClosestStores"] });
     },
   });
 
@@ -133,17 +171,12 @@ export default function AllStore() {
   };
 
   const handleRefresh = async () => {
-    setRefreshing(true);
-    setPage(1);
-    setHasMore(true);
-    setAllShops([]);
     await refetch();
-    setRefreshing(false);
   };
 
   const handleLoadMore = () => {
-    if (hasMore && !isLoading && canFetch) {
-      setPage((prev) => prev + 1);
+    if (hasNextPage && !isFetchingNextPage && !isRefetching) {
+      fetchNextPage();
     }
   };
 
@@ -285,7 +318,7 @@ export default function AllStore() {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            isLoading && allShops.length > 0 && hasMore ? (
+            isFetchingNextPage ? (
               <View className="py-4 items-center">
                 <LoadingSpinner />
               </View>
@@ -295,7 +328,7 @@ export default function AllStore() {
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
+              refreshing={isRefetching}
               onRefresh={handleRefresh}
               colors={["#0C513F"]}
               tintColor="#0C513F"

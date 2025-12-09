@@ -39,6 +39,8 @@ export default function CheckOut() {
     } catch (err: any) {
       if (err.response?.status === 404) {
         showToast("error", "No address found for user. Please add one.");
+        router.dismiss(1);
+        router.push("/Screens/AccountScreen/ChangeAddressScreen");
         setAddress(null);
       } else {
         showToast("error", "Failed to fetch address:", err);

@@ -84,9 +84,12 @@ export default function TopratedShops({ refreshTrigger }: Props) {
     }
   }, [refreshTrigger, error, refetch]);
 
-  // Use the shared favorite hook
   const { handleFavoritePress } = useFavoriteShop({
-    queryKey,
+    queryKey: [
+      "topRatedStores",
+      lat?.toString() ?? "null",
+      lng?.toString() ?? "null",
+    ],
     onLoginRequired: () => setLoginVisible(true),
   });
 

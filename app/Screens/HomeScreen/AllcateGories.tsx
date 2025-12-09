@@ -4,6 +4,7 @@ import {
   Platform,
   RefreshControl,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import Header from "@/common/Header";
 import CategoryCard from "@/common/Categorycard";
@@ -11,7 +12,7 @@ import { useRouter } from "expo-router";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import StoreApi from "@/api/StoreApi";
 import NoData from "@/common/NoData";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 import OreAppText from "@/common/OreApptext";
@@ -39,27 +40,49 @@ export default function AllCategories() {
     (Dimensions.get("window").width - SCREEN_PADDING * 2 - GAP) / 2;
 
   const {
-    data: categories = [],
+    data,
     isLoading: loading,
     refetch,
     error,
     isRefetching: refreshing,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["All-categories"],
-    queryFn: async () => {
-      const data = await StoreApi.getCategories();
-      const withColors = (data.results || []).map((cat: any, idx: number) => ({
-        ...cat,
-        ...generateCategoryColor(idx),
-      }));
-
-      return withColors;
+    queryFn: async ({ pageParam = 1 }) => {
+      const data = await StoreApi.getCategories(pageParam);
+      return data;
     },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.next) {
+        const url = new URL(lastPage.next);
+        const page = url.searchParams.get("page");
+        return page ? parseInt(page) : undefined;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
     staleTime: 1000 * 60 * 10,
   });
 
+  // Flatten all pages into a single array and add colors
+  const categories =
+    data?.pages.flatMap((page, pageIndex) =>
+      (page.results || []).map((cat: any, idx: number) => ({
+        ...cat,
+        ...generateCategoryColor(pageIndex * page.results.length + idx),
+      }))
+    ) || [];
+
   const HandleRefreshing = async () => {
     await refetch();
+  };
+
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
   };
 
   const renderSkeletons = () => (
@@ -95,6 +118,15 @@ export default function AllCategories() {
     </View>
   );
 
+  const ListFooterComponent = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View className="py-4 items-center">
+        <ActivityIndicator size="large" color="#0C513F" />
+      </View>
+    );
+  };
+
   return (
     <ScreenWrapper>
       <View className={``}>
@@ -123,8 +155,6 @@ export default function AllCategories() {
             marginBottom: Platform.OS === "android" ? 40 : 25,
           }}
           renderItem={({ item, index }) => {
-            const isOddLast =
-              categories.length % 2 !== 0 && index === categories.length - 1;
             return (
               <View
                 style={{
@@ -159,6 +189,9 @@ export default function AllCategories() {
             />
           }
           ListEmptyComponent={ListEmptyComponent}
+          ListFooterComponent={ListFooterComponent}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
         />
       )}
     </ScreenWrapper>
