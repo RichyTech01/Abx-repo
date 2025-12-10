@@ -137,7 +137,7 @@ export default function RescueAndSave() {
                       image={{ uri: item.prod_image_url }}
                       name={item.item_name}
                       price={`€${item.min_price} - €${item.max_price}`}
-                      rating={2}
+                      store_code={item.store.store_code}
                       distance={parseFloat(distance.toFixed(1))}
                       onPress={() =>
                         router.push({

@@ -88,7 +88,6 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
     setSelectedProductId(id);
     setModalVisible(true);
   };
-
   return (
     <View className={`${Platform.OS === "ios" ? "mb-16" : "mb-28"} mb-16`}>
       <SectionHeader
@@ -143,13 +142,14 @@ export default function RescueAndSaveProduct({ refreshTrigger }: Props) {
                   firstVariation?.stock === 0 || !product.variations?.length
                 }
                 isShopOpen={true}
-                rating={4.9}
+                store_code={product.store.store_code}
                 distance={parseFloat(distance.toFixed(1))}
                 onAddToCart={() => handleAddToCart(product.id)}
                 ProductImg={{ uri: product.prod_image_url }}
                 store_open={product.store?.open_time}
                 store_close={product.store?.close_time}
                 discountPercent={firstVariation?.discount_per}
+                total_sold={product.total_sold}
               />
             );
           })}

@@ -30,6 +30,7 @@ import { useCartStore } from "@/store/useCartStore";
 import { useLocationStore } from "@/store/locationStore";
 import NotificationBadge from "@/common/NotificationBadge";
 import ScreenWrapper from "@/common/ScreenWrapper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
@@ -115,11 +116,15 @@ export default function Home() {
 
     const initialize = async () => {
       try {
+        const access = await AsyncStorage.getItem("accessToken");
+
         if (!user) await fetchUser();
 
         await refreshCart();
 
-        await checkNotificationStatus();
+        if (access) {
+          await checkNotificationStatus();
+        }
 
         hasInitialized.current = true;
       } catch (err) {
@@ -145,9 +150,14 @@ export default function Home() {
     setRefreshing(true);
 
     try {
+      const access = await AsyncStorage.getItem("accessToken");
+
       await requestLocation();
       await refreshCart();
-      await checkNotificationStatus();
+      if (access) {
+        await checkNotificationStatus();
+      }
+
       setRefreshTrigger((prev) => !prev);
     } catch (err) {
       console.error("Refresh error:", err);

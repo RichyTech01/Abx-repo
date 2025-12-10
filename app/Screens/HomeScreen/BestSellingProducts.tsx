@@ -29,10 +29,7 @@ export default function BestSellingProducts() {
     null
   );
   const [refreshing, setRefreshing] = useState(false);
-  const [userLocation, setUserLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+  
 
   const { data, isLoading, refetch } = useQuery<ShopProductType[]>({
     queryKey: ["bestSellingProducts"],
@@ -122,7 +119,7 @@ export default function BestSellingProducts() {
                     image={{ uri: item.prod_image_url }}
                     name={item.item_name}
                     price={`€${item.min_price} - €${item.max_price}`}
-                    rating={2}
+                    store_code={item.store.store_code}
                     distance={parseFloat(distance.toFixed(1))}
                     onPress={() =>
                       router.push({

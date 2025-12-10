@@ -44,7 +44,7 @@ export default function BestSelling({ refreshTrigger }: Props) {
     ).start();
   }, []);
 
-  const { data, isLoading, error, } = useQuery<ShopProductType[]>({
+  const { data, isLoading, error } = useQuery<ShopProductType[]>({
     queryKey: ["bestSellingProducts", "home"],
     queryFn: async () => {
       const res = await StoreApi.getPopularProducts();
@@ -182,7 +182,7 @@ export default function BestSelling({ refreshTrigger }: Props) {
         productName={item.item_name}
         priceRange={`€${item.min_price} - €${item.max_price}`}
         isShopOpen={true}
-        rating={4.9}
+        store_code={item.store.store_code}
         distance={parseFloat(distance.toFixed(1))}
         onAddToCart={() => handleAddToCart(item.id)}
         ProductImg={{ uri: item.prod_image_url }}

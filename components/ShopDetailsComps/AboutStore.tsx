@@ -48,7 +48,6 @@ export default function AboutStore({ id }: { id: number; image: string }) {
       enabled: !!selectedProductId && modalVisible,
       staleTime: 6 * 60 * 1000,
     });
-
   return (
     <View>
       <OreAppText className="text-[16px] leading-[20px] text-[#2D2220] mx-auto my-[24px]  ">
@@ -80,7 +79,7 @@ export default function AboutStore({ id }: { id: number; image: string }) {
                 <CategoryProduct
                   name={item.item_name}
                   price={`€${item.min_price} - €${item.max_price}`}
-                  rating={4.5}
+                  store_code={item.store.store_code}
                   image={{ uri: item.prod_image_url }}
                   onPress={() =>
                     router.push({

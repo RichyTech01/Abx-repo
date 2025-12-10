@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import React from "react";
 import DropDownArrow from "@/assets/svgs/DropDownArrow";
-import StarIcon from "@/assets/svgs/StarIcon.svg";
+// import StarIcon from "@/assets/svgs/StarIcon.svg";
 import Carticon from "@/assets/svgs/Carticon";
 import IconButton from "./IconButton";
 import { useRouter } from "expo-router";
@@ -19,26 +19,28 @@ type ProductCardProps = {
   discountPercent?: string | null;
   isOutOfStock?: boolean;
   isShopOpen?: boolean;
-  rating?: number;
+  store_code?: string;
   distance?: number;
   ProductImg: ImageSourcePropType;
   onAddToCart: () => void;
   store_open: string;
   store_close?: string;
   productId: string;
+  total_sold?: number;
 };
 
 export default function ProductCard({
   productName,
   priceRange,
   discountPercent,
-  rating = 0,
+  store_code,
   distance = 0,
   onAddToCart,
   ProductImg,
   store_open,
   store_close,
   productId,
+  total_sold,
 }: ProductCardProps) {
   const router = useRouter();
   const isOpen = isStoreOpen(store_open, store_close);
@@ -98,11 +100,9 @@ export default function ProductCard({
         </View>
 
         <View>
-          {/* Rating */}
           <View className="flex-row items-center justify-end">
-            <StarIcon />
-            <Text className="text-[12px] leading-[16px] font-urbanist text-[#424242] ml-[2px]">
-              {rating.toFixed(1)}
+            <Text className="text-[12px] leading-[16px] font-urbanist-semibold text-[#2D2220] my-[4px] ">
+              {store_code}
             </Text>
           </View>
           {/* Sizes */}

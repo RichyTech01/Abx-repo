@@ -58,6 +58,7 @@ export interface ShopProductType {
   rescue_n_save: boolean;
   variations: ProductVariation[];
   published: boolean;
+  total_sold: number;
 }
 
 // --- Store with products ---

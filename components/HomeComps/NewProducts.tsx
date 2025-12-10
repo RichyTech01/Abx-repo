@@ -45,7 +45,7 @@ const NewProducts = ({ refreshTrigger }: Props) => {
   }, [shimmerAnim]);
 
   // Fetch products
-  const { data, isLoading, error, } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["newProducts"],
     queryFn: async () => {
       const res = await StoreApi.getAllProducts({ page: 1 });
@@ -172,7 +172,7 @@ const NewProducts = ({ refreshTrigger }: Props) => {
           priceRange={`€${item.min_price} - €${item.max_price}`}
           isShopOpen={true}
           distance={parseFloat(distance.toFixed(1))}
-          rating={(item as any).average_rating}
+          store_code={item.store.store_code}
           onAddToCart={() => handleAddToCart(item.id)}
           ProductImg={{ uri: item.prod_image_url }}
           store_open={item.store?.open_time}
