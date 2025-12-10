@@ -28,7 +28,6 @@ export default function Carts() {
     try {
       setLoading(true);
       await refreshCart(); 
-      console.log("carts page")
     } catch (err) {
       console.error("Failed to fetch cart:", err);
       setCartItems([]);
