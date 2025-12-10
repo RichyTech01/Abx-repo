@@ -28,18 +28,19 @@ export default function ClosestShops({ refreshTrigger }: Props) {
   const [loginVisible, setLoginVisible] = useState(false);
   const shimmerAnim = useShimmerAnimation();
 
-  // Only fetch if we have permission AND coordinates
   const canFetch =
     hasPermission === true && latitude != null && longitude != null;
 
-  // React Query for fetching closest stores
+  // Create consistent queryKey
+  const queryKey = ["closestStores", latitude ?? null, longitude ?? null];
+
   const {
     data: shops = [],
     isLoading: loading,
     refetch,
     error,
   } = useQuery<Shop[]>({
-    queryKey: ["closestStores", latitude ?? null, longitude ?? null],
+    queryKey, // Use the same queryKey
     queryFn: async () => {
       if (!latitude || !longitude) return [];
 
@@ -54,6 +55,7 @@ export default function ClosestShops({ refreshTrigger }: Props) {
           store_open: store.open_time,
           store_close: store.close_time,
           isFavorite: store.is_favorited ?? false,
+          rating: store.store_rating,
           distance: store.distance_km
             ? `${parseFloat(store.distance_km).toFixed(1)}`
             : "N/A",
@@ -63,16 +65,12 @@ export default function ClosestShops({ refreshTrigger }: Props) {
     enabled: !locationLoading && canFetch,
     staleTime: 1000 * 60 * 3,
   });
+
   const { handleFavoritePress } = useFavoriteShop({
-    queryKey: [
-      "closestStores",
-      latitude?.toString() ?? "null",
-      longitude?.toString() ?? "null",
-    ],
+    queryKey, // ✅ Use the same queryKey variable
     onLoginRequired: () => setLoginVisible(true),
   });
 
-  // Handle parent refresh trigger
   React.useEffect(() => {
     if (refreshTrigger && canFetch && error) {
       refetch();
@@ -130,17 +128,14 @@ export default function ClosestShops({ refreshTrigger }: Props) {
   );
 
   const renderContent = () => {
-    // Permission denied
     if (!locationLoading && hasPermission === false) {
       return <LocationPermissionDenied />;
     }
 
-    // Loading
     if (loading) {
       return renderSkeletons();
     }
 
-    // No location yet
     if (!latitude || !longitude) {
       return (
         <View
@@ -169,7 +164,6 @@ export default function ClosestShops({ refreshTrigger }: Props) {
       );
     }
 
-    // No shops found
     if (shops?.length === 0) {
       return (
         <Text
@@ -184,7 +178,6 @@ export default function ClosestShops({ refreshTrigger }: Props) {
       );
     }
 
-    // Show shops
     return (
       <FlatList
         data={shops}

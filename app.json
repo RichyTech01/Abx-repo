@@ -28,6 +28,7 @@
     },
 
     "ios": {
+      "usesAppleSignIn": true,
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We need your location to show nearby stores.",
@@ -86,7 +87,8 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.60421370220-lm1k6gpsa97edc9adfv32r810jh51p6q"
         }
-      ]
+      ],
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true

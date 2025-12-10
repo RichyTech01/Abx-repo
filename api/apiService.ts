@@ -34,6 +34,7 @@ class ApiService {
         if (cartId) {
           config.headers["X-Cart-ID"] = cartId;
         }
+        // console.log(cartId)
         return config;
       }
     );

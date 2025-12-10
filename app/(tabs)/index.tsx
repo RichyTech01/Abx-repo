@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useCallback, useRef, useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
 
 import NotificationIcon from "@/assets/svgs/NotificationIcon";
 import MaincartIcon from "@/assets/svgs/MaincartIcon";
@@ -26,7 +25,6 @@ import SpendingLimit from "@/components/HomeComps/SpendingLimit";
 import RescueAndSave from "@/components/HomeComps/RescueAndSave";
 import RecueAndSaveProduct from "@/components/HomeComps/RecueAndSaveProduct";
 import { useUserStore } from "@/store/useUserStore";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useLocationStore } from "@/store/locationStore";
@@ -39,8 +37,6 @@ const banners = [
   require("@/assets/Images/FirstHomeImage.png"),
   require("@/assets/Images/SecondHomeImage.png"),
 ];
-
-const loopedBanners = [banners[banners.length - 1], ...banners, banners[0]];
 
 function BannerSlider() {
   const flatListRef = useRef<FlatList>(null);
@@ -105,129 +101,60 @@ function BannerSlider() {
 export default function Home() {
   const router = useRouter();
   const { user, loading, fetchUser } = useUserStore();
-  const { unreadCount, checkNotificationStatus } = useNotificationStore();
+  const { unreadCount, hasNewNotifications, checkNotificationStatus } =
+    useNotificationStore();
   const { cartItems, refreshCart } = useCartStore();
   const { requestLocation } = useLocationStore();
 
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const hasInitialized = useRef(false);
+
+  useEffect(() => {
+    if (hasInitialized.current) return;
+
+    const initialize = async () => {
+      try {
+        if (!user) await fetchUser();
+
+        await refreshCart();
+
+        await checkNotificationStatus();
+
+        hasInitialized.current = true;
+      } catch (err) {
+        console.error("❌ Initialization error:", err);
+      }
+    };
+
+    initialize();
+  }, [user, fetchUser, refreshCart, checkNotificationStatus]);
+
+  useEffect(() => {
+    if (hasNewNotifications) {
+      console.log("📬 New notification, refreshing count...");
+      checkNotificationStatus();
+    }
+  }, [hasNewNotifications, checkNotificationStatus]);
 
   const handleNotificationPress = () => {
     router.push("/Screens/HomeScreen/NotificationScreen");
   };
 
-   useEffect(() => {
-    if (!user) fetchUser();
-    console.log("user")
-  }, [user, fetchUser]);
-
-  useEffect(() => {
-    const STALE_TIME = 5 * 60 * 1000; // 5 minutes
-
-    const init = async () => {
-      try {
-        const token = await AsyncStorage.getItem("accessToken");
-        const now = Date.now();
-
-        // CART
-        const lastCartFetch = await AsyncStorage.getItem(
-          `cartTimestamp_${token}`
-        );
-        if (!lastCartFetch || now - Number(lastCartFetch) > STALE_TIME) {
-          await refreshCart();
-          console.log("carts home");
-          if (token) {
-            await AsyncStorage.setItem(
-              `cartTimestamp_${token}`,
-              now.toString()
-            );
-          }
-        }
-
-        // NOTIFICATIONS
-        if (token && token !== "null") {
-          const lastNotifFetch = await AsyncStorage.getItem(
-            `notifTimestamp_${token}`
-          );
-          if (!lastNotifFetch || now - Number(lastNotifFetch) > STALE_TIME) {
-            await checkNotificationStatus();
-            console.log("nots");
-
-            await AsyncStorage.setItem(
-              `notifTimestamp_${token}`,
-              now.toString()
-            );
-          }
-        }
-      } catch (err) {
-        console.error("Init error:", err);
-      }
-    };
-
-    init();
-  }, []);
-
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
 
     try {
-      const token = await AsyncStorage.getItem("accessToken");
-      const now = Date.now();
-      const STALE_TIME = 5 * 60 * 1000;
-
       await requestLocation();
-
-      const lastCartFetch = await AsyncStorage.getItem(
-        `cartTimestamp_${token}`
-      );
-      const lastCartError = await AsyncStorage.getItem(`cartError_${token}`);
-
-      if (
-        !lastCartFetch ||
-        now - Number(lastCartFetch) > STALE_TIME ||
-        lastCartError === "true"
-      ) {
-        try {
-          await refreshCart();
-          await AsyncStorage.setItem(`cartTimestamp_${token}`, now.toString());
-          await AsyncStorage.setItem(`cartError_${token}`, "false");
-        } catch (err) {
-          await AsyncStorage.setItem(`cartError_${token}`, "true");
-        }
-      }
-
-      // NOTIFICATIONS — only fetch if stale or if previous fetch failed
-      if (token && token !== "null") {
-        const lastNotifFetch = await AsyncStorage.getItem(
-          `notifTimestamp_${token}`
-        );
-        const lastNotifError = await AsyncStorage.getItem(
-          `notifError_${token}`
-        );
-
-        if (
-          !lastNotifFetch ||
-          now - Number(lastNotifFetch) > STALE_TIME ||
-          lastNotifError === "true"
-        ) {
-          try {
-            await checkNotificationStatus();
-            await AsyncStorage.setItem(
-              `notifTimestamp_${token}`,
-              now.toString()
-            );
-            await AsyncStorage.setItem(`notifError_${token}`, "false");
-          } catch (err) {
-            await AsyncStorage.setItem(`notifError_${token}`, "true");
-          }
-        }
-      }
+      await refreshCart();
+      await checkNotificationStatus();
+      setRefreshTrigger((prev) => !prev);
     } catch (err) {
-      console.log("Refresh error:", err);
+      console.error("Refresh error:", err);
     }
 
     setRefreshing(false);
-  }, [requestLocation, refreshCart]);
+  }, [requestLocation, refreshCart, checkNotificationStatus]);
 
   return (
     <ScreenWrapper>
@@ -257,7 +184,6 @@ export default function Home() {
         </View>
       </View>
 
-      {/* Search input */}
       <View className="mx-[20px] mt-[24px]">
         <SearchInput />
       </View>
@@ -273,7 +199,6 @@ export default function Home() {
           <BannerSlider />
         </View>
 
-        {/* Sections */}
         <View className="mt-[24px] gap-[24px]">
           <Categories refreshTrigger={refreshTrigger} />
           <TopratedShops refreshTrigger={refreshTrigger} />

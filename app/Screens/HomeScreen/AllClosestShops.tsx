@@ -2,11 +2,7 @@ import { View, FlatList, Platform, RefreshControl } from "react-native";
 import React, { useState } from "react";
 import HeaderWithSearchInput from "@/common/HeaderWithSearchInput";
 import ShopCard, { Shop } from "@/common/ShopCard";
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import StoreApi from "@/api/StoreApi";
 import ScreenWrapper from "@/common/ScreenWrapper";
 import NoData from "@/common/NoData";
@@ -18,10 +14,10 @@ import { useLocationStore } from "@/store/locationStore";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 import OreAppText from "@/common/OreApptext";
+import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 
 export default function AllClosestShops() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const {
     latitude,
     longitude,
@@ -38,7 +34,7 @@ export default function AllClosestShops() {
     latitude != null &&
     longitude != null;
 
-  // Use InfiniteQuery for pagination
+  // Use InfiniteQuery instead of manual pagination
   const {
     data,
     isLoading,
@@ -85,8 +81,8 @@ export default function AllClosestShops() {
     },
     initialPageParam: 1,
     enabled: canFetch,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -94,70 +90,10 @@ export default function AllClosestShops() {
   // Flatten all pages into a single array
   const allShops = data?.pages.flatMap((page) => page.shops) || [];
 
-  // Favorite mutation with optimistic updates
-  const favoriteMutation = useMutation({
-    mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
-    onMutate: async (storeId: string) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: ["AllClosestStores", latitude, longitude],
-      });
-
-      // Snapshot the previous value
-      const previousData = queryClient.getQueryData([
-        "AllClosestStores",
-        latitude,
-        longitude,
-      ]);
-
-      // Optimistically update
-      queryClient.setQueryData(
-        ["AllClosestStores", latitude, longitude],
-        (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page: any) => ({
-              ...page,
-              shops: page.shops.map((shop: Shop) =>
-                shop.id === storeId
-                  ? { ...shop, isFavorite: !shop.isFavorite }
-                  : shop
-              ),
-            })),
-          };
-        }
-      );
-
-      return { previousData };
-    },
-    onError: (error, storeId, context) => {
-      // Revert on error
-      if (context?.previousData) {
-        queryClient.setQueryData(
-          ["AllClosestStores", latitude, longitude],
-          context.previousData
-        );
-      }
-    },
-    onSettled: () => {
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ["topRatedStores"] });
-      queryClient.invalidateQueries({ queryKey: ["closestStores"] });
-      queryClient.invalidateQueries({ queryKey: ["favoriteStores"] });
-      queryClient.invalidateQueries({ queryKey: ["AlltopRatedStores"] });
-      queryClient.invalidateQueries({ queryKey: ["ALl-topRatedStores"] });
-    },
+  const { handleFavoritePress } = useFavoriteShop({
+    queryKey: ["AllClosestStores", latitude, longitude],
+    onLoginRequired: () => setLoginVisible(true),
   });
-
-  const handleFavoritePress = async (storeId: string) => {
-    const token = await Storage.get("accessToken");
-    if (!token) {
-      setLoginVisible(true);
-      return;
-    }
-    favoriteMutation.mutate(storeId);
-  };
 
   const handleRefresh = async () => {
     await refetch();
@@ -178,12 +114,10 @@ export default function AllClosestShops() {
   );
 
   const ListEmptyComponent = () => {
-    // Show loading skeletons only on initial load
     if (isLoading && allShops.length === 0 && canFetch) {
       return null;
     }
 
-    // Location is being fetched
     if (locationIsLoading) {
       return (
         <View className="py-20 px-6">
@@ -196,7 +130,6 @@ export default function AllClosestShops() {
       );
     }
 
-    // Location permission denied
     if (hasPermission === false) {
       return (
         <View className="py-20 px-6">
@@ -238,7 +171,6 @@ export default function AllClosestShops() {
       );
     }
 
-    // Location not available yet
     if (!latitude || !longitude) {
       return (
         <View className="py-20 px-6">
@@ -261,7 +193,6 @@ export default function AllClosestShops() {
       );
     }
 
-    // No stores found after successful fetch
     if (allShops.length === 0 && !isLoading) {
       return <NoData title="Empty Data" subtitle="" />;
     }

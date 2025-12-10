@@ -30,7 +30,6 @@ export default function TopratedShops({ refreshTrigger }: Props) {
 
   const [loginVisible, setLoginVisible] = useState(false);
 
-  // Determine coordinates to use
   const lat = hasPermission === true && latitude != null ? latitude : null;
   const lng = hasPermission === true && longitude != null ? longitude : null;
 
@@ -40,7 +39,6 @@ export default function TopratedShops({ refreshTrigger }: Props) {
     lng?.toString() ?? "null",
   ];
 
-  // React Query for fetching top rated stores
   const {
     data: shops = [],
     isLoading: loading,
@@ -66,6 +64,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
           store_open: store.open_time,
           store_close: store.close_time,
           isFavorite: store.is_favorited ?? false,
+          rating: store.store_rating,
           distance: store.distance_km
             ? `${parseFloat(store.distance_km).toFixed(1)}`
             : "N/A",
@@ -85,11 +84,7 @@ export default function TopratedShops({ refreshTrigger }: Props) {
   }, [refreshTrigger, error, refetch]);
 
   const { handleFavoritePress } = useFavoriteShop({
-    queryKey: [
-      "topRatedStores",
-      lat?.toString() ?? "null",
-      lng?.toString() ?? "null",
-    ],
+    queryKey,
     onLoginRequired: () => setLoginVisible(true),
   });
 

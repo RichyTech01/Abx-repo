@@ -1,12 +1,12 @@
 import { View } from "react-native";
 import CustomerReview from "@/common/CustomerReview";
-import Button from "@/common/Button";
 import UrbanistText from "@/common/UrbanistText";
+import { formatDate } from "@/utils/formatDate";
 
 type FeedbackItem = {
   id: number;
   rating: number;
-  date: string;
+  created_at: string;
   title: string;
   message: string;
   username: string;
@@ -20,8 +20,10 @@ type CustomerFeedbackProps = {
 export default function CustomerFeedback({ feedback }: CustomerFeedbackProps) {
   if (!feedback || feedback.length === 0) {
     return (
-      <View className="mt-[16px]"> 
-        <UrbanistText className="py-10 mx-auto text-[16px]">No reviews yet.</UrbanistText>
+      <View className="mt-[16px]">
+        <UrbanistText className="py-10 mx-auto text-[16px]">
+          No reviews yet.
+        </UrbanistText>
         {/* <View className="mt-[16px]">
           <Button
             title="Write a review"
@@ -32,7 +34,6 @@ export default function CustomerFeedback({ feedback }: CustomerFeedbackProps) {
       </View>
     );
   }
-
   return (
     <View className="mt-[16px]">
       <View className="gap-[24px]">
@@ -40,7 +41,7 @@ export default function CustomerFeedback({ feedback }: CustomerFeedbackProps) {
           <CustomerReview
             key={item.id ?? index}
             rating={item.rating}
-            date={item.date || "13/03/25"}
+            date={formatDate(item.created_at)}
             title={item.title || "Excellent service"}
             content={item.message}
             author={item.username}
@@ -48,7 +49,6 @@ export default function CustomerFeedback({ feedback }: CustomerFeedbackProps) {
           />
         ))}
       </View>
-    
     </View>
   );
 }

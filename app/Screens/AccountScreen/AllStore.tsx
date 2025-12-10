@@ -18,6 +18,7 @@ import { useLocationStore } from "@/store/locationStore";
 import { SkeletonCard } from "@/common/SkeletonCard";
 import { useShimmerAnimation } from "@/hooks/useShimmerAnimation";
 import OreAppText from "@/common/OreApptext";
+import { useFavoriteShop } from "@/hooks/useFavoriteShop";
 
 export default function AllStore() {
   const router = useRouter();
@@ -105,70 +106,10 @@ export default function AllStore() {
   // Flatten all pages into a single array
   const allShops = data?.pages.flatMap((page) => page.shops) || [];
 
-  // Favorite mutation with optimistic updates
-  const favoriteMutation = useMutation({
-    mutationFn: (storeId: string) => StoreApi.toggleFavorite(Number(storeId)),
-    onMutate: async (storeId: string) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: ["allStores", latitude, longitude],
-      });
-
-      // Snapshot the previous value
-      const previousData = queryClient.getQueryData([
-        "allStores",
-        latitude,
-        longitude,
-      ]);
-
-      // Optimistically update
-      queryClient.setQueryData(
-        ["allStores", latitude, longitude],
-        (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page: any) => ({
-              ...page,
-              shops: page.shops.map((shop: Shop) =>
-                shop.id === storeId
-                  ? { ...shop, isFavorite: !shop.isFavorite }
-                  : shop
-              ),
-            })),
-          };
-        }
-      );
-
-      return { previousData };
-    },
-    onError: (error, storeId, context) => {
-      // Revert on error
-      if (context?.previousData) {
-        queryClient.setQueryData(
-          ["allStores", latitude, longitude],
-          context.previousData
-        );
-      }
-    },
-    onSettled: () => {
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ["topRatedStores"] });
-      queryClient.invalidateQueries({ queryKey: ["closestStores"] });
-      queryClient.invalidateQueries({ queryKey: ["favoriteStores"] });
-      queryClient.invalidateQueries({ queryKey: ["ALl-topRatedStores"] });
-      queryClient.invalidateQueries({ queryKey: ["AllClosestStores"] });
-    },
+  const { handleFavoritePress } = useFavoriteShop({
+    queryKey: ["allStores", latitude, longitude],
+    onLoginRequired: () => setLoginVisible(true),
   });
-
-  const handleFavoritePress = async (storeId: string) => {
-    const token = await Storage.get("accessToken");
-    if (!token) {
-      setLoginVisible(true);
-      return;
-    }
-    favoriteMutation.mutate(storeId);
-  };
 
   const handleRefresh = async () => {
     await refetch();

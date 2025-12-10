@@ -39,6 +39,14 @@ class AuthApi {
     return res.data;
   }
 
+  public async appleSignIn(data: {
+    identity_token: string;
+    full_name?: string;
+  }) {
+    const res = await this.client.post("/auth/apple/sign-in", data);
+    return res.data;
+  }
+
   public async logout(data: { refresh: string; device_token: string }) {
     const res = await this.client.post("/auth/logout", data);
     return res.data;

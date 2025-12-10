@@ -1,7 +1,8 @@
-import { View, Text, Pressable, Image } from "react-native";
+import { View, Text, Pressable, Image, Platform } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
 import GoogleAuth from "./GoogleAuth";
+import AppleAuth from "./AppleAuth";
 
 type Props = {
   name?: "Create account" | "Login";
@@ -52,8 +53,12 @@ export default function Authheader({
           </Pressable>
         </View>
       </View>
-
-      <GoogleAuth />  
+      <View>
+        <GoogleAuth />
+        {Platform.OS === "ios" && (
+          <AppleAuth />
+        )}
+      </View>
     </View>
   );
 }
